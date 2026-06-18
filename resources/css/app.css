@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #1C9F93;   /* Vert d’eau signature */
+  --color-secondary: #D4AF37; /* Or métallique */
+  --color-accent: #0F172A;    /* Bleu nuit profond */
+  --color-lightbg: #F8FAFC;   /* Fond clair */
+  --color-muted: #64748B;     /* Texte secondaire */
+}
