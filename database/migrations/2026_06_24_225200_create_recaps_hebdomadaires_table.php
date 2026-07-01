@@ -22,9 +22,12 @@ return new class extends Migration
             $table->decimal('salaire_total', 12, 2)->default(0);
             $table->enum('statut', [
                 'en_attente',
+                'soumise',
                 'validee_cp',
+                'rejetee',
                 'envoyee_direction'
             ])->default('en_attente');
+            $table->text('motif_rejet')->nullable();
             $table->timestamp('valide_le')->nullable();
             $table->foreignId('ouvrier_id')
                 ->constrained('personnels', 'id')

@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TauxSalaire extends Model
 {
-    use HasFactory;
-
     protected $table = 'taux_salaires';
 
     protected $fillable = [
@@ -23,7 +20,6 @@ class TauxSalaire extends Model
         'taux_heure_sup'  => 'decimal:2',
     ];
 
-    // Relations
     public function poste()
     {
         return $this->belongsTo(Poste::class, 'poste_id');

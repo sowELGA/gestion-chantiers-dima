@@ -27,6 +27,7 @@ return new class extends Migration
                 'livre'
             ])->default('en_attente');
             $table->foreignId('chef_projet_id')
+                ->nullable()
                 ->constrained('users', 'id')
                 ->onDelete('restrict');
             $table->foreignId('pointeur_id')

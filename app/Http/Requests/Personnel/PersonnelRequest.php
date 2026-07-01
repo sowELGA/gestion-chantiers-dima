@@ -1,25 +1,16 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Personnel;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PersonnelRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return auth()->user()->role === 'direction';
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -38,6 +29,7 @@ class PersonnelRequest extends FormRequest
             'poste_id.required'        => 'Le poste est obligatoire.',
             'poste_id.exists'          => 'Le poste sélectionné est invalide.',
             'chantier_id.required'     => 'Le chantier est obligatoire.',
+            'chantier_id.exists'       => 'Le chantier sélectionné est invalide.',
         ];
     }
 }

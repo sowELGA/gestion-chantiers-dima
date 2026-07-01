@@ -19,6 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('premiere_connexion')->default(true);
+            $table->boolean('actif')->default(true);
             $table->rememberToken();
             $table->enum('role', [
                 'direction',

@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
     {
         // Direction
         User::create([
-            'nomUser'            => 'Diaw',
-            'prenomUser'         => 'Mamadou',
+            'nomUser'            => 'Sow',
+            'prenomUser'         => 'Algassimou',
             'email'              => 'direction@dimagroupe.com',
             'password'           => Hash::make('password123'),
             'role'               => 'direction',
@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
 
         // Chef de projet
         User::create([
-            'nomUser'            => 'Sow',
-            'prenomUser'         => 'Algassimou',
+            'nomUser'            => 'Gueye',
+            'prenomUser'         => 'Babacar',
             'email'              => 'chefprojet@dimagroupe.com',
             'password'           => Hash::make('password123'),
             'role'               => 'chef_projet',
@@ -38,8 +38,8 @@ class DatabaseSeeder extends Seeder
 
         // Pointeur
         User::create([
-            'nomUser'            => 'Gueye',
-            'prenomUser'         => 'Babacargueye',
+            'nomUser'            => 'Konaré',
+            'prenomUser'         => 'Amadou',
             'email'              => 'pointeur@dimagroupe.com',
             'password'           => Hash::make('password123'),
             'role'               => 'pointeur',

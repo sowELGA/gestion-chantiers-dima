@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Personnel extends Model
 {
-    use HasFactory;
-
     protected $table = 'personnels';
 
     protected $fillable = [
@@ -19,13 +16,16 @@ class Personnel extends Model
         'chantier_id',
     ];
 
-    // Accesseur nom complet
     public function getNomCompletAttribute(): string
     {
         return $this->prenomPersonnel . ' ' . $this->nomPersonnel;
     }
 
-    // Relations
+    public function scopeActif($query)
+    {
+        return $query->where('statutPersonnel', 'actif');
+    }
+
     public function poste()
     {
         return $this->belongsTo(Poste::class, 'poste_id');

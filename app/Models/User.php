@@ -17,6 +17,7 @@ class User extends Authenticatable
         'password',
         'role',
         'premiere_connexion',
+        'actif',
     ];
 
     protected $hidden = [
@@ -26,6 +27,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'premiere_connexion' => 'boolean',
+        'actif' => 'boolean',
         'password'           => 'hashed',
     ];
 
@@ -36,6 +38,19 @@ class User extends Authenticatable
     }
 
     // Scopes
+
+    // Scope actifs
+    public function scopeActif($query)
+    {
+        return $query->where('actif', true);
+    }
+
+    // Scope inactifs
+    public function scopeInactif($query)
+    {
+        return $query->where('actif', false);
+    }
+    
     public function scopeDirection($query)
     {
         return $query->where('role', 'direction');

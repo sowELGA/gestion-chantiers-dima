@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Phase extends Model
 {
-    use HasFactory;
-
     protected $table = 'phases';
 
     protected $fillable = [
@@ -26,12 +23,12 @@ class Phase extends Model
         'date_fin_prevue' => 'date',
     ];
 
-    // Accesseurs
-    public function getAvancementAttribute(): float
+    // Accesseur avancement calculé depuis les tâches
+    public function getAvancementCalculeAttribute(): float
     {
         $taches = $this->taches;
         if ($taches->isEmpty()) return 0;
-        return round($taches->avg('avancement'), 2);
+        return round($taches->avg('avancement'), 1);
     }
 
     // Relations
@@ -42,6 +39,7 @@ class Phase extends Model
 
     public function taches()
     {
-        return $this->hasMany(Tache::class, 'phase_id');
+        return $this->hasMany(Tache::class, 'phase_id')
+            ->orderBy('date_debut_prevue');
     }
 }

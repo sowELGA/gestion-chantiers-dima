@@ -118,17 +118,17 @@
                     </svg>
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('chef_projet.phases.index') }}"
+                    <a href="{{ route('chef_projet.phases.index', $chantier) }}"
                         class="block px-3 py-2 text-sm text-slate-400
                           hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
                         Gérer les phases
                     </a>
-                    <a href="{{ route('chef_projet.taches.index') }}"
+                    <a href="{{ route('chef_projet.taches.index', $chantier) }}"
                         class="block px-3 py-2 text-sm text-slate-400
                           hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
                         Gérer les tâches
                     </a>
-                    <a href="{{ route('chef_projet.taches.gantt') }}"
+                    <a href="{{ route('chef_projet.taches.gantt', $chantier) }}"
                         class="block px-3 py-2 text-sm text-slate-400
                           hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
                         Diagramme de Gantt
@@ -261,7 +261,7 @@
                   text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">
                 Mes Chantiers
             </a>
-            <a href="{{ route('chef_projet.taches.index') }}"
+            <a href="{{ route('chef_projet.taches.index', $chantier) }}"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">
                 Phases et Tâches
