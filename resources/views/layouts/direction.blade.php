@@ -50,36 +50,35 @@
 
             {{-- Dashboard --}}
             <a href="{{ route('direction.dashboard') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
-                  rounded-lg transition-all
-                  {{ request()->routeIs('direction.dashboard')
-                      ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+              transition-all
+              {{ request()->routeIs('direction.dashboard')
+                  ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                 <svg class="w-5 h-5 flex-shrink-0
-                        {{ request()->routeIs('direction.dashboard') ? 'text-[#1C9F93]' : '' }}"
+                    {{ request()->routeIs('direction.dashboard') ? 'text-[#1C9F93]' : '' }}"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2
-                         0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0
-                         01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0
-                         012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2
-                         0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0
-                         01-2-2v-2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0
+                     01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2
+                     2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2
+                     2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0
+                     012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
                 <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
-                    Tableau de bord
+                    Dashboard
                 </span>
             </a>
 
             {{-- Chantiers --}}
             <div x-data="{ open: {{ request()->routeIs('direction.chantiers*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                       text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                       transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
-                             0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
-                             10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9
+                         0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
+                         1 0 011 1v5m-4 0h4" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Suivi des Chantiers
@@ -92,13 +91,13 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('direction.chantiers.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Liste des chantiers
                     </a>
                     <a href="{{ route('direction.chantiers.create') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Nouveau chantier
                     </a>
                 </div>
@@ -107,13 +106,12 @@
             {{-- Utilisateurs --}}
             <div x-data="{ open: {{ request()->routeIs('direction.users*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                       text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                       transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0
-                             0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4
-                             4 0 11-8 0 4 4 0 018 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0
+                         0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Utilisateurs
@@ -126,13 +124,13 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('direction.users.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Liste des utilisateurs
                     </a>
                     <a href="{{ route('direction.users.create') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Nouvel utilisateur
                     </a>
                 </div>
@@ -141,18 +139,17 @@
             {{-- Personnel --}}
             <div x-data="{ open: {{ request()->routeIs('direction.personnel*') || request()->routeIs('direction.postes*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                       text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                       transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
-                             0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3
-                             3 0 015.356-1.857M7 20v-2c0-.656.126-1.283
-                             .356-1.857m0 0a5.002 5.002 0 019.288 0M15
-                             7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126
+                         -1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656
+                         .126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0
+                         11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Personnels
+                        Collaborateurs
                     </span>
                     <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
                         class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
@@ -162,18 +159,18 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('direction.personnel.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Liste du personnel
                     </a>
                     <a href="{{ route('direction.personnel.create') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Ajouter un ouvrier
                     </a>
                     <a href="{{ route('direction.postes.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Gérer les postes
                     </a>
                 </div>
@@ -182,14 +179,13 @@
             {{-- Salaires --}}
             <div x-data="{ open: {{ request()->routeIs('direction.salaires*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                       text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                       transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895
-                             3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12
-                             8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21
-                             12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343
+                         2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1
+                         c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Salaires
@@ -202,13 +198,13 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('direction.salaires.taux') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Taux salariaux
                     </a>
                     <a href="{{ route('direction.salaires.recaps') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Fiches de paie
                     </a>
                 </div>
@@ -217,12 +213,12 @@
             {{-- Approvisionnements --}}
             <div x-data="{ open: {{ request()->routeIs('direction.appro*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                       text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                       transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4
-                             7m8 4v10M4 7v10l8 4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Approvisionnements
@@ -235,29 +231,45 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('direction.appro.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Demandes en attente
                     </a>
                     <a href="{{ route('direction.appro.historique') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Historique
                     </a>
                 </div>
             </div>
 
+            {{-- Pointage --}}
+            <a href="{{ route('direction.pointage.recap') }}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+          transition-all
+          {{ request()->routeIs('direction.pointage*')
+              ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+              : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2
+                     0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2
+                     2 0 012 2" />
+                </svg>
+                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                    Pointage
+                </span>
+            </a>
+
             {{-- Rapports --}}
             <a href="{{ route('direction.rapports.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
-                  rounded-lg transition-all
-                  {{ request()->routeIs('direction.rapports*')
-                      ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+              transition-all
+              {{ request()->routeIs('direction.rapports*')
+                  ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2
-                         2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1
-                         0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
+                     1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
                     Rapports
@@ -301,7 +313,6 @@
         <div class="flex items-center justify-between px-4 py-5
                 border-b border-slate-700/50">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/dima-logo.svg') }}" alt="Dima Groupe" class="h-6 brightness-0 invert">
                 <div>
                     <p class="text-base font-bold">Dima Groupe</p>
                     <span class="text-[10px] text-[#1C9F93] font-bold uppercase">

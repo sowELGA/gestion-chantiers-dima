@@ -134,15 +134,12 @@ class ChantierController extends Controller
     // Changer le statut
     public function changerStatut(Chantier $chantier, string $statut)
     {
-        $statuts = ['en_attente', 'en_cours', 'suspendu', 'livre'];
-
-        if (!in_array($statut, $statuts)) {
-            return back()->with('error', 'Statut invalide.');
+        try {
+            $this->chantierService->changerStatut($chantier, $statut);
+            return back()->with('success', 'Statut mis à jour avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $this->chantierService->changerStatut($chantier, $statut);
-
-        return back()->with('success', 'Statut mis à jour avec succès.');
     }
 
     // Ajouter une dépense

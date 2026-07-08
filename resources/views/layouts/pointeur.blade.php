@@ -47,71 +47,71 @@
 
             {{-- Dashboard --}}
             <a href="{{ route('pointeur.dashboard') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
-                  rounded-lg transition-all
-                  {{ request()->routeIs('pointeur.dashboard')
-                      ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+              transition-all
+              {{ request()->routeIs('pointeur.dashboard')
+                  ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                 <svg class="w-5 h-5 flex-shrink-0
-                        {{ request()->routeIs('pointeur.dashboard') ? 'text-[#1C9F93]' : '' }}"
+                    {{ request()->routeIs('pointeur.dashboard') ? 'text-[#1C9F93]' : '' }}"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2
-                         0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0
-                         01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0
-                         012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2
-                         0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0
-                         01-2-2v-2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0
+                     01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2
+                     2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2
+                     2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0
+                     012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
                 <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
                     Dashboard
                 </span>
             </a>
 
-            {{-- Pointage --}}
-            <div x-data="{ open: {{ request()->routeIs('pointeur.pointage*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
-                             0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3
-                             3 0 015.356-1.857M7 20v-2c0-.656.126-1.283
-                             .356-1.857m0 0a5.002 5.002 0 019.288 0M15
-                             7a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Pointage
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('pointeur.pointage.fiche') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Fiche du jour
-                    </a>
-                    <a href="{{ route('pointeur.pointage.historique') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Historique pointage
-                    </a>
-                </div>
-            </div>
+            {{-- Fiche du jour --}}
+            <a href="{{ route('pointeur.pointage.fiche') }}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+          transition-all
+          {{ request()->routeIs('pointeur.pointage.fiche')
+              ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+              : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                <svg class="w-5 h-5 flex-shrink-0
+                {{ request()->routeIs('pointeur.pointage.fiche') ? 'text-[#1C9F93]' : '' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283
+                 -.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283
+                 .356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                    Fiche du jour
+                </span>
+            </a>
 
-            {{-- Approvisionnements --}}
+            {{-- Récap de la semaine --}}
+            <a href="{{ route('pointeur.pointage.recap') }}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+          transition-all
+          {{ request()->routeIs('pointeur.pointage.recap')
+              ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+              : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                <svg class="w-5 h-5 flex-shrink-0
+                {{ request()->routeIs('pointeur.pointage.recap') ? 'text-[#1C9F93]' : '' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
+                 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                    Récap de la semaine
+                </span>
+            </a>
+
+            {{-- Réceptions --}}
             <div x-data="{ open: {{ request()->routeIs('pointeur.appro*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                       text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                       transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4
-                             7m8 4v10M4 7v10l8 4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Réceptions
@@ -124,13 +124,13 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('pointeur.appro.livraisons') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Livraisons en cours
                     </a>
                     <a href="{{ route('pointeur.appro.historique') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
                         Bons d'entrée
                     </a>
                 </div>
@@ -169,19 +169,17 @@
         <div class="flex items-center justify-between px-4 py-5
                 border-b border-slate-700/50">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/dima-logo.svg') }}" alt="Dima Groupe" class="h-6 brightness-0 invert">
-                <div>
-                    <p class="text-base font-bold">Dima Groupe</p>
-                    <span class="text-[10px] text-[#1C9F93] font-bold uppercase">
-                        Immobilier Moderne
-                    </span>
-                </div>
+                <p class="text-base font-bold">Dima Groupe</p>
+                <span class="text-[10px] text-[#1C9F93] font-bold uppercase">
+                    Immobilier Moderne
+                </span>
             </div>
-            <button @click="sidebarMobile = false" class="text-slate-400 hover:text-white">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+        </div>
+        <button @click="sidebarMobile = false" class="text-slate-400 hover:text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
         </div>
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
             <a href="{{ route('pointeur.dashboard') }}"

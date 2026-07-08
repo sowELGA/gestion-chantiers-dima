@@ -18,24 +18,23 @@
               flex-col shadow-xl hidden lg:flex">
 
         {{-- Logo --}}
-        <div class="flex items-center justify-between px-4 py-5
-                border-b border-slate-700/50">
+        <div class="flex items-center justify-between px-4 py-5 border-b border-slate-700/50">
             <div class="flex items-center gap-3 overflow-hidden">
+                <img src="{{ asset('images/dima-logo.svg') }}" alt="Dima Groupe"
+                    class="h-6 flex-shrink-0 brightness-0 invert">
                 <div x-show="sidebarOpen" x-transition class="overflow-hidden">
-                    <p
-                        class="text-base font-bold tracking-wide leading-tight
-                           whitespace-nowrap">
-                        Dima Groupe</p>
+                    <p class="text-base font-bold tracking-wide leading-tight whitespace-nowrap">
+                        Dima Groupe
+                    </p>
                     <span
-                        class="text-[10px] text-[#1C9F93] font-bold
-                              uppercase tracking-wider whitespace-nowrap">
+                        class="text-[10px] text-[#1C9F93] font-bold uppercase
+                              tracking-wider whitespace-nowrap">
                         Immobilier Moderne
                     </span>
                 </div>
             </div>
             <button @click="sidebarOpen = !sidebarOpen"
-                class="text-slate-400 hover:text-white transition-colors
-                       flex-shrink-0 ml-2">
+                class="text-slate-400 hover:text-white transition-colors flex-shrink-0 ml-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -47,20 +46,19 @@
 
             {{-- Dashboard --}}
             <a href="{{ route('chef_projet.dashboard') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
-                  rounded-lg transition-all
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+                  transition-all
                   {{ request()->routeIs('chef_projet.dashboard')
                       ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
                       : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                 <svg class="w-5 h-5 flex-shrink-0
                         {{ request()->routeIs('chef_projet.dashboard') ? 'text-[#1C9F93]' : '' }}"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2
-                         0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0
-                         01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0
-                         012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2
-                         0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0
-                         01-2-2v-2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0
+                         01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2
+                         2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2
+                         2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0
+                         012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
                 <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
                     Dashboard
@@ -68,45 +66,36 @@
             </a>
 
             {{-- Mes Chantiers --}}
-            <div x-data="{ open: {{ request()->routeIs('chef_projet.chantiers*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
-                             0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
-                             10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Mes Chantiers
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('chef_projet.chantiers.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Liste des chantiers
-                    </a>
-                </div>
-            </div>
+            <a href="{{ route('chef_projet.chantiers.index') }}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+                  transition-all
+                  {{ request()->routeIs('chef_projet.chantiers.index') || request()->routeIs('chef_projet.chantiers.show')
+                      ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9
+                         0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
+                         1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                    Mes Chantiers
+                </span>
+            </a>
 
-            {{-- Phases et Tâches --}}
-            <div x-data="{ open: {{ request()->routeIs('chef_projet.taches*') || request()->routeIs('chef_projet.phases*') ? 'true' : 'false' }} }">
+            {{-- Phases et Tâches → liste chantiers avec bouton Planifier --}}
+            <div x-data="{ open: {{ request()->routeIs('chef_projet.phases*') || request()->routeIs('chef_projet.taches*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0
-                             002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2
-                             2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6
-                             9l2 2 4-4" />
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           rounded-lg transition-all
+                           {{ request()->routeIs('chef_projet.phases*') || request()->routeIs('chef_projet.taches*')
+                               ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                               : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0
+                            {{ request()->routeIs('chef_projet.phases*') || request()->routeIs('chef_projet.taches*') ? 'text-[#1C9F93]' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2
+                             0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2
+                             2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Phases et Tâches
@@ -117,35 +106,57 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('chef_projet.phases.index', $chantier) }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Gérer les phases
-                    </a>
-                    <a href="{{ route('chef_projet.taches.index', $chantier) }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Gérer les tâches
-                    </a>
-                    <a href="{{ route('chef_projet.taches.gantt', $chantier) }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Diagramme de Gantt
-                    </a>
+
+                {{-- Liste des chantiers avec bouton Planifier --}}
+                <div x-show="open && sidebarOpen" x-transition class="ml-3 mt-1 space-y-1">
+                    @php
+                        $mesChantiers = \App\Models\Chantier::where('chef_projet_id', auth()->id())
+                            ->whereIn('statut', ['en_attente', 'en_cours'])
+                            ->orderBy('nomChantier')
+                            ->get();
+                    @endphp
+                    @forelse($mesChantiers as $c)
+                        <div
+                            class="flex items-center justify-between px-2 py-1.5 rounded-lg
+                hover:bg-slate-800/30 group">
+                            <span class="text-xs text-slate-400 truncate max-w-28" title="{{ $c->nomChantier }}">
+                                {{ Str::limit($c->nomChantier, 18) }}
+                            </span>
+                            @if ($c->statut !== 'livre')
+                                <a href="{{ route('chef_projet.phases.index', $c->id) }}"
+                                    class="text-[10px] font-semibold px-2 py-0.5 rounded flex-shrink-0
+                      ml-1 bg-[#1C9F93]/20 text-[#1C9F93] hover:bg-[#1C9F93]
+                      hover:text-white transition-colors">
+                                    Planifier
+                                </a>
+                            @else
+                                <span
+                                    class="text-[10px] px-2 py-0.5 rounded flex-shrink-0 ml-1
+                         bg-slate-700 text-slate-500">
+                                    Livré
+                                </span>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="text-xs text-slate-500 px-3 py-2">Aucun chantier.</p>
+                    @endforelse
                 </div>
             </div>
 
-            {{-- Pointage --}}
+            {{-- Pointage → liste chantiers pour choisir --}}
             <div x-data="{ open: {{ request()->routeIs('chef_projet.pointage*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0
-                             002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2
-                             2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           rounded-lg transition-all
+                           {{ request()->routeIs('chef_projet.pointage*')
+                               ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                               : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0
+                            {{ request()->routeIs('chef_projet.pointage*') ? 'text-[#1C9F93]' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2
+                             2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0
+                             012-2h2a2 2 0 012 2" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Pointage
@@ -156,29 +167,46 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('chef_projet.pointage.validation') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Fiches à valider
-                    </a>
-                    <a href="{{ route('chef_projet.pointage.historique') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
-                        Historique pointage
-                    </a>
+
+                {{-- Liste chantiers pour accéder au récap pointage --}}
+                <div x-show="open && sidebarOpen" x-transition class="ml-3 mt-1 space-y-1">
+                    @php
+                        $chantiersPointage = \App\Models\Chantier::where('chef_projet_id', auth()->id())
+                            ->whereIn('statut', ['en_attente', 'en_cours'])
+                            ->orderBy('nomChantier')
+                            ->get();
+                    @endphp
+                    @forelse($chantiersPointage as $c)
+                        <a href="{{ route('chef_projet.pointage.validation', $c->id) }}"
+                            class="flex items-center justify-between px-2 py-1.5 rounded-lg
+                              text-xs text-slate-400 hover:text-white
+                              hover:bg-slate-800/50 transition-all group
+                              {{ request()->is('*/' . $c->id . '/pointage*') ? 'text-white bg-slate-800/50' : '' }}">
+                            <span class="truncate max-w-36" title="{{ $c->nomChantier }}">
+                                {{ Str::limit($c->nomChantier, 22) }}
+                            </span>
+                            <svg class="w-3 h-3 text-slate-500 group-hover:text-[#1C9F93]
+                                   flex-shrink-0 ml-1 transition-colors"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    @empty
+                        <p class="text-xs text-slate-500 px-3 py-2">Aucun chantier.</p>
+                    @endforelse
                 </div>
             </div>
 
             {{-- Approvisionnements --}}
             <div x-data="{ open: {{ request()->routeIs('chef_projet.appro*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm
-                           font-medium text-slate-400 rounded-lg
-                           hover:bg-slate-800/50 hover:text-white transition-all">
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
+                           transition-all">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4
-                             7m8 4v10M4 7v10l8 4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
                         Approvisionnements
@@ -191,13 +219,13 @@
                 </button>
                 <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
                     <a href="{{ route('chef_projet.appro.create') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                          hover:bg-slate-800/50 rounded-lg transition-all">
                         Nouvelle demande
                     </a>
                     <a href="{{ route('chef_projet.appro.index') }}"
-                        class="block px-3 py-2 text-sm text-slate-400
-                          hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                          hover:bg-slate-800/50 rounded-lg transition-all">
                         Mes demandes
                     </a>
                 </div>
@@ -233,8 +261,7 @@
         x-transition:leave-end="-translate-x-full"
         class="fixed top-0 left-0 h-full w-64 bg-[#0F172A] text-white
               z-30 flex flex-col shadow-xl lg:hidden">
-        <div class="flex items-center justify-between px-4 py-5
-                border-b border-slate-700/50">
+        <div class="flex items-center justify-between px-4 py-5 border-b border-slate-700/50">
             <div class="flex items-center gap-3">
                 <img src="{{ asset('images/dima-logo.svg') }}" alt="Dima Groupe" class="h-6 brightness-0 invert">
                 <div>
@@ -261,12 +288,12 @@
                   text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">
                 Mes Chantiers
             </a>
-            <a href="{{ route('chef_projet.taches.index', $chantier) }}"
+            <a href="{{ route('chef_projet.chantiers.index') }}"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">
                 Phases et Tâches
             </a>
-            <a href="{{ route('chef_projet.pointage.validation') }}"
+            <a href="{{ route('chef_projet.chantiers.index') }}"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">
                 Pointage
@@ -278,9 +305,7 @@
             </a>
         </nav>
         <div class="px-4 py-4 border-t border-slate-700/50">
-            <p class="text-xs text-slate-500 text-center">
-                © 2026 Dima Groupe — v1.0
-            </p>
+            <p class="text-xs text-slate-500 text-center">© 2026 Dima Groupe — v1.0</p>
         </div>
     </aside>
 
@@ -317,10 +342,9 @@
                         class="relative p-2 text-slate-500 hover:text-[#1C9F93]
                                hover:bg-slate-100 rounded-lg transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118
-                                 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2
-                                 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0
-                                 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002
+                                 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388
+                                 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3
                                  0 11-6 0v-1m6 0H9" />
                         </svg>
                         @php
@@ -328,16 +352,16 @@
                         @endphp
                         @if ($notifCount > 0)
                             <span
-                                class="absolute top-1 right-1 w-4 h-4 bg-red-500
-                                     text-white text-[10px] rounded-full
-                                     flex items-center justify-center font-bold">
+                                class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white
+                                     text-[10px] rounded-full flex items-center justify-center
+                                     font-bold">
                                 {{ $notifCount }}
                             </span>
                         @endif
                     </button>
                     <div x-show="open" @click.outside="open = false" x-transition
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl
-                            shadow-lg border border-slate-200 z-50">
+                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg
+                            border border-slate-200 z-50">
                         <div class="px-4 py-3 border-b border-slate-100">
                             <h3 class="font-semibold text-sm text-[#0F172A]">Notifications</h3>
                         </div>
@@ -346,12 +370,8 @@
                                 <div
                                     class="px-4 py-3 hover:bg-slate-50
                                         {{ !$notif->lu ? 'bg-[#1C9F93]/5' : '' }}">
-                                    <p class="text-sm font-medium text-[#0F172A]">
-                                        {{ $notif->titre }}
-                                    </p>
-                                    <p class="text-xs text-slate-500 mt-0.5">
-                                        {{ $notif->message }}
-                                    </p>
+                                    <p class="text-sm font-medium text-[#0F172A]">{{ $notif->titre }}</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">{{ $notif->message }}</p>
                                     <p class="text-xs text-slate-400 mt-1">
                                         {{ $notif->created_at->diffForHumans() }}
                                     </p>
@@ -382,9 +402,7 @@
                             <p class="text-sm font-semibold text-[#0F172A]">
                                 {{ auth()->user()->nomComplet }}
                             </p>
-                            <p
-                                class="text-[11px] font-bold text-[#1C9F93]
-                                  uppercase tracking-wider">
+                            <p class="text-[11px] font-bold text-[#1C9F93] uppercase tracking-wider">
                                 Chef de projet
                             </p>
                         </div>
@@ -402,8 +420,8 @@
                         </svg>
                     </button>
                     <div x-show="open" @click.outside="open = false" x-transition
-                        class="absolute right-0 mt-2 w-52 bg-white rounded-xl
-                            shadow-lg border border-slate-200 z-50 py-1">
+                        class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg
+                            border border-slate-200 z-50 py-1">
                         <div class="px-4 py-3 border-b border-slate-100">
                             <p class="text-sm font-semibold text-[#0F172A]">
                                 {{ auth()->user()->nomComplet }}
@@ -416,9 +434,8 @@
                             class="flex items-center gap-2 px-4 py-2.5 text-sm
                               text-slate-600 hover:bg-slate-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11
-                                     17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0
-                                     01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1
+                                     1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                             </svg>
                             Changer mot de passe
                         </a>
@@ -429,9 +446,8 @@
                                     class="w-full flex items-center gap-2 px-4 py-2.5
                                            text-sm text-red-500 hover:bg-red-50 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3
-                                             0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3
-                                             3 0 013 3v1" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0
+                                             01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
                                     Se déconnecter
                                 </button>

@@ -3,7 +3,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChantierController;
 use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\PointageController;
 use App\Http\Controllers\PosteController;
+use App\Http\Controllers\RecapHebdomadaireController;
 use App\Http\Controllers\TacheController;
 use App\Http\Controllers\TauxSalaireController;
 use App\Http\Controllers\UserController;
@@ -35,117 +37,139 @@ Route::middleware('auth')->group(function () {
         ->name('logout');
 
     // ── DASHBOARDS Direction──────────────────────────────────────────────────────────
-    Route::middleware(['auth', 'premiere_connexion', 'role:direction'])->prefix('direction')->name('direction.')->group(function () {
+    Route::middleware(['auth', 'premiere_connexion', 'role:direction'])
+        ->prefix('direction')
+        ->name('direction.')
+        ->group(function () {
 
-        Route::get('/dashboard', function () {
-            return view('direction.dashboard');
-        })->name('dashboard');
+            Route::get('/dashboard', function () {
+                return view('direction.dashboard');
+            })->name('dashboard');
 
-        // Chantiers
-        Route::get('/chantiers', [ChantierController::class, 'index'])
-            ->name('chantiers.index');
-        Route::get('/chantiers/create', [ChantierController::class, 'create'])
-            ->name('chantiers.create');
-        Route::post('/chantiers', [ChantierController::class, 'store'])
-            ->name('chantiers.store');
-        Route::get('/chantiers/{chantier}', [ChantierController::class, 'show'])
-            ->name('chantiers.show');
-        Route::get('/chantiers/{chantier}/edit', [ChantierController::class, 'edit'])
-            ->name('chantiers.edit');
-        Route::put('/chantiers/{chantier}', [ChantierController::class, 'update'])
-            ->name('chantiers.update');
-        Route::delete('/chantiers/{chantier}', [ChantierController::class, 'destroy'])
-            ->name('chantiers.destroy');
+            // Chantiers
+            Route::get('/chantiers', [ChantierController::class, 'index'])
+                ->name('chantiers.index');
+            Route::get('/chantiers/create', [ChantierController::class, 'create'])
+                ->name('chantiers.create');
+            Route::post('/chantiers', [ChantierController::class, 'store'])
+                ->name('chantiers.store');
+            Route::get('/chantiers/{chantier}', [ChantierController::class, 'show'])
+                ->name('chantiers.show');
+            Route::get('/chantiers/{chantier}/edit', [ChantierController::class, 'edit'])
+                ->name('chantiers.edit');
+            Route::put('/chantiers/{chantier}', [ChantierController::class, 'update'])
+                ->name('chantiers.update');
+            Route::delete('/chantiers/{chantier}', [ChantierController::class, 'destroy'])
+                ->name('chantiers.destroy');
 
-        // Affectations
-        Route::patch(
-            '/chantiers/{chantier}/chef-projet',
-            [ChantierController::class, 'affecterChefProjet']
-        )
-            ->name('chantiers.affecter-chef');
-        Route::patch(
-            '/chantiers/{chantier}/pointeur',
-            [ChantierController::class, 'affecterPointeur']
-        )
-            ->name('chantiers.affecter-pointeur');
+            // Affectations
+            Route::patch(
+                '/chantiers/{chantier}/chef-projet',
+                [ChantierController::class, 'affecterChefProjet']
+            )
+                ->name('chantiers.affecter-chef');
+            Route::patch(
+                '/chantiers/{chantier}/pointeur',
+                [ChantierController::class, 'affecterPointeur']
+            )
+                ->name('chantiers.affecter-pointeur');
 
-        // Statut
-        Route::patch(
-            '/chantiers/{chantier}/statut/{statut}',
-            [ChantierController::class, 'changerStatut']
-        )
-            ->name('chantiers.statut');
+            // Statut
+            Route::patch(
+                '/chantiers/{chantier}/statut/{statut}',
+                [ChantierController::class, 'changerStatut']
+            )
+                ->name('chantiers.statut');
 
-        // Dépenses
-        Route::post(
-            '/chantiers/{chantier}/depenses',
-            [ChantierController::class, 'ajouterDepense']
-        )
-            ->name('chantiers.depenses.store');
-        Route::delete(
-            '/chantiers/{chantier}/depenses/{depense}',
-            [ChantierController::class, 'supprimerDepense']
-        )
-            ->name('chantiers.depenses.destroy');
-        // Utilisateurs
-        Route::get('/utilisateurs', [UserController::class, 'index'])
-            ->name('users.index');
-        Route::get('/utilisateurs/create', [UserController::class, 'create'])
-            ->name('users.create');
-        Route::post('/utilisateurs', [UserController::class, 'store'])
-            ->name('users.store');
-        Route::get('/utilisateurs/{user}/edit', [UserController::class, 'edit'])
-            ->name('users.edit');
-        Route::put('/utilisateurs/{user}', [UserController::class, 'update'])
-            ->name('users.update');
-        Route::patch('/utilisateurs/{user}/statut', [UserController::class, 'toggleStatut'])
-            ->name('users.toggle-statut');
-        Route::patch('/utilisateurs/{user}/reinitialiser', [UserController::class, 'reinitialiserMotDePasse'])
-            ->name('users.reinitialiser');
+            // Dépenses
+            Route::post(
+                '/chantiers/{chantier}/depenses',
+                [ChantierController::class, 'ajouterDepense']
+            )
+                ->name('chantiers.depenses.store');
+            Route::delete(
+                '/chantiers/{chantier}/depenses/{depense}',
+                [ChantierController::class, 'supprimerDepense']
+            )
+                ->name('chantiers.depenses.destroy');
+            // Utilisateurs
+            Route::get('/utilisateurs', [UserController::class, 'index'])
+                ->name('users.index');
+            Route::get('/utilisateurs/create', [UserController::class, 'create'])
+                ->name('users.create');
+            Route::post('/utilisateurs', [UserController::class, 'store'])
+                ->name('users.store');
+            Route::get('/utilisateurs/{user}/edit', [UserController::class, 'edit'])
+                ->name('users.edit');
+            Route::put('/utilisateurs/{user}', [UserController::class, 'update'])
+                ->name('users.update');
+            Route::patch('/utilisateurs/{user}/statut', [UserController::class, 'toggleStatut'])
+                ->name('users.toggle-statut');
+            Route::patch('/utilisateurs/{user}/reinitialiser', [UserController::class, 'reinitialiserMotDePasse'])
+                ->name('users.reinitialiser');
 
-        // Postes
-        Route::get('/postes', [PosteController::class, 'index'])
-            ->name('postes.index');
-        Route::post('/postes', [PosteController::class, 'store'])
-            ->name('postes.store');
-        Route::put('/postes/{poste}', [PosteController::class, 'update'])
-            ->name('postes.update');
-        Route::delete('/postes/{poste}', [PosteController::class, 'destroy'])
-            ->name('postes.destroy');
+            // Postes
+            Route::get('/postes', [PosteController::class, 'index'])
+                ->name('postes.index');
+            Route::post('/postes', [PosteController::class, 'store'])
+                ->name('postes.store');
+            Route::put('/postes/{poste}', [PosteController::class, 'update'])
+                ->name('postes.update');
+            Route::delete('/postes/{poste}', [PosteController::class, 'destroy'])
+                ->name('postes.destroy');
 
-        // Personnel
-        Route::get('/personnel', [PersonnelController::class, 'index'])
-            ->name('personnel.index');
-        Route::get('/personnel/create', [PersonnelController::class, 'create'])
-            ->name('personnel.create');
-        Route::post('/personnel', [PersonnelController::class, 'store'])
-            ->name('personnel.store');
-        Route::get('/personnel/{personnel}/edit', [PersonnelController::class, 'edit'])
-            ->name('personnel.edit');
-        Route::put('/personnel/{personnel}', [PersonnelController::class, 'update'])
-            ->name('personnel.update');
-        Route::patch(
-            '/personnel/{personnel}/statut',
-            [PersonnelController::class, 'toggleStatut']
-        )
-            ->name('personnel.toggle-statut');
+            // Personnel
+            Route::get('/personnel', [PersonnelController::class, 'index'])
+                ->name('personnel.index');
+            Route::get('/personnel/create', [PersonnelController::class, 'create'])
+                ->name('personnel.create');
+            Route::post('/personnel', [PersonnelController::class, 'store'])
+                ->name('personnel.store');
+            Route::get('/personnel/{personnel}/edit', [PersonnelController::class, 'edit'])
+                ->name('personnel.edit');
+            Route::put('/personnel/{personnel}', [PersonnelController::class, 'update'])
+                ->name('personnel.update');
+            Route::patch('/personnel/{personnel}/statut', [PersonnelController::class, 'toggleStatut'])
+                ->name('personnel.toggle-statut');
 
-        Route::get('/salaires/taux', [TauxSalaireController::class, 'index'])
-            ->name('salaires.taux');
-        Route::get('/salaires/taux/{chantier}', [TauxSalaireController::class, 'edit'])
-            ->name('salaires.taux.edit');
-        Route::put('/salaires/taux/{chantier}', [TauxSalaireController::class, 'update'])
-            ->name('salaires.taux.update');
+            Route::get('/salaires/taux', [TauxSalaireController::class, 'index'])
+                ->name('salaires.taux');
+            Route::get('/salaires/taux/{chantier}', [TauxSalaireController::class, 'edit'])
+                ->name('salaires.taux.edit');
+            Route::put('/salaires/taux/{chantier}', [TauxSalaireController::class, 'update'])
+                ->name('salaires.taux.update');
 
-        Route::get('/salaires/recaps', fn() => view('direction.salaires.recaps'))->name('salaires.recaps');
+            Route::get(
+                '/pointage/recap',
+                [PointageController::class, 'recapDirection']
+            )
+                ->name('pointage.recap');
+            Route::post(
+                '/pointage/{chantier}/calculer',
+                [PointageController::class, 'calculerSalaires']
+            )
+                ->name('pointage.calculer');
 
-        // Approvisionnements
-        Route::get('/approvisionnements', fn() => view('direction.appro.index'))->name('appro.index');
-        Route::get('/approvisionnements/historique', fn() => view('direction.appro.historique'))->name('appro.historique');
+            // Fiches de paie
+            Route::get('/salaires/recaps', [RecapHebdomadaireController::class, 'index'])
+                ->name('salaires.recaps');
+            Route::get(
+                '/salaires/recaps/{chantier}/apercu',
+                [RecapHebdomadaireController::class, 'apercu']
+            )
+                ->name('salaires.apercu');
+            Route::get(
+                '/salaires/recaps/{chantier}/pdf',
+                [RecapHebdomadaireController::class, 'genererPdf']
+            )
+                ->name('salaires.pdf');
+            // Approvisionnements
+            Route::get('/approvisionnements', fn() => view('direction.appro.index'))->name('appro.index');
+            Route::get('/approvisionnements/historique', fn() => view('direction.appro.historique'))->name('appro.historique');
 
-        // Rapports
-        Route::get('/rapports', fn() => view('direction.rapports.index'))->name('rapports.index');
-    });
+            // Rapports
+            Route::get('/rapports', fn() => view('direction.rapports.index'))->name('rapports.index');
+        });
 
     // ── DASHBOARDS Chef de projet──────────────────────────────────────────────────────────
     Route::middleware(['auth', 'premiere_connexion', 'role:chef_projet'])
@@ -232,11 +256,22 @@ Route::middleware('auth')->group(function () {
             )
                 ->name('taches.gantt');
 
-
-            Route::get('/pointage/validation', fn() => view('chef_projet.dashboard'))
+            //Pointage
+            Route::get(
+                '/chantiers/{chantier}/pointage',
+                [PointageController::class, 'validationChefProjet']
+            )
                 ->name('pointage.validation');
-            Route::get('/pointage/historique', fn() => view('chef_projet.dashboard'))
-                ->name('pointage.historique');
+            Route::post(
+                '/chantiers/{chantier}/pointage/valider',
+                [PointageController::class, 'validerSemaine']
+            )
+                ->name('pointage.valider');
+            Route::post(
+                '/chantiers/{chantier}/pointage/rejeter',
+                [PointageController::class, 'rejeterSemaine']
+            )
+                ->name('pointage.rejeter');
 
             Route::get('/approvisionnements', fn() => view('chef_projet.dashboard'))
                 ->name('appro.index');
@@ -251,8 +286,37 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/dashboard', fn() => view('pointeur.dashboard'))
                 ->name('dashboard');
-            Route::get('/pointage/fiche', fn() => view('pointeur.dashboard'))
+
+            // Fiche journalière
+            Route::get(
+                '/pointage/fiche',
+                [PointageController::class, 'ficheJour']
+            )
                 ->name('pointage.fiche');
+            Route::post(
+                '/pointage/fiche',
+                [PointageController::class, 'enregistrerFiche']
+            )
+                ->name('pointage.enregistrer');
+
+            // Récap hebdomadaire
+            Route::get(
+                '/pointage/recap',
+                [PointageController::class, 'recapSemaine']
+            )
+                ->name('pointage.recap');
+
+            Route::post(
+                '/pointage/modifier-jour',
+                [PointageController::class, 'modifierJourDepuisRecap']
+            )
+                ->name('pointage.modifier-jour');
+            Route::post(
+                '/pointage/soumettre',
+                [PointageController::class, 'soumettreSemaine']
+            )
+                ->name('pointage.soumettre');
+
             Route::get('/pointage/historique', fn() => view('pointeur.dashboard'))
                 ->name('pointage.historique');
             Route::get('/receptions/livraisons', fn() => view('pointeur.dashboard'))

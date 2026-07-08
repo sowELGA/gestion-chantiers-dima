@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class RecapHebdomadaire extends Model
 {
-    use HasFactory;
-
     protected $table = 'recaps_hebdomadaires';
 
     protected $fillable = [
@@ -20,6 +17,7 @@ class RecapHebdomadaire extends Model
         'salaire_heures_sup',
         'salaire_total',
         'statut',
+        'motif_rejet',
         'valide_le',
         'ouvrier_id',
         'chantier_id',
@@ -35,7 +33,6 @@ class RecapHebdomadaire extends Model
         'total_heures_sup'   => 'decimal:1',
     ];
 
-    // Relations
     public function ouvrier()
     {
         return $this->belongsTo(Personnel::class, 'ouvrier_id');

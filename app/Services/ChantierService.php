@@ -51,9 +51,25 @@ class ChantierService
         return $chantier;
     }
 
-    // Changer statut
-    public function chnagerStatut(Chantier $chantier, ?string $statut): Chantier
+    // Changer le statut avec règles métier
+    public function changerStatut(Chantier $chantier, string $statut): Chantier
     {
+        // Transitions autorisées par bouton rapide
+        $transitionsAutorisees = [
+            'en_attente' => ['en_cours'],
+            'en_cours'   => ['suspendu', 'livre'],
+            'suspendu'   => ['en_cours'],
+            'livre'      => [], // aucune transition rapide
+        ];
+
+        $statutActuel = $chantier->statut;
+
+        if (!in_array($statut, $transitionsAutorisees[$statutActuel] ?? [])) {
+            throw new \Exception(
+                "Transition de statut invalide : '{$statutActuel}' → '{$statut}'."
+            );
+        }
+
         $chantier->update(['statut' => $statut]);
         return $chantier;
     }

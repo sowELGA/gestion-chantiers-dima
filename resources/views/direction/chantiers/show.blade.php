@@ -26,33 +26,64 @@
 
         {{-- Changer statut + modifier --}}
         <div class="flex items-center gap-2">
+            {{-- Changer statut --}}
             <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open"
+                <button @click="open = !open" @php $estLivre = $chantier->statut === 'livre'; @endphp
+                    :disabled="{{ $estLivre ? 'true' : 'false' }}"
                     class="flex items-center gap-2 px-3 py-2 text-sm font-medium
-                           text-slate-600 border border-slate-300 rounded-lg
-                           hover:bg-slate-50 transition-colors">
+                   text-slate-600 border border-slate-300 rounded-lg
+                   hover:bg-slate-50 transition-colors
+                   {{ $chantier->statut === 'livre' ? 'opacity-50 cursor-not-allowed' : '' }}">
                     Changer le statut
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    @if ($chantier->statut !== 'livre')
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    @endif
                 </button>
-                <div x-show="open" @click.outside="open = false" x-transition
-                    class="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl
-                        border border-slate-200 py-1 z-10">
-                    @foreach (['en_attente' => 'En attente', 'en_cours' => 'En cours', 'suspendu' => 'Suspendu', 'livre' => 'Livré'] as $statut => $label)
-                        @if ($statut !== $chantier->statut)
+
+                @if ($chantier->statut !== 'livre')
+                    <div x-show="open" @click.outside="open = false" x-transition
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl
+                    border border-slate-200 py-1 z-10">
+
+                        @php
+                            $transitionsAutorisees = [
+                                'en_attente' => ['en_cours' => 'Démarrer le chantier'],
+                                'en_cours' => ['suspendu' => 'Suspendre', 'livre' => 'Marquer comme livré'],
+                                'suspendu' => ['en_cours' => 'Reprendre le chantier'],
+                            ];
+                            $options = $transitionsAutorisees[$chantier->statut] ?? [];
+                        @endphp
+
+                        @forelse($options as $statut => $label)
                             <form method="POST"
-                                action="{{ route('direction.chantiers.statut', [$chantier->id, $statut]) }}">
+                                action="{{ route('direction.chantiers.statut', [$chantier->id, $statut]) }}"
+                                @if ($statut === 'livre') onsubmit="return confirm('Marquer ce chantier comme livré ?\nCette action est définitive. Seule une modification manuelle pourra la changer.')" @endif>
                                 @csrf @method('PATCH')
                                 <button type="submit"
                                     class="w-full text-left px-4 py-2.5 text-sm
-                                           text-slate-600 hover:bg-slate-50 transition-colors">
+                                   {{ $statut === 'livre' ? 'text-[#1C9F93] hover:bg-[#1C9F93]/10' : 'text-slate-600 hover:bg-slate-50' }}
+                                   transition-colors">
                                     {{ $label }}
                                 </button>
                             </form>
-                        @endif
-                    @endforeach
-                </div>
+                        @empty
+                            <p class="px-4 py-3 text-xs text-slate-400">
+                                Aucune transition disponible.
+                            </p>
+                        @endforelse
+
+                    </div>
+                @else
+                    {{-- Chantier livré : badge informatif --}}
+                    <div class="mt-2">
+                        <span class="text-xs text-slate-400 italic">
+                            Chantier livré — statut verrouillé.<br>
+                            Modifiez via "Modifier le chantier" si nécessaire.
+                        </span>
+                    </div>
+                @endif
             </div>
 
             <a href="{{ route('direction.chantiers.edit', $chantier->id) }}"
@@ -60,7 +91,7 @@
                   bg-[#1C9F93] text-white rounded-lg hover:bg-[#178a7f] transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2
-                                 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                     2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Modifier
             </a>
@@ -464,8 +495,8 @@
                                            hover:bg-red-50 rounded-lg transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                                     2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                                     1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                         2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                                         1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                 </button>
                             </form>

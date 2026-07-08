@@ -33,18 +33,15 @@ class TacheController extends Controller
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
+        if ($chantier->statut === 'livre') {
+            return back()->with(
+                'error',
+                'Impossible de planifier : ce chantier est livré.'
+            );
+        }
+
         $this->tacheService->creerPhase($request->validated(), $chantier->id);
-
         return back()->with('success', 'Phase créée avec succès.');
-    }
-
-    public function updatePhase(PhaseRequest $request, Chantier $chantier, Phase $phase)
-    {
-        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
-
-        $this->tacheService->modifierPhase($phase, $request->validated());
-
-        return back()->with('success', 'Phase mise à jour avec succès.');
     }
 
     public function destroyPhase(Chantier $chantier, Phase $phase)
@@ -70,23 +67,36 @@ class TacheController extends Controller
         $chantier->load(['phases.taches.responsable']);
 
         $tachesEnRetard = $chantier->taches()
-                                   ->where('statutTache', '!=', 'terminee')
-                                   ->where('date_fin_prevue', '<', now())
-                                   ->count();
+            ->where('statutTache', '!=', 'terminee')
+            ->where('date_fin_prevue', '<', now())
+            ->count();
 
-        return view('chef_projet.taches.index',
-            compact('chantier', 'tachesEnRetard'));
+        return view(
+            'chef_projet.taches.index',
+            compact('chantier', 'tachesEnRetard')
+        );
     }
 
     public function createTache(Chantier $chantier)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
+        if ($chantier->statut === 'livre') {
+            return redirect()
+            ->route('chef_projet.taches.index', $chantier->id)
+            ->with(
+                'error',
+                'Impossible de créer une tâche : ce chantier est livré.'
+            );
+        }
+
         $phases = $chantier->phases()->orderBy('ordre')->get();
         $taches = $chantier->taches()->orderBy('nomTache')->get();
 
-        return view('chef_projet.taches.create',
-            compact('chantier', 'phases', 'taches'));
+        return view(
+            'chef_projet.taches.create',
+            compact('chantier', 'phases', 'taches')
+        );
     }
 
     public function storeTache(TacheRequest $request, Chantier $chantier)
@@ -106,12 +116,14 @@ class TacheController extends Controller
 
         $phases = $chantier->phases()->orderBy('ordre')->get();
         $taches = $chantier->taches()
-                           ->where('id', '!=', $tache->id)
-                           ->orderBy('nomTache')
-                           ->get();
+            ->where('id', '!=', $tache->id)
+            ->orderBy('nomTache')
+            ->get();
 
-        return view('chef_projet.taches.edit',
-            compact('chantier', 'tache', 'phases', 'taches'));
+        return view(
+            'chef_projet.taches.edit',
+            compact('chantier', 'tache', 'phases', 'taches')
+        );
     }
 
     public function updateTache(TacheRequest $request, Chantier $chantier, Tache $tache)
