@@ -16,10 +16,21 @@ class PersonnelController extends Controller
 
     public function index()
     {
-        $personnel = Personnel::with(['poste', 'chantier'])
-            ->orderBy('nomPersonnel')
-            ->get()
-            ->groupBy('chantier_id');
+        $chantierId = request('chantier_id');
+        $statut     = request('statut', 'tous');
+
+        $query = Personnel::with(['poste', 'chantier'])
+            ->orderBy('nomPersonnel');
+
+        if ($chantierId) {
+            $query->where('chantier_id', $chantierId);
+        }
+
+        if ($statut !== 'tous') {
+            $query->where('statutPersonnel', $statut);
+        }
+
+        $personnel = $query->paginate(10);
 
         $stats = [
             'total'    => Personnel::count(),
@@ -27,7 +38,12 @@ class PersonnelController extends Controller
             'inactifs' => Personnel::where('statutPersonnel', 'inactif')->count(),
         ];
 
-        return view('direction.personnel.index', compact('personnel', 'stats'));
+        $chantiers = Chantier::orderBy('nomChantier')->get();
+
+        return view(
+            'direction.personnel.index',
+            compact('personnel', 'stats', 'chantiers', 'chantierId', 'statut')
+        );
     }
 
     public function create()

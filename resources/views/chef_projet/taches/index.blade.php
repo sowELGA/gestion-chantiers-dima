@@ -55,8 +55,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-10 text-center">
             <p class="text-slate-400 text-sm">
                 Aucune phase créée.
-                <a href="{{ route('chef_projet.phases.index', $chantier->id) }}"
-                    class="text-[#1C9F93] hover:underline">
+                <a href="{{ route('chef_projet.phases.index', $chantier->id) }}" class="text-[#1C9F93] hover:underline">
                     Créer des phases d'abord.
                 </a>
             </p>
@@ -166,46 +165,48 @@
 
                                         {{-- Statut --}}
                                         <div x-data="{ open: false }" class="relative">
-                                            <button @click="open = !open"
-                                                class="flex items-center gap-1.5 px-2.5 py-1.5
-                                                       rounded-lg text-xs font-semibold
-                                                       transition-colors border
-                                                       {{ $tache->statutTache === 'validee'
-                                                           ? 'bg-[#1C9F93]/10 text-[#1C9F93] border-[#1C9F93]/20'
-                                                           : ($tache->statutTache === 'en_cours'
-                                                               ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                                               : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                                                {{ $tache->statutTache === 'validee'
-                                                    ? 'Validée'
-                                                    : ($tache->statutTache === 'en_cours'
-                                                        ? 'En cours'
-                                                        : 'En attente') }}
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </button>
-                                            <div x-show="open" @click.outside="open = false" x-transition
-                                                :class="$el.getBoundingClientRect().bottom > window.innerHeight - 150 ?
-                                                    'bottom-full mb-1' : 'top-full mt-1'"
-                                                class="absolute right-0 w-36 bg-white rounded-xl
-                                                    shadow-xl border border-slate-200 py-1 z-20">
-                                                @foreach (['en_attente' => 'En attente', 'en_cours' => 'En cours', 'validee' => 'Validée'] as $s => $label)
-                                                    @if ($s !== $tache->statutTache)
-                                                        <form method="POST"
-                                                            action="{{ route('chef_projet.taches.statut', [$chantier->id, $tache->id, $s]) }}">
-                                                            @csrf @method('PATCH')
-                                                            <button type="submit"
-                                                                class="w-full text-left px-4 py-2
-                                                                       text-sm text-slate-600
-                                                                       hover:bg-slate-50 transition-colors">
-                                                                {{ $label }}
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                @endforeach
-                                            </div>
+                                            @if ($tache->statutTache === 'terminee')
+                                                {{-- Tâche validée → badge non cliquable --}}
+                                                <span
+                                                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs
+                     font-semibold bg-[#1C9F93]/10 text-[#1C9F93] border
+                     border-[#1C9F93]/20 cursor-default">
+                                                    ✓ Terminée
+                                                </span>
+                                            @else
+                                                <button @click="open = !open"
+                                                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs
+                       font-semibold transition-colors border
+                       {{ $tache->statutTache === 'en_cours'
+                           ? 'bg-blue-50 text-blue-600 border-blue-200'
+                           : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                                    {{ $tache->statutTache === 'en_cours' ? 'En cours' : 'En attente' }}
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+                                                <div x-show="open" @click.outside="open = false" x-transition
+                                                    :class="$el.getBoundingClientRect().bottom > window.innerHeight - 150 ?
+                                                        'bottom-full mb-1' : 'top-full mt-1'"
+                                                    class="absolute right-0 w-36 bg-white rounded-xl shadow-xl
+                    border border-slate-200 py-1 z-20">
+                                                    @foreach (['en_attente' => 'En attente', 'en_cours' => 'En cours'] as $s => $label)
+                                                        @if ($s !== $tache->statutTache)
+                                                            <form method="POST"
+                                                                action="{{ route('chef_projet.taches.statut', [$chantier->id, $tache->id, $s]) }}">
+                                                                @csrf @method('PATCH')
+                                                                <button type="submit"
+                                                                    class="w-full text-left px-4 py-2 text-sm
+                                       text-slate-600 hover:bg-slate-50 transition-colors">
+                                                                    {{ $label }}
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         </div>
 
                                         {{-- Mettre à jour avancement --}}
@@ -215,8 +216,8 @@
                                             title="Mettre à jour l'avancement">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2
-                                                         0 002-2v-5m-1.414-9.414a2 2 0 112.828
-                                                         2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                     0 002-2v-5m-1.414-9.414a2 2 0 112.828
+                                                                     2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </button>
 
@@ -226,70 +227,91 @@
                                               hover:bg-slate-100 rounded-lg transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756
-                                                         3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94
-                                                         3.31.826 2.37 2.37a1.724 1.724 0 001.065
-                                                         2.572c1.756.426 1.756 2.924 0 3.35a1.724
-                                                         1.724 0 00-1.066 2.573c.94 1.543-.826 3.31
-                                                         -2.37 2.37a1.724 1.724 0 00-2.572 1.065c
-                                                         -.426 1.756-2.924 1.756-3.35 0a1.724 1.724
-                                                         0 00-2.573-1.066c-1.543.94-3.31-.826-2.37
-                                                         -2.37a1.724 1.724 0 00-1.065-2.572c-1.756
-                                                         -.426-1.756-2.924 0-3.35a1.724 1.724 0
-                                                         001.066-2.573c-.94-1.543.826-3.31 2.37-2.37
-                                                         .996.608 2.296.07 2.572-1.065z M15 12a3
-                                                         3 0 11-6 0 3 3 0 016 0z" />
+                                                                     3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94
+                                                                     3.31.826 2.37 2.37a1.724 1.724 0 001.065
+                                                                     2.572c1.756.426 1.756 2.924 0 3.35a1.724
+                                                                     1.724 0 00-1.066 2.573c.94 1.543-.826 3.31
+                                                                     -2.37 2.37a1.724 1.724 0 00-2.572 1.065c
+                                                                     -.426 1.756-2.924 1.756-3.35 0a1.724 1.724
+                                                                     0 00-2.573-1.066c-1.543.94-3.31-.826-2.37
+                                                                     -2.37a1.724 1.724 0 00-1.065-2.572c-1.756
+                                                                     -.426-1.756-2.924 0-3.35a1.724 1.724 0
+                                                                     001.066-2.573c-.94-1.543.826-3.31 2.37-2.37
+                                                                     .996.608 2.296.07 2.572-1.065z M15 12a3
+                                                                     3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                         </a>
 
                                         {{-- Supprimer --}}
-                                        <form method="POST"
-                                            action="{{ route('chef_projet.taches.destroy', [$chantier->id, $tache->id]) }}"
-                                            onsubmit="return confirm('Supprimer cette tâche ?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit"
-                                                class="p-2 text-red-400 hover:text-red-600
+                                        @if ($tache->statutTache !== 'terminee')
+                                            <form method="POST"
+                                                action="{{ route('chef_projet.taches.destroy', [$chantier->id, $tache->id]) }}"
+                                                onsubmit="return confirm('Supprimer cette tâche ?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                    class="p-2 text-red-400 hover:text-red-600
                                                        hover:bg-red-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                                             2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                                             1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </form>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
+                                                                         2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                                                         1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @endif
 
                                     </div>
                                 </div>
 
                                 {{-- Slider avancement --}}
                                 <div x-show="showAvancement" x-transition class="mt-3 pt-3 border-t border-slate-100">
-                                    <form method="POST"
-                                        action="{{ route('chef_projet.taches.avancement', [$chantier->id, $tache->id]) }}"
-                                        class="flex items-center gap-4">
-                                        @csrf @method('PATCH')
-                                        <input type="range" name="avancement" min="0" max="100"
-                                            step="5" value="{{ $tache->avancement }}"
-                                            x-ref="slider_{{ $tache->id }}"
-                                            @input="$refs.val_{{ $tache->id }}.textContent
-                                               = $event.target.value + '%'"
-                                            class="flex-1 accent-[#1C9F93]">
-                                        <span x-ref="val_{{ $tache->id }}"
-                                            class="text-sm font-bold text-[#0F172A] w-10 text-right">
-                                            {{ $tache->avancement }}%
-                                        </span>
-                                        <button type="submit"
-                                            class="px-4 py-1.5 bg-[#1C9F93] text-white
-                                                   text-xs font-medium rounded-lg
-                                                   hover:bg-[#178a7f] transition-colors">
-                                            Enregistrer
-                                        </button>
-                                        <button type="button" @click="showAvancement = false"
-                                            class="px-3 py-1.5 text-xs text-slate-500
-                                                   hover:bg-slate-100 rounded-lg transition-colors">
-                                            Annuler
-                                        </button>
-                                    </form>
+
+                                    @if ($tache->statutTache === 'terminee')
+                                        {{-- Tâche validée → slider désactivé bloqué à 100 --}}
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex-1 relative">
+                                                <input type="range" disabled min="0" max="100"
+                                                    value="100" class="w-full opacity-50 cursor-not-allowed">
+                                            </div>
+                                            <span class="text-sm font-bold text-[#1C9F93] w-10 text-right">
+                                                100%
+                                            </span>
+                                            <span
+                                                class="text-xs text-[#1C9F93] font-semibold bg-[#1C9F93]/10
+                         px-2 py-1 rounded-lg">
+                                                ✓ terminée
+                                            </span>
+                                        </div>
+                                    @else
+                                        <form method="POST"
+                                            action="{{ route('chef_projet.taches.avancement', [$chantier->id, $tache->id]) }}"
+                                            class="flex items-center gap-4" x-data="{ val: {{ $tache->avancement }} }"
+                                            @submit="if(val == 100 && !confirm('Mettre à 100% validera automatiquement
+                  cette tâche. Confirmer ?')) { $event.preventDefault(); }">
+                                            @csrf @method('PATCH')
+                                            <input type="range" name="avancement" min="0" max="100"
+                                                step="5" x-model="val" class="flex-1 accent-[#1C9F93]">
+                                            <span class="text-sm font-bold w-10 text-right"
+                                                :class="val == 100 ? 'text-[#1C9F93]' : 'text-[#0F172A]'"
+                                                x-text="val + '%'">
+                                            </span>
+                                            <button type="submit"
+                                                class="px-4 py-1.5 text-xs font-medium rounded-lg
+                           transition-colors"
+                                                :class="val == 100 ?
+                                                    'bg-[#1C9F93] text-white' :
+                                                    'bg-[#0F172A] text-white hover:bg-[#1e293b]'">
+                                                <span x-text="val == 100 ? 'Valider' : 'Enregistrer'"></span>
+                                            </button>
+                                            <button type="button" @click="showAvancement = false"
+                                                class="px-3 py-1.5 text-xs text-slate-500
+                           hover:bg-slate-100 rounded-lg transition-colors">
+                                                Annuler
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
 
                             </div>

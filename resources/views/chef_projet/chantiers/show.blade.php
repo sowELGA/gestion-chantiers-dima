@@ -183,7 +183,7 @@
                                             $tacheConfig = [
                                                 'en_attente' => ['icon' => '○', 'class' => 'text-slate-400'],
                                                 'en_cours' => ['icon' => '◑', 'class' => 'text-blue-500'],
-                                                'validee' => ['icon' => '●', 'class' => 'text-[#1C9F93]'],
+                                                'terminee' => ['icon' => '●', 'class' => 'text-[#1C9F93]'],
                                             ];
                                             $tc = $tacheConfig[$tache->statutTache];
                                         @endphp

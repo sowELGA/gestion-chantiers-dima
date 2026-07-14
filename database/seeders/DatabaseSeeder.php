@@ -16,34 +16,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Direction
-        User::create([
-            'nomUser'            => 'Sow',
-            'prenomUser'         => 'Algassimou',
-            'email'              => 'direction@dimagroupe.com',
-            'password'           => Hash::make('password123'),
-            'role'               => 'direction',
-            'premiere_connexion' => true,
-        ]);
-
-        // Chef de projet
-        User::create([
-            'nomUser'            => 'Gueye',
-            'prenomUser'         => 'Babacar',
-            'email'              => 'chefprojet@dimagroupe.com',
-            'password'           => Hash::make('password123'),
-            'role'               => 'chef_projet',
-            'premiere_connexion' => true,
-        ]);
-
-        // Pointeur
-        User::create([
-            'nomUser'            => 'Konaré',
-            'prenomUser'         => 'Amadou',
-            'email'              => 'pointeur@dimagroupe.com',
-            'password'           => Hash::make('password123'),
-            'role'               => 'pointeur',
-            'premiere_connexion' => true,
+        $this->call([
+            UserSeeder::class,
+            PosteSeeder::class,
+            ChantierSeeder::class,
+            PersonnelSeeder::class,
+            TauxSalaireSeeder::class,
+            TacheSeeder::class,
+            ApprovisionnementSeeder::class,
         ]);
     }
 }

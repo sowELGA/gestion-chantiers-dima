@@ -23,8 +23,7 @@
                 <p class="text-xs text-slate-500 mt-0.5">Modification de la tâche</p>
             </div>
 
-            <form method="POST"
-                action="{{ route('chef_projet.taches.update', [$chantier->id, $tache->id]) }}"
+            <form method="POST" action="{{ route('chef_projet.taches.update', [$chantier->id, $tache->id]) }}"
                 class="p-6 space-y-5">
                 @csrf @method('PUT')
 
@@ -86,11 +85,19 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Date de début prévue <span class="text-red-500">*</span>
                         </label>
-                        <input type="date" name="date_debut_prevue"
-                            value="{{ old('date_debut_prevue', $tache->date_debut_prevue->format('Y-m-d')) }}"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                                  text-sm focus:outline-none focus:ring-2
-                                  focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]">
+                        <input type="date" name="date_debut_prevue" value="{{ old('date_debut_prevue') }}"
+                            id="date_debut_prevue"
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm
+                  focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
+                  focus:border-[#1C9F93]
+                  @error('date_debut_prevue') border-red-400 @enderror">
+                        @error('date_debut_prevue')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        {{-- Afficher la date min selon la phase sélectionnée --}}
+                        <p class="text-xs text-slate-400 mt-1" id="date_hint" style="display:none">
+                            La date de début ne peut pas être antérieure au début de la phase sélectionnée.
+                        </p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
@@ -191,3 +198,37 @@
     </div>
 
 @endsection
+
+<script>
+    const phases = {
+        @foreach ($phases as $phase)
+            {{ $phase->id }}: "{{ $phase->date_debut?->format('Y-m-d') ?? '' }}",
+        @endforeach
+    };
+
+    // Initialiser avec la phase déjà sélectionnée
+    const phaseSelect = document.querySelector('select[name="phase_id"]');
+    const dateInput = document.getElementById('date_debut_prevue');
+    const hint = document.getElementById('date_hint');
+
+    function updateDateMin(phaseId) {
+        const dateMin = phases[phaseId];
+        if (dateMin) {
+            dateInput.min = dateMin;
+            hint.style.display = 'block';
+            hint.textContent = 'Date minimum : ' +
+                new Date(dateMin).toLocaleDateString('fr-FR');
+        } else {
+            dateInput.removeAttribute('min');
+            hint.style.display = 'none';
+        }
+    }
+
+    // Au chargement
+    if (phaseSelect?.value) updateDateMin(phaseSelect.value);
+
+    // Au changement
+    phaseSelect?.addEventListener('change', function() {
+        updateDateMin(this.value);
+    });
+</script>

@@ -20,8 +20,6 @@
         {{-- Logo --}}
         <div class="flex items-center justify-between px-4 py-5 border-b border-slate-700/50">
             <div class="flex items-center gap-3 overflow-hidden">
-                <img src="{{ asset('images/dima-logo.svg') }}" alt="Dima Groupe"
-                    class="h-6 flex-shrink-0 brightness-0 invert">
                 <div x-show="sidebarOpen" x-transition class="overflow-hidden">
                     <p class="text-base font-bold tracking-wide leading-tight whitespace-nowrap">
                         Dima Groupe

@@ -89,7 +89,7 @@ class ChantierService
     public function ajouterDepense(Chantier $chantier, array $data): DepensesChantier
     {
         $depense = DepensesChantier::create([
-            'chantier_id'  => $chantier->idChantier,
+            'chantier_id'  => $chantier->id,
             'categorie'    => $data['categorie'],
             'montant'      => $data['montant'],
             'description'  => $data['description'],

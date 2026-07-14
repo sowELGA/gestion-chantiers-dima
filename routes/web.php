@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ApprovisionnementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChantierController;
+use App\Http\Controllers\DepenseChantierController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PointageController;
 use App\Http\Controllers\PosteController;
@@ -82,16 +84,18 @@ Route::middleware('auth')->group(function () {
                 ->name('chantiers.statut');
 
             // Dépenses
-            Route::post(
-                '/chantiers/{chantier}/depenses',
-                [ChantierController::class, 'ajouterDepense']
-            )
-                ->name('chantiers.depenses.store');
+            Route::get('/depenses', [DepenseChantierController::class, 'index'])
+                ->name('depenses.index');
+            Route::get('/depenses/{chantier}', [DepenseChantierController::class, 'show'])
+                ->name('depenses.show');
+            Route::post('/depenses/{chantier}', [DepenseChantierController::class, 'store'])
+                ->name('depenses.store');
             Route::delete(
-                '/chantiers/{chantier}/depenses/{depense}',
-                [ChantierController::class, 'supprimerDepense']
+                '/depenses/{chantier}/{depense}',
+                [DepenseChantierController::class, 'destroy']
             )
-                ->name('chantiers.depenses.destroy');
+                ->name('depenses.destroy');
+
             // Utilisateurs
             Route::get('/utilisateurs', [UserController::class, 'index'])
                 ->name('users.index');
@@ -163,10 +167,38 @@ Route::middleware('auth')->group(function () {
                 [RecapHebdomadaireController::class, 'genererPdf']
             )
                 ->name('salaires.pdf');
-            // Approvisionnements
-            Route::get('/approvisionnements', fn() => view('direction.appro.index'))->name('appro.index');
-            Route::get('/approvisionnements/historique', fn() => view('direction.appro.historique'))->name('appro.historique');
 
+            // Approvisionnements
+            Route::get(
+                '/approvisionnements',
+                [ApprovisionnementController::class, 'indexDirection']
+            )
+                ->name('appro.index');
+            Route::patch(
+                '/approvisionnements/{demande}/valider',
+                [ApprovisionnementController::class, 'valider']
+            )
+                ->name('appro.valider');
+            Route::patch(
+                '/approvisionnements/{demande}/rejeter',
+                [ApprovisionnementController::class, 'rejeter']
+            )
+                ->name('appro.rejeter');
+            Route::patch(
+                '/approvisionnements/{demande}/commander',
+                [ApprovisionnementController::class, 'passerCommande']
+            )
+                ->name('appro.commander');
+            Route::get(
+                '/approvisionnements/historique',
+                [ApprovisionnementController::class, 'historique']
+            )
+                ->name('appro.historique');
+            Route::get(
+                '/approvisionnements/bon-entree/{rapport}/pdf',
+                [ApprovisionnementController::class, 'bonEntreePdf']
+            )
+                ->name('appro.bon-entree-pdf');
             // Rapports
             Route::get('/rapports', fn() => view('direction.rapports.index'))->name('rapports.index');
         });
@@ -273,10 +305,22 @@ Route::middleware('auth')->group(function () {
             )
                 ->name('pointage.rejeter');
 
-            Route::get('/approvisionnements', fn() => view('chef_projet.dashboard'))
-                ->name('appro.index');
-            Route::get('/approvisionnements/create', fn() => view('chef_projet.dashboard'))
+            //approvisionnements
+            Route::get(
+                '/approvisionnements/create',
+                [ApprovisionnementController::class, 'create']
+            )
                 ->name('appro.create');
+            Route::post(
+                '/approvisionnements',
+                [ApprovisionnementController::class, 'store']
+            )
+                ->name('appro.store');
+            Route::get(
+                '/approvisionnements',
+                [ApprovisionnementController::class, 'indexChefProjet']
+            )
+                ->name('appro.index');
         });
 
     // ── DASHBOARDS Pointeur ──────────────────────────────────────────────────────────
@@ -317,11 +361,26 @@ Route::middleware('auth')->group(function () {
             )
                 ->name('pointage.soumettre');
 
-            Route::get('/pointage/historique', fn() => view('pointeur.dashboard'))
-                ->name('pointage.historique');
-            Route::get('/receptions/livraisons', fn() => view('pointeur.dashboard'))
+            //Approvisionnements
+            Route::get(
+                '/receptions/livraisons',
+                [ApprovisionnementController::class, 'livraisons']
+            )
                 ->name('appro.livraisons');
-            Route::get('/receptions/historique', fn() => view('pointeur.dashboard'))
+            Route::post(
+                '/receptions/{demande}/valider',
+                [ApprovisionnementController::class, 'validerReception']
+            )
+                ->name('appro.reception');
+            Route::get(
+                '/receptions/bon-entree/{rapport}/pdf',
+                [ApprovisionnementController::class, 'bonEntreePdf']
+            )
+                ->name('appro.bon-entree-pdf');
+            Route::get(
+                '/receptions/historique',
+                [ApprovisionnementController::class, 'historiqueLivraisons']
+            )
                 ->name('appro.historique');
         });
 });

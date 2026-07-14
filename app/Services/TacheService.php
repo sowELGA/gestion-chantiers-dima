@@ -89,41 +89,58 @@ class TacheService
         return $tache;
     }
 
+    public function mettreAJourAvancement(Tache $tache, int $avancement): Tache
+    {
+        // Tâche validée → non modifiable
+        if ($tache->statutTache === 'validee') {
+            throw new \Exception('Impossible de modifier une tâche terminée.');
+        }
+
+        // Si avancement = 100 → statut validée automatiquement
+        if ($avancement === 100) {
+            $tache->update([
+                'avancement'      => 100,
+                'statutTache'     => 'terminee',
+                'date_fin_reelle' => now()->toDateString(),
+            ]);
+        } else {
+            $tache->update([
+                'avancement'  => $avancement,
+                'statutTache' => $avancement > 0 ? 'en_cours' : 'en_attente',
+            ]);
+        }
+
+        $this->mettreAJourPhase($tache->phase);
+
+        return $tache;
+    }
+
     public function changerStatut(Tache $tache, string $statut): Tache
     {
+        // Tâche validée → non modifiable
+        if ($tache->statutTache === 'terminee') {
+            throw new \Exception('Impossible de modifier le statut d\'une tâche terminee.');
+        }
+
         if ($statut === 'en_cours' && !$tache->date_debut_reelle) {
-            $tache->date_debut_reelle = now();
+            $tache->date_debut_reelle = now()->toDateString();
         }
 
         if ($statut === 'terminee') {
             $tache->avancement      = 100;
-            $tache->date_fin_reelle = now();
+            $tache->date_fin_reelle = now()->toDateString();
+        }
+
+         if ($statut === 'en_attente') {
+            $tache->avancement      = 0;
         }
 
         $tache->statutTache = $statut;
         $tache->save();
 
-        // Mettre à jour l'avancement de la phase
         $this->mettreAJourPhase($tache->phase);
 
         return $tache;
-    }
-
-    public function mettreAJourAvancement(Tache $tache, int $avancement): Tache
-    {
-        $tache->update(['avancement' => $avancement]);
-
-        // Mettre à jour l'avancement de la phase
-        $this->mettreAJourPhase($tache->phase);
-
-        return $tache;
-    }
-
-    public function supprimerTache(Tache $tache): void
-    {
-        $phase = $tache->phase;
-        $tache->delete();
-        $this->mettreAJourPhase($phase);
     }
 
     // Mettre à jour l'avancement d'une phase
@@ -152,5 +169,15 @@ class TacheService
             'avancement'  => $avancement,
             'statutPhase' => $statut,
         ]);
+    }
+
+    public function supprimerTache(Tache $tache): void
+    {
+        if ($tache->statut !== 'en_attente') {
+            throw new \Exception(
+                'Impossible de supprimer une tache qui n\'est pas en attente.'
+            );
+        }
+        $tache->delete();
     }
 }

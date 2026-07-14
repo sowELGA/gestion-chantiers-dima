@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Approvisionnement extends Model
 {
-    use HasFactory;
-
     protected $table = 'approvisionnements';
 
     protected $fillable = [
@@ -29,7 +26,7 @@ class Approvisionnement extends Model
         'quantite_demandee'     => 'decimal:2',
     ];
 
-    // Accesseur quantité restante globale
+    // Accesseur quantité restante
     public function getQuantiteRestanteAttribute(): float
     {
         $totalRecu = $this->rapportsEntrees()->sum('quantite_recue');

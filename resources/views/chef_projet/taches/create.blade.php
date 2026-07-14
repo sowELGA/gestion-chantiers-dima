@@ -22,8 +22,7 @@
                 <h3 class="font-semibold text-[#0F172A]">Informations de la tâche</h3>
             </div>
 
-            <form method="POST" action="{{ route('chef_projet.taches.store', $chantier->id) }}"
-                class="p-6 space-y-5">
+            <form method="POST" action="{{ route('chef_projet.taches.store', $chantier->id) }}" class="p-6 space-y-5">
                 @csrf
 
                 {{-- Nom --}}
@@ -75,8 +74,7 @@
                                    @error('phase_id') border-red-400 @enderror">
                             <option value="">Sélectionner une phase</option>
                             @foreach ($phases as $phase)
-                                <option value="{{ $phase->id }}"
-                                    {{ old('phase_id') == $phase->id ? 'selected' : '' }}>
+                                <option value="{{ $phase->id }}" {{ old('phase_id') == $phase->id ? 'selected' : '' }}>
                                     {{ $phase->ordre }}. {{ $phase->nomPhase }}
                                 </option>
                             @endforeach
@@ -94,13 +92,18 @@
                             Date de début prévue <span class="text-red-500">*</span>
                         </label>
                         <input type="date" name="date_debut_prevue" value="{{ old('date_debut_prevue') }}"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                                  text-sm focus:outline-none focus:ring-2
-                                  focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]
-                                  @error('date_debut_prevue') border-red-400 @enderror">
+                            id="date_debut_prevue"
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm
+                  focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
+                  focus:border-[#1C9F93]
+                  @error('date_debut_prevue') border-red-400 @enderror">
                         @error('date_debut_prevue')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
+                        {{-- Afficher la date min selon la phase sélectionnée --}}
+                        <p class="text-xs text-slate-400 mt-1" id="date_hint" style="display:none">
+                            La date de début ne peut pas être antérieure au début de la phase sélectionnée.
+                        </p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
@@ -206,3 +209,29 @@
     </div>
 
 @endsection
+
+
+<script>
+    // Mettre à jour la contrainte de date selon la phase choisie
+    const phases = {
+        @foreach ($phases as $phase)
+            {{ $phase->id }}: "{{ $phase->date_debut?->format('Y-m-d') ?? '' }}",
+        @endforeach
+    };
+
+    document.querySelector('select[name="phase_id"]')
+        ?.addEventListener('change', function() {
+            const dateMin = phases[this.value];
+            const dateInput = document.getElementById('date_debut_prevue');
+            const hint = document.getElementById('date_hint');
+            if (dateMin) {
+                dateInput.min = dateMin;
+                hint.style.display = 'block';
+                hint.textContent = 'Date minimum : ' +
+                    new Date(dateMin).toLocaleDateString('fr-FR');
+            } else {
+                dateInput.removeAttribute('min');
+                hint.style.display = 'none';
+            }
+        });
+</script>

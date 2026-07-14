@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class RapportsEntree extends Model
 {
-    use HasFactory;
-
     protected $table = 'rapports_entrees';
 
     protected $fillable = [
@@ -31,7 +28,6 @@ class RapportsEntree extends Model
         'quantite_restante'     => 'decimal:2',
     ];
 
-    // Relations
     public function demande()
     {
         return $this->belongsTo(Approvisionnement::class, 'demande_id');

@@ -83,11 +83,11 @@ class TacheController extends Controller
 
         if ($chantier->statut === 'livre') {
             return redirect()
-            ->route('chef_projet.taches.index', $chantier->id)
-            ->with(
-                'error',
-                'Impossible de créer une tâche : ce chantier est livré.'
-            );
+                ->route('chef_projet.taches.index', $chantier->id)
+                ->with(
+                    'error',
+                    'Impossible de créer une tâche : ce chantier est livré.'
+                );
         }
 
         $phases = $chantier->phases()->orderBy('ordre')->get();
@@ -137,6 +137,22 @@ class TacheController extends Controller
             ->with('success', 'Tâche mise à jour avec succès.');
     }
 
+    public function mettreAJourAvancement(Chantier $chantier, Tache $tache)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+
+        request()->validate([
+            'avancement' => 'required|integer|min:0|max:100',
+        ]);
+
+        try {
+            $this->tacheService->mettreAJourAvancement($tache, (int) request('avancement'));
+            return back()->with('success', 'Avancement mis à jour.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function changerStatutTache(Chantier $chantier, Tache $tache, string $statut)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
@@ -147,27 +163,23 @@ class TacheController extends Controller
             return back()->with('error', 'Statut invalide.');
         }
 
-        $this->tacheService->changerStatut($tache, $statut);
-
-        return back()->with('success', 'Statut mis à jour avec succès.');
-    }
-
-    public function mettreAJourAvancement(Chantier $chantier, Tache $tache)
-    {
-        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
-
-        request()->validate([
-            'avancement' => 'required|integer|min:0|max:100',
-        ]);
-
-        $this->tacheService->mettreAJourAvancement($tache, request('avancement'));
-
-        return back()->with('success', 'Avancement mis à jour.');
+        try {
+            $this->tacheService->changerStatut($tache, $statut);
+            return back()->with('success', 'Statut mis à jour avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function destroyTache(Chantier $chantier, Tache $tache)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+
+        try {
+            $this->tacheService->supprimerTache($tache);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         $this->tacheService->supprimerTache($tache);
 
