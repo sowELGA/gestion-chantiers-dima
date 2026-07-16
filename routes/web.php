@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApprovisionnementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChantierController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepenseChantierController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PointageController;
@@ -40,13 +41,9 @@ Route::middleware('auth')->group(function () {
 
     // ── DASHBOARDS Direction──────────────────────────────────────────────────────────
     Route::middleware(['auth', 'premiere_connexion', 'role:direction'])
-        ->prefix('direction')
-        ->name('direction.')
-        ->group(function () {
-
-            Route::get('/dashboard', function () {
-                return view('direction.dashboard');
-            })->name('dashboard');
+        ->prefix('direction')->name('direction.')->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'direction'])
+                ->name('dashboard');
 
             // Chantiers
             Route::get('/chantiers', [ChantierController::class, 'index'])
@@ -205,10 +202,8 @@ Route::middleware('auth')->group(function () {
 
     // ── DASHBOARDS Chef de projet──────────────────────────────────────────────────────────
     Route::middleware(['auth', 'premiere_connexion', 'role:chef_projet'])
-        ->prefix('chef-projet')
-        ->name('chef_projet.')
-        ->group(function () {
-            Route::get('/dashboard', fn() => view('chef_projet.dashboard'))
+        ->prefix('chef-projet')->name('chef_projet.')->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'chefProjet'])
                 ->name('dashboard');
 
             // Chantiers
@@ -325,10 +320,8 @@ Route::middleware('auth')->group(function () {
 
     // ── DASHBOARDS Pointeur ──────────────────────────────────────────────────────────
     Route::middleware(['auth', 'premiere_connexion', 'role:pointeur'])
-        ->prefix('pointeur')
-        ->name('pointeur.')
-        ->group(function () {
-            Route::get('/dashboard', fn() => view('pointeur.dashboard'))
+        ->prefix('pointeur')->name('pointeur.')->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'pointeur'])
                 ->name('dashboard');
 
             // Fiche journalière
