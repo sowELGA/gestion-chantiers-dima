@@ -325,34 +325,23 @@ Route::middleware('auth')->group(function () {
                 ->name('dashboard');
 
             // Fiche journalière
-            Route::get(
-                '/pointage/fiche',
-                [PointageController::class, 'ficheJour']
-            )
+            Route::get('/pointage/fiche',  [PointageController::class, 'ficheJour'])
                 ->name('pointage.fiche');
-            Route::post(
-                '/pointage/fiche',
-                [PointageController::class, 'enregistrerFiche']
-            )
+            Route::post('/pointage/fiche', [PointageController::class, 'enregistrerFiche'])
                 ->name('pointage.enregistrer');
 
-            // Récap hebdomadaire
-            Route::get(
-                '/pointage/recap',
-                [PointageController::class, 'recapSemaine']
-            )
+            // Récap semaine
+            Route::get('/pointage/recap',    [PointageController::class, 'recapSemaine'])
                 ->name('pointage.recap');
-
-            Route::post(
-                '/pointage/modifier-jour',
-                [PointageController::class, 'modifierJourDepuisRecap']
-            )
-                ->name('pointage.modifier-jour');
-            Route::post(
-                '/pointage/soumettre',
-                [PointageController::class, 'soumettreSemaine']
-            )
+            Route::post('/pointage/soumettre', [PointageController::class, 'soumettreSemaine'])
                 ->name('pointage.soumettre');
+
+            // Modification par jour (récap rejeté) — 1 jour = 1 page
+            Route::get('/pointage/modifier/{date}', [PointageController::class, 'modifierJour'])
+                ->name('pointage.modifier-jour')
+                ->where('date', '\d{4}-\d{2}-\d{2}');
+            Route::post('/pointage/modifier', [PointageController::class, 'enregistrerModificationJour'])
+                ->name('pointage.enregistrer-modification');
 
             //Approvisionnements
             Route::get(

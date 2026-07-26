@@ -209,7 +209,6 @@ class DashboardController extends Controller
             'enregistree' => $pointagesAujourdhui->isNotEmpty(),
             'presents'    => $pointagesAujourdhui->where('statutPointage', 'present')->count(),
             'absents'     => $pointagesAujourdhui->where('statutPointage', 'absent')->count(),
-            'conges'      => $pointagesAujourdhui->where('statutPointage', 'conge')->count(),
             'maladies'    => $pointagesAujourdhui->where('statutPointage', 'maladie')->count(),
             'total'       => Personnel::where('chantier_id', $chantier->id)
                 ->where('statutPersonnel', 'actif')->count(),

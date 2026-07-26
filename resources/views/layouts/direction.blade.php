@@ -177,7 +177,7 @@
             </div>
 
             {{-- Salaires --}}
-            <div x-data="{ open: {{ request()->routeIs('direction.salaires*') ? 'true' : 'false' }} }">
+            <div x-data="{ open: {{ request()->routeIs('direction.salaires*') || request()->routeIs('direction.pointage*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
@@ -201,6 +201,11 @@
                         class="block px-3 py-2 text-sm text-slate-400 hover:text-white
                       hover:bg-slate-800/50 rounded-lg transition-all">
                         Taux salariaux
+                    </a>
+                    <a href="{{ route('direction.pointage.recap') }}"
+                        class="block px-3 py-2 text-sm text-slate-400 hover:text-white
+                      hover:bg-slate-800/50 rounded-lg transition-all">
+                        Pointage
                     </a>
                     <a href="{{ route('direction.salaires.recaps') }}"
                         class="block px-3 py-2 text-sm text-slate-400 hover:text-white
@@ -242,23 +247,6 @@
                     </a>
                 </div>
             </div>
-
-            {{-- Pointage --}}
-            <a href="{{ route('direction.pointage.recap') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
-          transition-all
-          {{ request()->routeIs('direction.pointage*')
-              ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
-              : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2
-                     0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2
-                     2 0 012 2" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
-                    Pointage
-                </span>
-            </a>
 
             {{-- Dépenses --}}
             <a href="{{ route('direction.depenses.index') }}"

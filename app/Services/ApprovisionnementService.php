@@ -28,10 +28,7 @@ class ApprovisionnementService
 
     public function valider(Approvisionnement $demande): Approvisionnement
     {
-        $demande->update([
-            'statut'        => 'validee',
-            'date_commande' => now()->toDateString(),
-        ]);
+        $demande->update(['statut' => 'validee']);
         return $demande;
     }
 
@@ -43,7 +40,10 @@ class ApprovisionnementService
 
     public function passerCommande(Approvisionnement $demande): Approvisionnement
     {
-        $demande->update(['statut' => 'en_cours_livraison']);
+        $demande->update([
+            'statut' => 'en_cours_livraison',
+            'date_commande' => now()->toDateString(),
+        ]);
         return $demande;
     }
 

@@ -101,12 +101,6 @@
                                 <p class="text-xs text-slate-400 mt-0.5">Absents</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-2xl font-bold text-blue-500">
-                                    {{ $ficheJour['conges'] }}
-                                </p>
-                                <p class="text-xs text-slate-400 mt-0.5">Congés</p>
-                            </div>
-                            <div class="text-center">
                                 <p class="text-2xl font-bold text-amber-500">
                                     {{ $ficheJour['maladies'] }}
                                 </p>

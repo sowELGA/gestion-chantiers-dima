@@ -6,6 +6,7 @@ use App\Http\Requests\Pointage\ModifierJourRequest;
 use App\Http\Requests\Pointage\PointageRequest;
 use App\Http\Requests\Pointage\RejetRecapRequest;
 use App\Models\Chantier;
+use App\Models\RecapHebdomadaire;
 use App\Services\PointageService;
 use Carbon\Carbon;
 
@@ -16,40 +17,40 @@ class PointageController extends Controller
     ) {}
 
     // ══════════════════════════════════════════════════════════
-    // POINTEUR
+    // POINTEUR — Fiche journalière
     // ══════════════════════════════════════════════════════════
 
-    // Page 1 : Fiche journalière
     public function ficheJour()
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
 
-        // Bloquer si chantier pas en cours
         if (!in_array($chantier->statut, ['en_cours', 'suspendu'])) {
             return view('pointeur.pointage.bloque', compact('chantier'));
         }
 
-        // Si suspendu, lecture seule
-        $chantierActif = $chantier->statut === 'en_cours';
-
-        $fiche      = $this->pointageService->getFicheDuJour($chantier->id);
-        $modifiable = $chantierActif
+        $page       = (int) request('page', 1);
+        $donnees    = $this->pointageService->getPointagesDuJour($chantier->id);
+        $personnel  = $this->pointageService->getPersonnelPagine($chantier->id, $page);
+        $modifiable = $chantier->statut === 'en_cours'
             && $this->pointageService->semaineModifiable($chantier->id);
 
-        return view(
-            'pointeur.pointage.fiche',
-            compact('chantier', 'fiche', 'modifiable', 'chantierActif')
-        );
+        return view('pointeur.pointage.fiche', [
+            'chantier'   => $chantier,
+            'date'       => $donnees['date'],
+            'pointages'  => $donnees['pointages'],
+            'personnel'  => $personnel['personnel'],
+            'pagination' => $personnel['pagination'],
+            'modifiable' => $modifiable,
+        ]);
     }
 
-    // Enregistrer la fiche journalière
     public function enregistrerFiche(PointageRequest $request)
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
 
         try {
             $this->pointageService->enregistrerFiche(
-                $request->validated(),
+                $request->validated()['pointages'],
                 $chantier->id
             );
             return redirect()
@@ -60,7 +61,10 @@ class PointageController extends Controller
         }
     }
 
-    // Page 2 : Récap semaine en cours
+    // ══════════════════════════════════════════════════════════
+    // POINTEUR — Récap hebdomadaire
+    // ══════════════════════════════════════════════════════════
+
     public function recapSemaine()
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
@@ -71,28 +75,87 @@ class PointageController extends Controller
 
         $semaine = Carbon::today()->isoWeek();
         $annee   = Carbon::today()->year;
+        $page    = (int) request('page', 1);
 
-        $recap = $this->pointageService->getRecapSemaine(
-            $chantier->id,
-            $semaine,
-            $annee
-        );
+        $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
+        $statut  = $this->pointageService->getStatutSemaine($chantier->id, $semaine, $annee);
+        $donnees = $this->pointageService->getLignesRecap($chantier->id, $semaine, $annee, $page);
+        $totaux  = $this->pointageService->getTotauxSemaine($chantier->id, $semaine, $annee);
 
-        // Modifiable UNIQUEMENT si rejeté par le chef de projet
-        $modifiable = $recap['statut'] === 'rejetee';
-
-        // Soumettable si en_attente ou rejeté
-        $soumettable = in_array($recap['statut'], ['en_attente', 'rejetee'])
+        $modifiable  = $statut['statut'] === 'rejetee';
+        $soumettable = in_array($statut['statut'], ['en_attente', 'rejetee'])
             && $chantier->statut === 'en_cours';
 
-        return view(
-            'pointeur.pointage.recap',
-            compact('chantier', 'recap', 'modifiable', 'soumettable')
-        );
+        return view('pointeur.pointage.recap', [
+            'chantier'    => $chantier,
+            'semaine'     => $infos['semaine'],
+            'annee'       => $infos['annee'],
+            'debut'       => $infos['debut'],
+            'fin'         => $infos['fin'],
+            'jours'       => $infos['jours'],
+            'lignes'      => $donnees['lignes'],
+            'pagination'  => $donnees['pagination'],
+            'statut'      => $statut['statut'],
+            'motif_rejet' => $statut['motif_rejet'],
+            'totaux'      => $totaux,
+            'modifiable'  => $modifiable,
+            'soumettable' => $soumettable,
+        ]);
     }
 
-    // Modifier un jour depuis le récap rejeté
-    public function modifierJourDepuisRecap(ModifierJourRequest $request)
+    public function soumettreSemaine()
+    {
+        $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
+
+        $this->pointageService->soumettreSemaine($chantier->id, auth()->id());
+
+        return redirect()
+            ->route('pointeur.pointage.recap')
+            ->with('success', 'Fiche soumise au chef de projet.');
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // POINTEUR — Modification par jour (récap rejeté)
+    // ══════════════════════════════════════════════════════════
+
+    // Affiche un seul jour à modifier avec pagination des ouvriers
+    public function modifierJour(string $date)
+    {
+        $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
+
+        // Vérifier que la semaine est bien rejetée
+        $semaine = Carbon::parse($date)->isoWeek();
+        $annee   = Carbon::parse($date)->year;
+        $statut  = $this->pointageService->getStatutSemaine($chantier->id, $semaine, $annee);
+
+        if ($statut['statut'] !== 'rejetee') {
+            return redirect()
+                ->route('pointeur.pointage.recap')
+                ->with('error', 'Cette fiche n\'est pas dans un état modifiable.');
+        }
+
+        $page    = (int) request('page', 1);
+        $donnees = $this->pointageService->getPointagesDuJourPagines(
+            $chantier->id,
+            $date,
+            $page
+        );
+
+        $dateCarbon = Carbon::parse($date);
+
+        return view('pointeur.pointage.modifier-jour', [
+            'chantier'    => $chantier,
+            'date'        => $dateCarbon,
+            'lignes'      => $donnees['lignes'],
+            'pagination'  => $donnees['pagination'],
+            'motif_rejet' => $statut['motif_rejet'],
+            'semaine'     => $semaine,
+            'annee'       => $annee,
+        ]);
+    }
+
+    // Enregistre les modifications d'un jour
+    public function enregistrerModificationJour(ModifierJourRequest $request)
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
 
@@ -100,56 +163,53 @@ class PointageController extends Controller
             $this->pointageService->modifierPointageJour(
                 $chantier->id,
                 $request->date,
-                $request->pointages
+                $request->validated()['pointages']
             );
-            return back()->with(
-                'success',
-                'Pointage du ' .
-                    Carbon::parse($request->date)->locale('fr')->isoFormat('dddd D MMMM') .
-                    ' mis à jour.'
-            );
+
+            // Rester sur le même jour, page suivante ou recap si terminé
+            $page = (int) request('page', 1);
+            return redirect()
+                ->route('pointeur.pointage.modifier-jour', [
+                    'date' => $request->date,
+                    'page' => $page,
+                ])
+                ->with('success', 'Pointage du '
+                    . Carbon::parse($request->date)->locale('fr')->isoFormat('dddd D MMMM')
+                    . ' mis à jour.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
 
-    // Soumettre le récap au chef de projet
-    public function soumettreSemaine()
-    {
-        $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
-
-        $this->pointageService->soumettreSemaine(
-            $chantier->id,
-            auth()->id()
-        );
-
-        return redirect()
-            ->route('pointeur.pointage.recap')
-            ->with('success', 'Fiche soumise au chef de projet avec succès.');
-    }
-
     // ══════════════════════════════════════════════════════════
-    // CHEF DE PROJET
+    // CHEF DE PROJET — Validation
     // ══════════════════════════════════════════════════════════
 
-    // Récap temps réel + validation
     public function validationChefProjet(Chantier $chantier)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
         $semaine = request('semaine', Carbon::today()->isoWeek());
         $annee   = request('annee', Carbon::today()->year);
+        $page    = (int) request('page', 1);
 
-        $recap = $this->pointageService->getRecapSemaine(
-            $chantier->id,
-            $semaine,
-            $annee
-        );
+        $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
+        $statut  = $this->pointageService->getStatutSemaine($chantier->id, $semaine, $annee);
+        $donnees = $this->pointageService->getLignesRecap($chantier->id, $semaine, $annee, $page);
+        $totaux  = $this->pointageService->getTotauxSemaine($chantier->id, $semaine, $annee);
 
-        return view(
-            'chef_projet.pointage.validation',
-            compact('chantier', 'recap', 'semaine', 'annee')
-        );
+        return view('chef_projet.pointage.validation', [
+            'chantier'    => $chantier,
+            'semaine'     => $infos['semaine'],
+            'annee'       => $infos['annee'],
+            'debut'       => $infos['debut'],
+            'fin'         => $infos['fin'],
+            'jours'       => $infos['jours'],
+            'lignes'      => $donnees['lignes'],
+            'pagination'  => $donnees['pagination'],
+            'statut'      => $statut['statut'],
+            'totaux'      => $totaux,
+        ]);
     }
 
     public function validerSemaine(Chantier $chantier)
@@ -182,10 +242,9 @@ class PointageController extends Controller
     }
 
     // ══════════════════════════════════════════════════════════
-    // DIRECTION
+    // DIRECTION — Récap et calcul
     // ══════════════════════════════════════════════════════════
 
-    // Récap temps réel de tous les chantiers
     public function recapDirection()
     {
         $semaine = request('semaine', Carbon::today()->isoWeek());
@@ -193,27 +252,33 @@ class PointageController extends Controller
 
         $chantiers = Chantier::whereNotNull('pointeur_id')
             ->whereIn('statut', ['en_cours', 'suspendu'])
-            ->with(['chefProjet', 'pointeur'])
             ->get()
-            ->map(fn($c) => [
-                'chantier' => $c,
-                'recap'    => $this->pointageService->getRecapSemaine(
-                    $c->id,
-                    $semaine,
-                    $annee
-                ),
-            ]);
+            ->map(function ($c) use ($semaine, $annee) {
+                $page    = (int) request('page_' . $c->id, 1);
+                $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
+                $statut  = $this->pointageService->getStatutSemaine($c->id, $semaine, $annee);
+                $donnees = $this->pointageService->getLignesRecap($c->id, $semaine, $annee, $page);
+                $totaux  = $this->pointageService->getTotauxSemaine($c->id, $semaine, $annee);
 
-        // Semaines disponibles (12 semaines en arrière)
+                return [
+                    'chantier'   => $c,
+                    'jours'      => $infos['jours'],
+                    'lignes'     => $donnees['lignes'],
+                    'pagination' => $donnees['pagination'],
+                    'statut'     => $statut['statut'],
+                    'totaux'     => $totaux,
+                ];
+            });
+
         $semaines = collect();
         for ($i = 0; $i <= 11; $i++) {
             $date = Carbon::today()->subWeeks($i);
             $semaines->push([
                 'semaine' => $date->isoWeek(),
                 'annee'   => $date->year,
-                'label'   => 'Semaine ' . $date->isoWeek() . ' — ' .
-                    $date->startOfWeek()->format('d/m') . ' au ' .
-                    $date->endOfWeek()->format('d/m/Y'),
+                'label'   => 'Semaine ' . $date->isoWeek() . ' — '
+                    . $date->copy()->startOfWeek()->subDays(2)->format('d/m') . ' au '
+                    . $date->copy()->startOfWeek()->subDays(2)->addDays(6)->format('d/m/Y'),
             ]);
         }
 
@@ -223,21 +288,13 @@ class PointageController extends Controller
         );
     }
 
-    // Calculer les salaires
     public function calculerSalaires(Chantier $chantier)
     {
         $semaine = request('semaine');
         $annee   = request('annee');
 
-        $this->pointageService->calculerSalaires(
-            $chantier->id,
-            $semaine,
-            $annee
-        );
+        $this->pointageService->calculerSalaires($chantier->id, $semaine, $annee);
 
-        return back()->with(
-            'success',
-            'Salaires calculés avec succès. Vous pouvez générer la fiche de paie.'
-        );
+        return back()->with('success', 'Salaires calculés. Vous pouvez générer la fiche de paie.');
     }
 }

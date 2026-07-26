@@ -13,18 +13,22 @@
 
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 11px;
+            font-size: 8.5px;
             color: #0F172A;
-            background: #ffffff;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 8mm 10mm;
         }
 
         /* ── HEADER ── */
         .header {
             display: table;
             width: 100%;
-            padding: 16px 20px;
             background: #0F172A;
-            margin-bottom: 16px;
+            padding: 8px 14px;
+            margin-bottom: 8px;
         }
 
         .header-left {
@@ -38,88 +42,87 @@
             text-align: right;
         }
 
-        .company-name {
-            font-size: 18px;
+        .company {
+            font-size: 13px;
             font-weight: bold;
             color: #1C9F93;
-            letter-spacing: 1px;
         }
 
         .company-sub {
-            font-size: 9px;
+            font-size: 7.5px;
             color: #64748B;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .doc-title {
-            font-size: 14px;
+            font-size: 10px;
             font-weight: bold;
-            color: #ffffff;
+            color: #fff;
         }
 
-        .doc-sub {
-            font-size: 9px;
+        .doc-num {
+            font-size: 7.5px;
             color: #94a3b8;
-            margin-top: 2px;
         }
 
-        /* ── INFO CHANTIER ── */
+        /* ── INFO BAR ── */
         .info-bar {
             display: table;
             width: 100%;
             background: #F8FAFC;
             border: 1px solid #E2E8F0;
-            border-radius: 6px;
-            padding: 10px 16px;
-            margin-bottom: 16px;
+            border-radius: 4px;
+            padding: 5px 12px;
+            margin-bottom: 8px;
         }
 
         .info-cell {
             display: table-cell;
-            padding: 0 16px 0 0;
+            padding: 0 10px 0 0;
         }
 
         .info-label {
-            font-size: 8px;
+            font-size: 7px;
             color: #64748B;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
         .info-value {
-            font-size: 11px;
+            font-size: 8.5px;
             font-weight: bold;
             color: #0F172A;
         }
 
-        /* ── SECTION POSTE ── */
+        /* ── SECTION ── */
         .section-title {
             background: #1C9F93;
-            color: #ffffff;
+            color: #fff;
             font-weight: bold;
-            font-size: 10px;
-            padding: 6px 12px;
-            border-radius: 4px 4px 0 0;
+            font-size: 7.5px;
+            padding: 3px 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-top: 12px;
+            margin-top: 6px;
+            page-break-after: avoid;
         }
 
         /* ── TABLE ── */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 0;
+        }
+
+        thead {
+            display: table-header-group;
         }
 
         thead th {
             background: #F1F5F9;
             color: #64748B;
-            font-size: 8.5px;
+            font-size: 7px;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            padding: 6px 10px;
+            padding: 3px 5px;
             text-align: center;
             border-bottom: 1px solid #E2E8F0;
         }
@@ -128,15 +131,12 @@
             text-align: left;
         }
 
-        tbody tr:nth-child(even) {
-            background: #F8FAFC;
-        }
-
         tbody td {
-            padding: 6px 10px;
-            border-bottom: 1px solid #F1F5F9;
+            padding: 3px 5px;
+            border-bottom: 1px solid #F8FAFC;
             text-align: center;
             color: #334155;
+            font-size: 8px;
         }
 
         tbody td:first-child {
@@ -145,24 +145,24 @@
             color: #0F172A;
         }
 
-        tbody td:last-child {
-            font-weight: bold;
-            color: #0F172A;
+        tbody tr:nth-child(even) {
+            background: #F8FAFC;
+        }
+
+        tbody tr {
+            page-break-inside: avoid;
         }
 
         /* ── SOUS-TOTAL ── */
-        .subtotal-row td {
+        .subtotal td {
             background: #E8F5F4;
             color: #1C9F93;
             font-weight: bold;
-            padding: 5px 10px;
+            font-size: 7.5px;
+            padding: 3px 5px;
+            text-align: right;
             border-top: 1px solid #1C9F93;
-            text-align: right;
-            font-size: 10px;
-        }
-
-        .subtotal-row td:first-child {
-            text-align: right;
+            page-break-before: avoid;
         }
 
         /* ── TOTAL GÉNÉRAL ── */
@@ -170,80 +170,88 @@
             display: table;
             width: 100%;
             background: #0F172A;
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin-top: 16px;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            page-break-inside: avoid;
         }
 
         .total-label {
             display: table-cell;
-            color: #ffffff;
+            color: #fff;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 9px;
             vertical-align: middle;
         }
 
         .total-amount {
             display: table-cell;
             text-align: right;
-            font-size: 18px;
+            font-size: 13px;
             font-weight: bold;
             color: #1C9F93;
             vertical-align: middle;
         }
 
-        .total-currency {
-            font-size: 10px;
+        .total-cur {
+            font-size: 7.5px;
             color: #64748B;
             font-weight: normal;
         }
 
-        /* ── SIGNATURE ── */
-        .signature-zone {
+        /* ── SIGNATURES ── */
+        .sig-zone {
             display: table;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 12px;
+            page-break-inside: avoid;
         }
 
         .sig-cell {
             display: table-cell;
             width: 33%;
-            padding: 0 10px;
+            padding: 0 8px;
         }
 
         .sig-box {
             border-top: 1px solid #CBD5E1;
-            padding-top: 8px;
+            padding-top: 5px;
             text-align: center;
         }
 
-        .sig-label {
-            font-size: 9px;
+        .sig-line {
+            height: 20px;
+        }
+
+        .sig-lbl {
+            font-size: 7px;
             color: #64748B;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .sig-name {
-            font-size: 10px;
+            font-size: 8px;
             font-weight: bold;
             color: #0F172A;
-            margin-top: 4px;
-        }
-
-        .sig-line {
-            height: 32px;
-            margin-bottom: 4px;
+            margin-top: 2px;
         }
 
         /* ── FOOTER ── */
         .footer {
             text-align: center;
-            font-size: 8px;
+            font-size: 7px;
             color: #94a3b8;
-            margin-top: 16px;
-            padding-top: 8px;
+            margin-top: 8px;
+            padding-top: 5px;
             border-top: 1px solid #E2E8F0;
+            page-break-inside: avoid;
+        }
+
+        /* ── LÉGENDE ── */
+        .legende {
+            font-size: 7px;
+            color: #64748B;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -253,12 +261,12 @@
     {{-- HEADER --}}
     <div class="header">
         <div class="header-left">
-            <div class="company-name">DIMA GROUPE</div>
-            <div class="company-sub">Sotrac Mermoz, Lot N°71, Résidence OMC — Dakar</div>
+            <div class="company">DIMA GROUPE</div>
+            <div class="company-sub">Sotrac Mermoz, Lot N°71 — Dakar, Sénégal</div>
         </div>
         <div class="header-right">
             <div class="doc-title">FICHE DE PAIE HEBDOMADAIRE</div>
-            <div class="doc-sub">Document officiel — Confidentiel</div>
+            <div class="doc-num">Document officiel — Confidentiel</div>
         </div>
     </div>
 
@@ -277,12 +285,16 @@
             <div class="info-value">N° {{ $semaine }} / {{ $annee }}</div>
         </div>
         <div class="info-cell">
-            <div class="info-label">Période</div>
+            <div class="info-label">Du</div>
             <div class="info-value">{{ $debutSemaine }}</div>
         </div>
         <div class="info-cell">
             <div class="info-label">Au</div>
             <div class="info-value">{{ $finSemaine }}</div>
+        </div>
+        <div class="info-cell">
+            <div class="info-label">Ouvriers</div>
+            <div class="info-value">{{ $recaps->flatten()->count() }}</div>
         </div>
         <div class="info-cell">
             <div class="info-label">Généré le</div>
@@ -292,40 +304,41 @@
 
     {{-- TABLEAU PAR POSTE --}}
     @foreach ($recaps as $posteLibelle => $lignes)
-        <div class="section-title">{{ $posteLibelle }}</div>
+        <div class="section-title">{{ $posteLibelle }} ({{ $lignes->count() }})</div>
         <table>
             <thead>
                 <tr>
-                    <th style="text-align:left; width:28%">Ouvrier</th>
-                    <th>Lun</th>
-                    <th>Mar</th>
-                    <th>Mer</th>
-                    <th>Jeu</th>
-                    <th>Ven</th>
-                    <th>Sam</th>
-                    <th>Dim</th>
-                    <th>Jours</th>
-                    <th>H. sup</th>
-                    <th>Sal. base</th>
-                    <th>Sal. H.sup</th>
-                    <th style="text-align:right">TOTAL</th>
+                    <th style="text-align:left; width:20%">Ouvrier</th>
+                    <th style="width:5%">Sam</th>
+                    <th style="width:5%">Dim</th>
+                    <th style="width:5%">Lun</th>
+                    <th style="width:5%">Mar</th>
+                    <th style="width:5%">Mer</th>
+                    <th style="width:5%">Jeu</th>
+                    <th style="width:5%">Ven</th>
+                    <th style="width:5%">J.P</th>
+                    <th style="width:5%">H.S</th>
+                    <th style="width:10%">Sal. base</th>
+                    <th style="width:10%">Sal. H.S</th>
+                    <th style="width:10%; text-align:right">TOTAL (F)</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($lignes as $recap)
                     @php
-                        // Charger les pointages de la semaine pour cet ouvrier
-                        $debut = \Carbon\Carbon::now()->setISODate($annee, $semaine)->startOfWeek();
-                        $fin = \Carbon\Carbon::now()->setISODate($annee, $semaine)->endOfWeek();
+                        // Semaine Sam→Ven
+                        $samedi = \Carbon\Carbon::now()->setISODate($annee, $semaine)->startOfWeek()->subDays(2);
+                        $vendredi = $samedi->copy()->addDays(6);
 
                         $pointagesOuvrier = \App\Models\Pointage::where('ouvrier_id', $recap->ouvrier_id)
                             ->where('chantier_id', $recap->chantier_id)
-                            ->whereBetween('date', [$debut, $fin])
+                            ->whereBetween('date', [$samedi, $vendredi])
                             ->get()
-                            ->keyBy(fn($p) => \Carbon\Carbon::parse($p->date)->dayOfWeek);
+                            ->keyBy(fn($p) => \Carbon\Carbon::parse($p->date)->toDateString());
 
-                        // dayOfWeek: 1=Lun, 2=Mar, 3=Mer, 4=Jeu, 5=Ven, 6=Sam, 0=Dim
-                        $jours = [1, 2, 3, 4, 5, 6, 0];
+                        // 7 jours : Sam Dim Lun Mar Mer Jeu Ven
+                        $joursDates = collect(range(0, 6))->map(fn($i) => $samedi->copy()->addDays($i));
+
                         $statutMap = [
                             'present' => 'P',
                             'absent' => 'A',
@@ -334,9 +347,9 @@
                     @endphp
                     <tr>
                         <td>{{ $recap->ouvrier->nomComplet }}</td>
-                        @foreach ($jours as $jour)
+                        @foreach ($joursDates as $jourDate)
                             @php
-                                $p = $pointagesOuvrier->get($jour);
+                                $p = $pointagesOuvrier->get($jourDate->toDateString());
                                 $s = $p ? $statutMap[$p->statutPointage] ?? '?' : '—';
                                 $color = match ($s) {
                                     'P' => 'color:#1C9F93; font-weight:bold;',
@@ -344,8 +357,15 @@
                                     'M' => 'color:#f59e0b;',
                                     default => 'color:#cbd5e1;',
                                 };
+                                // H.sup sous la lettre si présent
+                                $hSup = $p?->heures_sup ?? 0;
                             @endphp
-                            <td style="{{ $color }}">{{ $s }}</td>
+                            <td style="{{ $color }}">
+                                {{ $s }}
+                                @if ($hSup > 0)
+                                    <br><span style="font-size:6px; color:#f59e0b;">+{{ $hSup }}h</span>
+                                @endif
+                            </td>
                         @endforeach
                         <td style="font-weight:bold; color:#0F172A;">
                             {{ $recap->jours_presents }}
@@ -357,18 +377,18 @@
                         <td>
                             {{ $recap->salaire_heures_sup > 0 ? number_format($recap->salaire_heures_sup, 0, ',', ' ') : '—' }}
                         </td>
-                        <td style="text-align:right; color:#0F172A; font-weight:bold;">
+                        <td style="text-align:right; font-weight:bold; color:#0F172A;">
                             {{ number_format($recap->salaire_total, 0, ',', ' ') }}
                         </td>
                     </tr>
                 @endforeach
             </tbody>
-            <tr class="subtotal-row">
+            <tr class="subtotal">
                 <td colspan="12" style="text-align:right;">
                     Sous-total {{ $posteLibelle }} :
                 </td>
                 <td style="text-align:right; color:#1C9F93;">
-                    {{ number_format($lignes->sum('salaire_total'), 0, ',', ' ') }} FCFA
+                    {{ number_format($lignes->sum('salaire_total'), 0, ',', ' ') }} F
                 </td>
             </tr>
         </table>
@@ -376,44 +396,53 @@
 
     {{-- TOTAL GÉNÉRAL --}}
     <div class="total-general">
-        <div class="total-label">TOTAL GÉNÉRAL — Semaine {{ $semaine }}</div>
+        <div class="total-label">
+            TOTAL GÉNÉRAL — Semaine {{ $semaine }}/{{ $annee }}
+            · {{ $recaps->flatten()->count() }} ouvriers
+        </div>
         <div class="total-amount">
             {{ number_format($totalGeneral, 0, ',', ' ') }}
-            <span class="total-currency">FCFA</span>
+            <span class="total-cur">FCFA</span>
         </div>
     </div>
 
+    {{-- LÉGENDE --}}
+    <div class="legende">
+        P = Présent &nbsp;·&nbsp; A = Absent &nbsp;·&nbsp; M = Maladie
+        &nbsp;·&nbsp; J.P = Jours présents &nbsp;·&nbsp; H.S = Heures supplémentaires
+    </div>
+
     {{-- SIGNATURES --}}
-    <div class="signature-zone">
+    <div class="sig-zone">
         <div class="sig-cell">
             <div class="sig-box">
                 <div class="sig-line"></div>
-                <div class="sig-label">Le Pointeur</div>
-                <div class="sig-name">{{ optional($recaps->first()?->first()?->soumisParUser)->nomComplet }}</div>
+                <div class="sig-lbl">Le Pointeur</div>
+                <div class="sig-name">
+                    {{ optional($recaps->first()?->first()?->soumisParUser)->nomComplet }}
+                </div>
             </div>
         </div>
         <div class="sig-cell">
             <div class="sig-box">
                 <div class="sig-line"></div>
-                <div class="sig-label">Le Chef de projet</div>
-                <div class="sig-name">{{ optional($recaps->first()?->first()?->valideParUser)->nomComplet }}</div>
+                <div class="sig-lbl">Le Chef de projet</div>
+                <div class="sig-name">
+                    {{ optional($recaps->first()?->first()?->valideParUser)->nomComplet }}
+                </div>
             </div>
         </div>
         <div class="sig-cell">
             <div class="sig-box">
                 <div class="sig-line"></div>
-                <div class="sig-label">La Direction</div>
+                <div class="sig-lbl">La Direction</div>
                 <div class="sig-name">Dima Groupe</div>
             </div>
         </div>
     </div>
 
-    {{-- LÉGENDE --}}
     <div class="footer">
-        Légende : P = Présent · A = Absent · M = Maladie
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        © {{ date('Y') }} Dima Groupe — Document confidentiel —
-        Système de gestion des chantiers v1.0
+        © {{ date('Y') }} Dima Groupe — Document confidentiel — Système de gestion v1.0
     </div>
 
 </body>
