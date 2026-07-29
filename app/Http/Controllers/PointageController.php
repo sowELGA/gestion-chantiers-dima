@@ -6,6 +6,7 @@ use App\Http\Requests\Pointage\ModifierJourRequest;
 use App\Http\Requests\Pointage\PointageRequest;
 use App\Http\Requests\Pointage\RejetRecapRequest;
 use App\Models\Chantier;
+use App\Models\Pointage;
 use App\Models\RecapHebdomadaire;
 use App\Services\PointageService;
 use Carbon\Carbon;
@@ -20,6 +21,7 @@ class PointageController extends Controller
     // POINTEUR — Fiche journalière
     // ══════════════════════════════════════════════════════════
 
+
     public function ficheJour()
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
@@ -28,19 +30,18 @@ class PointageController extends Controller
             return view('pointeur.pointage.bloque', compact('chantier'));
         }
 
-        $page       = (int) request('page', 1);
-        $donnees    = $this->pointageService->getPointagesDuJour($chantier->id);
-        $personnel  = $this->pointageService->getPersonnelPagine($chantier->id, $page);
+        $donnees       = $this->pointageService->getPointagesDuJour($chantier->id);
+        $tousPersonnel = $this->pointageService->getToutPersonnel($chantier->id);
+
         $modifiable = $chantier->statut === 'en_cours'
             && $this->pointageService->semaineModifiable($chantier->id);
 
         return view('pointeur.pointage.fiche', [
-            'chantier'   => $chantier,
-            'date'       => $donnees['date'],
-            'pointages'  => $donnees['pointages'],
-            'personnel'  => $personnel['personnel'],
-            'pagination' => $personnel['pagination'],
-            'modifiable' => $modifiable,
+            'chantier'      => $chantier,
+            'date'          => $donnees['date'],
+            'pointages'     => $donnees['pointages'],
+            'tousPersonnel' => $tousPersonnel,
+            'modifiable'    => $modifiable,
         ]);
     }
 
@@ -123,34 +124,37 @@ class PointageController extends Controller
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
 
-        // Vérifier que la semaine est bien rejetée
         $semaine = Carbon::parse($date)->isoWeek();
         $annee   = Carbon::parse($date)->year;
-        $statut  = $this->pointageService->getStatutSemaine($chantier->id, $semaine, $annee);
+        $statut  = $this->pointageService->getStatutSemaine(
+            $chantier->id,
+            $semaine,
+            $annee
+        );
 
         if ($statut['statut'] !== 'rejetee') {
             return redirect()
                 ->route('pointeur.pointage.recap')
-                ->with('error', 'Cette fiche n\'est pas dans un état modifiable.');
+                ->with('error', 'Cette fiche n\'est pas modifiable.');
         }
 
-        $page    = (int) request('page', 1);
-        $donnees = $this->pointageService->getPointagesDuJourPagines(
-            $chantier->id,
-            $date,
-            $page
-        );
+        // Tous les ouvriers groupés par poste (même ordre que la fiche)
+        $tousPersonnel = $this->pointageService->getToutPersonnel($chantier->id);
 
-        $dateCarbon = Carbon::parse($date);
+        // Tous les pointages du jour
+        $pointagesJour = Pointage::where('chantier_id', $chantier->id)
+            ->whereDate('date', $date)
+            ->get()
+            ->keyBy('ouvrier_id');
 
         return view('pointeur.pointage.modifier-jour', [
-            'chantier'    => $chantier,
-            'date'        => $dateCarbon,
-            'lignes'      => $donnees['lignes'],
-            'pagination'  => $donnees['pagination'],
-            'motif_rejet' => $statut['motif_rejet'],
-            'semaine'     => $semaine,
-            'annee'       => $annee,
+            'chantier'      => $chantier,
+            'date'          => Carbon::parse($date),
+            'tousPersonnel' => $tousPersonnel,
+            'pointagesJour' => $pointagesJour,
+            'motif_rejet'   => $statut['motif_rejet'],
+            'semaine'       => $semaine,
+            'annee'         => $annee,
         ]);
     }
 

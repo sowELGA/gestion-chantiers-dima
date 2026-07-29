@@ -160,38 +160,6 @@
                     </div>
                 @endif
 
-                {{-- Résumé --}}
-                <div
-                    class="px-5 py-4 border-b border-slate-100 flex items-center gap-6
-                        flex-wrap bg-slate-50/50 justify-between">
-                    <div class="flex items-center gap-6">
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wide">Ouvriers</p>
-                            <p class="text-2xl font-bold text-[#0F172A]">{{ $pg['total'] }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wide">
-                                Présences
-                            </p>
-                            <p class="text-2xl font-bold text-[#1C9F93]">
-                                {{ $totaux['total_presents'] }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wide">H. sup</p>
-                            <p class="text-2xl font-bold text-amber-500">
-                                {{ $totaux['total_h_sup'] > 0 ? $totaux['total_h_sup'] . 'h' : '—' }}
-                            </p>
-                        </div>
-                    </div>
-                    @if ($pg['pages'] > 1)
-                        <p class="text-xs text-slate-400">
-                            {{ $pg['debut'] }}–{{ $pg['fin'] }} sur {{ $pg['total'] }}
-                            · Page {{ $pg['page'] }}/{{ $pg['pages'] }}
-                        </p>
-                    @endif
-                </div>
-
                 {{-- Tableau --}}
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs min-w-max">
@@ -268,12 +236,6 @@
                                         {{ $total }}
                                     </td>
                                 @endforeach
-                                <td class="px-3 py-2.5 text-center text-xs font-bold text-[#1C9F93]">
-                                    {{ $totaux['total_presents'] }}
-                                </td>
-                                <td class="px-3 py-2.5 text-center text-xs font-bold text-amber-500">
-                                    {{ $totaux['total_h_sup'] > 0 ? $totaux['total_h_sup'] . 'h' : '—' }}
-                                </td>
                             </tr>
                         </tfoot>
                     </table>

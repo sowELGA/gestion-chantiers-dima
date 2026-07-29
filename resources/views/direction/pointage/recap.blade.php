@@ -125,44 +125,6 @@
                 </div>
             </div>
 
-            {{-- Résumé totaux --}}
-            <div
-                class="px-5 py-3 border-b border-slate-100 flex items-center gap-6
-                    flex-wrap bg-slate-50/50 justify-between">
-                <div class="flex items-center gap-6">
-                    <div>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wide">Présences</p>
-                        <p class="text-lg font-bold text-[#1C9F93]">
-                            {{ $totaux['total_presents'] }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wide">H. sup</p>
-                        <p class="text-lg font-bold text-amber-500">
-                            {{ $totaux['total_h_sup'] > 0 ? $totaux['total_h_sup'] . 'h' : '—' }}
-                        </p>
-                    </div>
-                    @if ($statut === 'envoyee_direction')
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wide">
-                                Total salaires
-                            </p>
-                            <p class="text-lg font-bold text-[#0F172A]">
-                                {{ number_format($totaux['total_salaires'], 0, ',', ' ') }}
-                                <span class="text-xs font-normal text-slate-400">FCFA</span>
-                            </p>
-                        </div>
-                    @endif
-                </div>
-                @if ($pg['pages'] > 1)
-                    <p class="text-xs text-slate-400">
-                        {{ $pg['debut'] }}–{{ $pg['fin'] }}
-                        sur {{ $pg['total'] }}
-                        · Page {{ $pg['page'] }}/{{ $pg['pages'] }}
-                    </p>
-                @endif
-            </div>
-
             {{-- Tableau --}}
             @if ($lignes->isEmpty())
                 <div class="p-6 text-center">
@@ -253,12 +215,6 @@
                                         {{ $t }}
                                     </td>
                                 @endforeach
-                                <td class="px-3 py-2.5 text-center text-xs font-bold text-[#1C9F93]">
-                                    {{ $totaux['total_presents'] }}
-                                </td>
-                                <td class="px-3 py-2.5 text-center text-xs font-bold text-amber-500">
-                                    {{ $totaux['total_h_sup'] > 0 ? $totaux['total_h_sup'] . 'h' : '—' }}
-                                </td>
                                 @if ($statut === 'envoyee_direction')
                                     <td class="px-5 py-2.5 text-right text-xs font-bold text-[#1C9F93]">
                                         {{ number_format($totaux['total_salaires'], 0, ',', ' ') }}

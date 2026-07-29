@@ -5,34 +5,14 @@
 
 @section('content')
 
-    {{-- Navigation --}}
-    <div class="flex items-center gap-2 text-sm text-slate-500">
-        <a href="{{ route('chef_projet.chantiers.index') }}" class="hover:text-[#1C9F93]">Mes chantiers</a>
-        <span>/</span>
-        <span class="text-[#0F172A] font-medium">Pointage</span>
-    </div>
-
     {{-- Statut + Actions --}}
     <div class="flex items-center justify-between flex-wrap gap-3" x-data="{ showRejet: false }">
 
-        <div class="flex items-center gap-3">
-            @php
-                $statutConfig = [
-                    'en_attente' => ['En attente', 'bg-slate-100 text-slate-600'],
-                    'soumise' => ['Soumise — En attente validation', 'bg-amber-100 text-amber-700'],
-                    'rejetee' => ['Rejetée', 'bg-red-100 text-red-600'],
-                    'validee_cp' => ['Validée', 'bg-[#1C9F93]/10 text-[#1C9F93]'],
-                    'envoyee_direction' => ['Transmise Direction', 'bg-slate-100 text-slate-500'],
-                ];
-                [$label, $class] = $statutConfig[$statut] ?? ['—', ''];
-            @endphp
-            <span class="px-3 py-1.5 rounded-full text-xs font-semibold {{ $class }}">
-                {{ $label }}
-            </span>
-            <span class="text-xs text-slate-400">
-                Du {{ $debut->locale('fr')->isoFormat('D MMM') }}
-                au {{ $fin->locale('fr')->isoFormat('D MMM YYYY') }}
-            </span>
+        {{-- Navigation --}}
+        <div class="flex items-center gap-2 text-sm text-slate-500">
+            <a href="{{ route('chef_projet.chantiers.index') }}" class="hover:text-[#1C9F93]">Mes chantiers</a>
+            <span>/</span>
+            <span class="text-[#0F172A] font-medium">Pointage</span>
         </div>
 
         @if ($statut === 'soumise')
@@ -108,41 +88,30 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
 
-            {{-- Résumé --}}
             <div
                 class="px-5 py-4 border-b border-slate-100 flex items-center gap-6
                     flex-wrap bg-slate-50/50 justify-between">
                 <div class="flex items-center gap-6">
                     <div>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wide">
-                            Total ouvriers
-                        </p>
-                        <p class="text-xl font-bold text-[#0F172A]">{{ $pg['total'] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wide">
-                            Présences (total)
-                        </p>
-                        <p class="text-xl font-bold text-[#1C9F93]">
-                            {{ $totaux['total_presents'] }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wide">
-                            H. sup (total)
-                        </p>
-                        <p class="text-xl font-bold text-amber-500">
-                            {{ $totaux['total_h_sup'] > 0 ? $totaux['total_h_sup'] . 'h' : '—' }}
-                        </p>
+                        <span class="text-xs text-slate-400">
+                            Du {{ $debut->locale('fr')->isoFormat('D MMM') }}
+                            au {{ $fin->locale('fr')->isoFormat('D MMM YYYY') }}
+                        </span>
                     </div>
                 </div>
-                @if ($pg['pages'] > 1)
-                    <p class="text-xs text-slate-400">
-                        Ouvriers {{ $pg['debut'] }}–{{ $pg['fin'] }}
-                        sur {{ $pg['total'] }}
-                        · Page {{ $pg['page'] }}/{{ $pg['pages'] }}
-                    </p>
-                @endif
+                @php
+                    $statutConfig = [
+                        'en_attente' => ['En attente', 'bg-slate-100 text-slate-600'],
+                        'soumise' => ['Soumise — En attente validation', 'bg-amber-100 text-amber-700'],
+                        'rejetee' => ['Rejetée', 'bg-red-100 text-red-600'],
+                        'validee_cp' => ['Validée', 'bg-[#1C9F93]/10 text-[#1C9F93]'],
+                        'envoyee_direction' => ['Transmise Direction', 'bg-slate-100 text-slate-500'],
+                    ];
+                    [$label, $class] = $statutConfig[$statut] ?? ['—', ''];
+                @endphp
+                <span class="px-3 py-1.5 rounded-full text-xs font-semibold {{ $class }}">
+                    {{ $label }}
+                </span>
             </div>
 
             {{-- Tableau --}}

@@ -6,8 +6,7 @@
 @section('content')
 
     {{-- Motif du rejet --}}
-    <div class="bg-red-50 border border-red-200 rounded-xl p-4
-            flex items-start gap-3">
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
         <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
                      1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
@@ -19,7 +18,7 @@
         </div>
     </div>
 
-    {{-- Navigation --}}
+    {{-- Navigation jours --}}
     <div class="flex items-center justify-between flex-wrap gap-3">
         <a href="{{ route('pointeur.pointage.recap') }}"
             class="flex items-center gap-2 text-sm text-slate-500
@@ -27,25 +26,24 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Retour au récap semaine {{ $semaine }}
+            Retour au récap
         </a>
 
-        {{-- Navigation entre les jours --}}
         <div class="flex items-center gap-2">
             @php
-                $dateCarbon = $date;
-                $debutSemaine = Carbon\Carbon::now()->setISODate($annee, $semaine)->startOfWeek();
-                $finSemaine = $debutSemaine->copy()->addDays(5);
-                $datePrev = $dateCarbon->copy()->subDay();
-                $dateNext = $dateCarbon->copy()->addDay();
+                $debutSemaine = \Carbon\Carbon::now()->setISODate($annee, $semaine)->startOfWeek()->subDays(2);
+                $finSemaine = $debutSemaine->copy()->addDays(6);
+                $datePrev = $date->copy()->subDay();
+                $dateNext = $date->copy()->addDay();
                 $peutPrev = $datePrev->gte($debutSemaine);
-                $peutNext = $dateNext->lte($finSemaine);
+                $peutNext = $dateNext->lte($finSemaine) && !$dateNext->isFuture();
             @endphp
 
             @if ($peutPrev)
                 <a href="{{ route('pointeur.pointage.modifier-jour', $datePrev->toDateString()) }}"
                     class="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600
-                      border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                      border border-slate-300 rounded-lg hover:bg-slate-50
+                      transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -54,15 +52,16 @@
             @endif
 
             <span
-                class="px-3 py-2 text-sm font-semibold text-[#0F172A] bg-[#1C9F93]/10
-                     rounded-lg capitalize">
-                {{ $dateCarbon->locale('fr')->isoFormat('dddd D MMM') }}
+                class="px-3 py-2 text-sm font-semibold text-[#0F172A]
+                     bg-[#1C9F93]/10 rounded-lg capitalize">
+                {{ $date->locale('fr')->isoFormat('dddd D MMM') }}
             </span>
 
-            @if ($peutNext && !$dateNext->isFuture())
+            @if ($peutNext)
                 <a href="{{ route('pointeur.pointage.modifier-jour', $dateNext->toDateString()) }}"
                     class="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600
-                      border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                      border border-slate-300 rounded-lg hover:bg-slate-50
+                      transition-colors">
                     {{ $dateNext->locale('fr')->isoFormat('ddd D MMM') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -72,162 +71,458 @@
         </div>
     </div>
 
-    @php $pg = $pagination; @endphp
+    {{-- Préparer les données pour Alpine --}}
+    @php
+        $donneesAlpine = [];
+        foreach ($tousPersonnel as $ouvrier) {
+            $p = $pointagesJour->get($ouvrier->id);
+            $donneesAlpine[$ouvrier->id] = [
+                'id' => $ouvrier->id,
+                'nom' => $ouvrier->nomComplet,
+                'poste' => $ouvrier->poste->libelle,
+                'statut' => $p?->statutPointage ?? 'present',
+                'heures_sup' => (int) ($p?->heures_sup ?? 0),
+            ];
+        }
+        $groupes = $tousPersonnel->groupBy(fn($o) => $o->poste->libelle)->sortKeys();
+    @endphp
 
-    {{-- Formulaire --}}
-    <form method="POST" action="{{ route('pointeur.pointage.enregistrer-modification') }}">
-        @csrf
-        <input type="hidden" name="date" value="{{ $date->toDateString() }}">
-        <input type="hidden" name="page" value="{{ $pg['page'] }}">
+    <div x-data="fichePointage({{ json_encode($donneesAlpine) }})">
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        {{-- Formulaire caché --}}
+        <form id="modifier-form" method="POST" action="{{ route('pointeur.pointage.enregistrer-modification') }}"
+            style="display:none">
+            @csrf
+            <input type="hidden" name="date" value="{{ $date->toDateString() }}">
+            <input type="hidden" name="semaine" value="{{ $semaine }}">
+            <input type="hidden" name="annee" value="{{ $annee }}">
+        </form>
 
-            {{-- Info pagination --}}
-            @if ($pg['pages'] > 1)
-                <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-100 text-xs text-slate-500">
-                    Ouvriers <strong>{{ $pg['debut'] }}</strong>–<strong>{{ $pg['fin'] }}</strong>
-                    sur <strong>{{ $pg['total'] }}</strong>
-                    · Page <strong>{{ $pg['page'] }}</strong>/<strong>{{ $pg['pages'] }}</strong>
-                </div>
-            @endif
-
-            {{-- En-têtes --}}
-            <div
-                class="grid grid-cols-12 px-5 py-2.5 border-b border-slate-100
-                    bg-slate-50/80 text-[10px] font-bold text-slate-400 uppercase
-                    tracking-wide">
-                <div class="col-span-1 text-center">#</div>
-                <div class="col-span-4">Ouvrier</div>
-                <div class="col-span-3">Poste</div>
-                <div class="col-span-3 text-center">Statut</div>
-                <div class="col-span-1 text-center">H.S</div>
-            </div>
-
-            {{-- Lignes --}}
-            @foreach ($lignes as $idx => $p)
-                <div class="grid grid-cols-12 items-center px-5 py-3
-                        border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
-                    x-data="{
-                        statut: '{{ $p['statut'] }}',
-                        hSup: {{ $p['h_sup'] }}
-                    }">
-
-                    <input type="hidden" name="pointages[{{ $idx }}][ouvrier_id]"
-                        value="{{ $p['ouvrier']->id }}">
-                    <input type="hidden" name="pointages[{{ $idx }}][statutPointage]" :value="statut">
-                    <input type="hidden" name="pointages[{{ $idx }}][heures_sup]"
-                        :value="statut === 'present' ? hSup : 0">
-
-                    {{-- Numéro --}}
-                    <div class="col-span-1 text-center">
-                        <span class="text-xs text-slate-300">{{ $pg['debut'] + $idx }}</span>
-                    </div>
-
-                    {{-- Nom --}}
-                    <div class="col-span-4">
-                        <p class="text-sm font-semibold text-[#0F172A] truncate" title="{{ $p['ouvrier']->nomComplet }}">
-                            {{ $p['ouvrier']->nomComplet }}
-                        </p>
-                    </div>
-
-                    {{-- Poste --}}
-                    <div class="col-span-3">
-                        <span class="text-xs text-slate-400 truncate block" title="{{ $p['ouvrier']->poste->libelle }}">
-                            {{ $p['ouvrier']->poste->libelle }}
-                        </span>
-                    </div>
-
-                    {{-- Boutons statut --}}
-                    <div class="col-span-3 flex justify-center">
-                        <div class="flex rounded-lg border border-slate-200 overflow-hidden">
-                            @foreach ([
-            'present' => ['✓ P', 'bg-[#1C9F93] text-white'],
-            'absent' => ['Abs', 'bg-slate-500 text-white'],
-            'maladie' => ['Mal', 'bg-amber-500 text-white'],
-        ] as $val => [$lbl, $activeClass])
-                                <button type="button"
-                                    @click="statut = '{{ $val }}';
-                                        if('{{ $val }}' !== 'present') hSup = 0;"
-                                    :class="statut === '{{ $val }}'
-                                        ?
-                                        '{{ $activeClass }}' :
-                                        'bg-white text-slate-500 hover:bg-slate-50'"
-                                    class="px-3 py-2 text-xs font-bold border-r
-                                           border-slate-200 last:border-0 transition-colors">
-                                    {{ $lbl }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Heures sup --}}
-                    <div class="col-span-1 flex justify-center">
-                        <input type="number" x-model="hSup" :disabled="statut !== 'present'" step="0.5" min="0"
-                            max="12" placeholder="0"
-                            class="w-14 px-1.5 py-2 border border-slate-300 rounded-md
-                                  text-xs text-center focus:outline-none focus:ring-1
-                                  focus:ring-[#1C9F93] focus:border-[#1C9F93]
-                                  disabled:bg-slate-50 disabled:text-slate-300
-                                  disabled:cursor-not-allowed">
-                    </div>
-                </div>
-            @endforeach
-
-        </div>
-
-        {{-- Pagination + bouton Enregistrer --}}
+        {{-- Barre résumé + actions --}}
         <div
-            class="bg-white rounded-xl shadow-sm border border-slate-200
-                px-5 py-3 flex items-center justify-between flex-wrap gap-3">
-
-            {{-- Pagination --}}
-            @if ($pg['pages'] > 1)
-                <div class="flex items-center gap-1">
-                    @php
-                        $pCurr = $pg['page'];
-                        $pMax = $pg['pages'];
-                    @endphp
-                    <a href="{{ request()->fullUrlWithQuery(['page' => max(1, $pCurr - 1)]) }}"
-                        class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200
-                          text-slate-500 hover:bg-slate-50 transition-colors
-                          {{ $pCurr === 1 ? 'opacity-40 pointer-events-none' : '' }}">
-                        «
-                    </a>
-                    @for ($p = 1; $p <= $pMax; $p++)
-                        <a href="{{ request()->fullUrlWithQuery(['page' => $p]) }}"
-                            class="px-3 py-1.5 text-xs rounded-lg border transition-colors
-                              {{ $p === $pCurr
-                                  ? 'bg-[#1C9F93] text-white border-[#1C9F93]'
-                                  : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50' }}">
-                            {{ $p }}
-                        </a>
-                    @endfor
-                    <a href="{{ request()->fullUrlWithQuery(['page' => min($pMax, $pCurr + 1)]) }}"
-                        class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200
-                          text-slate-500 hover:bg-slate-50 transition-colors
-                          {{ $pCurr === $pMax ? 'opacity-40 pointer-events-none' : '' }}">
-                        »
-                    </a>
+            class="bg-white rounded-xl shadow-sm border border-slate-200 p-4
+                flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-5">
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-[#1C9F93]" x-text="compter('present')"></p>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wide">Présents</p>
                 </div>
-            @else
-                <div></div>
-            @endif
-
-            {{-- Boutons action --}}
-            <div class="flex items-center gap-3">
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-red-400" x-text="compter('absent')"></p>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wide">Absents</p>
+                </div>
+                <div class="text-center border-l border-slate-200 pl-5">
+                    <p class="text-2xl font-bold text-[#0F172A]">{{ $tousPersonnel->count() }}</p>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wide">Total</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" @click="tousPresents()"
+                    class="flex items-center gap-2 px-4 py-2.5 bg-[#1C9F93]/10
+                           text-[#1C9F93] text-sm font-medium rounded-lg
+                           hover:bg-[#1C9F93]/20 transition-colors border
+                           border-[#1C9F93]/30">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Tous présents
+                </button>
                 <a href="{{ route('pointeur.pointage.recap') }}"
                     class="px-4 py-2.5 text-sm text-slate-600 border border-slate-300
                       rounded-lg hover:bg-slate-50 transition-colors">
                     Retour au récap
                 </a>
-                <button type="submit"
-                    class="px-6 py-2.5 bg-[#1C9F93] text-white text-sm font-medium
+                <button type="button" @click="soumettre('modifier-form')"
+                    class="px-5 py-2.5 bg-[#1C9F93] text-white text-sm font-medium
                            rounded-lg hover:bg-[#178a7f] transition-colors">
                     Enregistrer ce jour
                 </button>
             </div>
         </div>
 
-    </form>
+        {{-- Barre de recherche --}}
+        <div class="relative">
+            <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" x-model="recherche" @input="rechercheActive = recherche.length > 0"
+                placeholder="Rechercher un ouvrier par nom..."
+                class="w-full pl-11 pr-4 py-3 bg-white border border-slate-300
+                      rounded-xl text-sm focus:outline-none focus:ring-2
+                      focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] shadow-sm">
+            <button x-show="recherche.length > 0" @click="recherche = ''; rechercheActive = false"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400
+                       hover:text-slate-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Résultats recherche --}}
+        <div x-show="rechercheActive" x-transition class="space-y-1">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div
+                    class="px-5 py-2.5 bg-slate-50 border-b border-slate-100
+                        text-xs font-semibold text-slate-500">
+                    Résultats de recherche
+                </div>
+                <template x-for="(ouvrier, id) in resultatsRecherche()" :key="id">
+                    <div class="flex items-center justify-between px-5 py-3
+                            border-b border-slate-50 hover:bg-slate-50/50
+                            transition-colors"
+                        :class="ouvrier.statut === 'absent' ?
+                            'bg-red-50/30' : ''">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold transition-colors"
+                                :class="ouvrier.statut === 'absent' ?
+                                    'text-slate-400 line-through' : 'text-[#0F172A]'"
+                                x-text="ouvrier.nom"></p>
+                            <p class="text-xs text-slate-400" x-text="ouvrier.poste"></p>
+                        </div>
+                        <div class="flex items-center gap-3 ml-4">
+                            {{-- H.sup --}}
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] text-slate-400 uppercase">H.S</span>
+                                <button type="button" :disabled="ouvrier.statut !== 'present'"
+                                    @click="decrementHSup(id)"
+                                    class="w-6 h-6 flex items-center justify-center
+                                           bg-slate-100 text-slate-500 rounded
+                                           hover:bg-slate-200 disabled:opacity-30
+                                           disabled:cursor-not-allowed text-xs
+                                           font-bold transition-colors">−</button>
+                                <span class="w-8 text-center text-sm font-semibold"
+                                    :class="(ouvrier.heures_sup ?? 0) > 0
+                                        ?
+                                        'text-amber-600' : 'text-slate-300'"
+                                    x-text="(ouvrier.heures_sup ?? 0) + 'h'"></span>
+                                <button type="button" :disabled="ouvrier.statut !== 'present'"
+                                    @click="incrementHSup(id)"
+                                    class="w-6 h-6 flex items-center justify-center
+                                           bg-slate-100 text-slate-500 rounded
+                                           hover:bg-slate-200 disabled:opacity-30
+                                           disabled:cursor-not-allowed text-xs
+                                           font-bold transition-colors">+</button>
+                            </div>
+                            {{-- Statut --}}
+                            <div class="flex rounded-lg border border-slate-200 overflow-hidden">
+                                <button type="button" @click="setStatut(id, 'present')"
+                                    :class="ouvrier.statut === 'present' ?
+                                        'bg-[#1C9F93] text-white' :
+                                        'bg-white text-slate-500 hover:bg-slate-50'"
+                                    class="px-4 py-2 text-xs font-bold border-r
+                                           border-slate-200 transition-colors">
+                                    ✓ P
+                                </button>
+                                <button type="button" @click="setStatut(id, 'absent')"
+                                    :class="ouvrier.statut === 'absent' ?
+                                        'bg-red-400 text-white' :
+                                        'bg-white text-slate-500 hover:bg-slate-50'"
+                                    class="px-4 py-2 text-xs font-bold transition-colors">
+                                    Abs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="resultatsRecherche().length === 0" class="px-5 py-6 text-center text-sm text-slate-400">
+                    Aucun ouvrier trouvé pour "<span x-text="recherche"></span>"
+                </div>
+            </div>
+        </div>
+
+        {{-- Liste groupée par poste --}}
+        <div x-show="!rechercheActive" class="space-y-2">
+
+            @foreach ($groupes as $posteLibelle => $ouvriersGroupe)
+                @php $ids = $ouvriersGroupe->pluck('id')->toArray(); @endphp
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+                    x-data="{ ouvert: {{ $loop->first ? 'true' : 'false' }} }">
+
+                    {{-- En-tête groupe --}}
+                    <div class="flex items-center justify-between px-5 py-3.5
+                            cursor-pointer select-none hover:bg-slate-50/50
+                            transition-colors border-b border-slate-100"
+                        :class="ouvert ? 'bg-slate-50/50' : ''" @click="ouvert = !ouvert">
+
+                        <div class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-slate-400 transition-transform" :class="ouvert ? 'rotate-90' : ''"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                            <div>
+                                <p class="font-semibold text-sm text-[#0F172A]">
+                                    {{ $posteLibelle }}
+                                </p>
+                                <p class="text-xs text-slate-400">
+                                    {{ $ouvriersGroupe->count() }} ouvrier(s) ·
+                                    <span class="text-[#1C9F93] font-medium"
+                                        x-text="compterGroupe({{ json_encode($ids) }}, 'present')">
+                                    </span>
+                                    présent(s) ·
+                                    <span class="text-amber-500 font-medium"
+                                        x-text="totalHSupGroupe({{ json_encode($ids) }})">
+                                    </span>h sup
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click.stop="tousPresentsGroupe({{ json_encode($ids) }})"
+                                class="flex items-center gap-1.5 px-3 py-1.5 text-[10px]
+                                       font-semibold text-[#1C9F93] bg-[#1C9F93]/10
+                                       hover:bg-[#1C9F93]/20 rounded-lg transition-colors
+                                       border border-[#1C9F93]/20">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                                Tous présents
+                            </button>
+                            <button type="button" @click.stop="tousAbsentsGroupe({{ json_encode($ids) }})"
+                                class="flex items-center gap-1.5 px-3 py-1.5 text-[10px]
+                                       font-semibold text-slate-500 bg-slate-100
+                                       hover:bg-slate-200 rounded-lg transition-colors">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Tous absents
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Lignes ouvriers --}}
+                    <div x-show="ouvert" x-transition>
+                        <div
+                            class="grid grid-cols-12 px-5 py-2 bg-slate-50/30
+                                text-[10px] font-bold text-slate-400 uppercase
+                                tracking-wide border-b border-slate-100">
+                            <div class="col-span-1 text-center">#</div>
+                            <div class="col-span-5">Ouvrier</div>
+                            <div class="col-span-3 text-center">Statut</div>
+                            <div class="col-span-3 text-center">H. sup</div>
+                        </div>
+
+                        @foreach ($ouvriersGroupe as $loopIdx => $ouvrier)
+                            @php $id = $ouvrier->id; @endphp
+                            <div class="grid grid-cols-12 items-center px-5 py-2.5
+                                    border-b border-slate-50 last:border-0 transition-colors"
+                                :class="lignes[{{ $id }}]?.statut === 'absent' ?
+                                    'bg-red-50/30 hover:bg-red-50/50' :
+                                    'hover:bg-slate-50/50'">
+
+                                <div class="col-span-1 text-center">
+                                    <span class="text-[10px] text-slate-300">
+                                        {{ $loop->parent->iteration }}.{{ $loopIdx + 1 }}
+                                    </span>
+                                </div>
+
+                                <div class="col-span-5">
+                                    <p class="text-sm font-medium transition-colors"
+                                        :class="lignes[{{ $id }}]?.statut === 'absent' ?
+                                            'text-slate-400 line-through' :
+                                            'text-[#0F172A]'">
+                                        {{ $ouvrier->nomComplet }}
+                                    </p>
+                                </div>
+
+                                {{-- Statut --}}
+                                <div class="col-span-3 flex justify-center">
+                                    <div class="flex rounded-lg border border-slate-200 overflow-hidden">
+                                        <button type="button" @click="setStatut({{ $id }}, 'present')"
+                                            :class="lignes[{{ $id }}]?.statut === 'present' ?
+                                                'bg-[#1C9F93] text-white' :
+                                                'bg-white text-slate-400 hover:bg-slate-50'"
+                                            class="px-3 py-2 text-xs font-bold border-r
+                                                   border-slate-200 transition-colors">
+                                            ✓ P
+                                        </button>
+                                        <button type="button" @click="setStatut({{ $id }}, 'absent')"
+                                            :class="lignes[{{ $id }}]?.statut === 'absent' ?
+                                                'bg-red-400 text-white' :
+                                                'bg-white text-slate-400 hover:bg-slate-50'"
+                                            class="px-3 py-2 text-xs font-bold transition-colors">
+                                            Abs
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- H.sup entières uniquement --}}
+                                <div class="col-span-3 flex justify-center items-center gap-1.5">
+                                    <button type="button"
+                                        :disabled="lignes[{{ $id }}]?.statut !== 'present'"
+                                        @click="decrementHSup({{ $id }})"
+                                        class="w-6 h-6 flex items-center justify-center
+                                               bg-slate-100 text-slate-500 rounded
+                                               hover:bg-slate-200 disabled:opacity-30
+                                               disabled:cursor-not-allowed text-xs
+                                               font-bold transition-colors">−</button>
+                                    <span class="w-10 text-center text-sm font-semibold transition-colors"
+                                        :class="(lignes[{{ $id }}]?.heures_sup ?? 0) > 0
+                                            ?
+                                            'text-amber-600' : 'text-slate-300'"
+                                        x-text="(lignes[{{ $id }}]?.heures_sup ?? 0) + 'h'">
+                                    </span>
+                                    <button type="button"
+                                        :disabled="lignes[{{ $id }}]?.statut !== 'present'"
+                                        @click="incrementHSup({{ $id }})"
+                                        class="w-6 h-6 flex items-center justify-center
+                                               bg-slate-100 text-slate-500 rounded
+                                               hover:bg-slate-200 disabled:opacity-30
+                                               disabled:cursor-not-allowed text-xs
+                                               font-bold transition-colors">+</button>
+                                    <input type="number" :value="lignes[{{ $id }}]?.heures_sup ?? 0"
+                                        @input="setHeuresSup({{ $id }}, $event.target.value)"
+                                        :disabled="lignes[{{ $id }}]?.statut !== 'present'" step="1"
+                                        min="0" max="12" placeholder="0"
+                                        class="w-14 px-1.5 py-1.5 border border-slate-300
+                                              rounded-md text-xs text-center
+                                              focus:outline-none focus:ring-1
+                                              focus:ring-amber-400 focus:border-amber-400
+                                              disabled:bg-slate-50 disabled:text-slate-300
+                                              disabled:cursor-not-allowed">
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+    </div>
+
+    {{-- Script Alpine — identique à la fiche principale --}}
+    <script>
+        function fichePointage(donneesInitiales) {
+            return {
+                lignes: {},
+                recherche: '',
+                rechercheActive: false,
+
+                init() {
+                    Object.entries(donneesInitiales).forEach(([id, ouvrier]) => {
+                        this.lignes[id] = {
+                            id: ouvrier.id,
+                            nom: ouvrier.nom,
+                            poste: ouvrier.poste,
+                            statut: ouvrier.statut,
+                            heures_sup: ouvrier.heures_sup,
+                        };
+                    });
+                },
+
+                setStatut(id, statut) {
+                    if (!this.lignes[id]) return;
+                    this.lignes[id].statut = statut;
+                    if (statut === 'absent') this.lignes[id].heures_sup = 0;
+                },
+
+                tousPresents() {
+                    Object.keys(this.lignes).forEach(id => {
+                        this.lignes[id].statut = 'present';
+                    });
+                },
+
+                tousPresentsGroupe(ids) {
+                    ids.forEach(id => {
+                        if (this.lignes[id]) this.lignes[id].statut = 'present';
+                    });
+                },
+
+                tousAbsentsGroupe(ids) {
+                    ids.forEach(id => {
+                        if (this.lignes[id]) {
+                            this.lignes[id].statut = 'absent';
+                            this.lignes[id].heures_sup = 0;
+                        }
+                    });
+                },
+
+                // Heures entières uniquement
+                setHeuresSup(id, valeur) {
+                    if (!this.lignes[id] || this.lignes[id].statut !== 'present') return;
+                    this.lignes[id].heures_sup = Math.max(0, Math.min(12,
+                        Math.round(parseFloat(valeur) || 0)
+                    ));
+                },
+
+                incrementHSup(id) {
+                    if (!this.lignes[id] || this.lignes[id].statut !== 'present') return;
+                    this.lignes[id].heures_sup = Math.min(12,
+                        (this.lignes[id].heures_sup ?? 0) + 1
+                    );
+                },
+
+                decrementHSup(id) {
+                    if (!this.lignes[id] || this.lignes[id].statut !== 'present') return;
+                    this.lignes[id].heures_sup = Math.max(0,
+                        (this.lignes[id].heures_sup ?? 0) - 1
+                    );
+                },
+
+                compter(statut) {
+                    return Object.values(this.lignes).filter(l => l.statut === statut).length;
+                },
+
+                compterGroupe(ids, statut) {
+                    return ids.filter(id => this.lignes[id]?.statut === statut).length;
+                },
+
+                totalHeuresSup() {
+                    return Object.values(this.lignes)
+                        .filter(l => l.statut === 'present')
+                        .reduce((sum, l) => sum + (l.heures_sup ?? 0), 0);
+                },
+
+                totalHSupGroupe(ids) {
+                    return ids.reduce((sum, id) => {
+                        return this.lignes[id]?.statut === 'present' ?
+                            sum + (this.lignes[id]?.heures_sup ?? 0) :
+                            sum;
+                    }, 0);
+                },
+
+                resultatsRecherche() {
+                    if (!this.recherche) return {};
+                    const q = this.recherche.toLowerCase().trim();
+                    return Object.fromEntries(
+                        Object.entries(this.lignes).filter(([, o]) =>
+                            o.nom.toLowerCase().includes(q) ||
+                            o.poste.toLowerCase().includes(q)
+                        )
+                    );
+                },
+
+                soumettre(formId) {
+                    const form = document.getElementById(formId);
+                    form.querySelectorAll('[data-dynamic]').forEach(el => el.remove());
+
+                    let idx = 0;
+                    Object.values(this.lignes).forEach(ouvrier => {
+                        const add = (name, value) => {
+                            const el = document.createElement('input');
+                            el.type = 'hidden';
+                            el.name = name;
+                            el.value = value;
+                            el.setAttribute('data-dynamic', '');
+                            form.appendChild(el);
+                        };
+                        add(`pointages[${idx}][ouvrier_id]`, ouvrier.id);
+                        add(`pointages[${idx}][statutPointage]`, ouvrier.statut);
+                        add(`pointages[${idx}][heures_sup]`,
+                            ouvrier.statut === 'present' ? (ouvrier.heures_sup ?? 0) : 0);
+                        idx++;
+                    });
+
+                    form.submit();
+                },
+            };
+        }
+    </script>
 
 @endsection

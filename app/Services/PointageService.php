@@ -58,10 +58,23 @@ class PointageService
     // Retourne tous les ouvriers actifs d'un chantier
     private function personnelActif(int $chantierId): \Illuminate\Support\Collection
     {
-        return Personnel::with('poste')
-            ->where('chantier_id', $chantierId)
-            ->where('statutPersonnel', 'actif')
-            ->orderBy('nomPersonnel')
+        return Personnel::query()
+            ->select('personnels.*')
+            ->join('postes', 'personnels.poste_id', '=', 'postes.id') // Ajustez 'postes.id' si votre clé a un autre nom
+            ->where('personnels.chantier_id', $chantierId)
+            ->where('personnels.statutPersonnel', 'actif')
+            // 1. Regroupe par corps de métier (en retirant le mot 'chef')
+            ->orderByRaw("TRIM(REPLACE(LOWER(postes.libelle), 'chef', '')) ASC")
+            // 2. Met le chef en premier dans son groupe
+            ->orderByRaw("
+            CASE 
+                WHEN LOWER(postes.libelle) LIKE 'chef%' THEN 0 
+                ELSE 1 
+            END ASC
+        ")
+            // 3. Trie les ouvriers du même rang par ordre alphabétique
+            ->orderBy('personnels.nomPersonnel', 'asc')
+            ->with('poste')
             ->get();
     }
 
@@ -83,6 +96,12 @@ class PointageService
     // ══════════════════════════════════════════════════════════
     // FICHE JOURNALIÈRE
     // ══════════════════════════════════════════════════════════
+
+    // Retourne TOUS les ouvriers actifs (pour les champs cachés du formulaire)
+    public function getToutPersonnel(int $chantierId): \Illuminate\Support\Collection
+    {
+        return $this->personnelActif($chantierId);
+    }
 
     // Retourne les ouvriers actifs paginés pour la fiche du jour
     public function getPersonnelPagine(int $chantierId, int $page, int $parPage = 20): array
