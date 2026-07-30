@@ -13,7 +13,7 @@
 
     {{-- SIDEBAR DESKTOP --}}
     <aside :class="sidebarOpen ? 'w-64' : 'w-16'"
-        class="fixed top-0 left-0 h-full bg-[#0F172A] text-white
+        class="fixed top-0 left-0 h-full bg-[#0F3D37] text-white
               transition-all duration-300 ease-in-out z-30
               flex-col shadow-xl hidden lg:flex">
 
@@ -27,7 +27,7 @@
                     <span
                         class="text-[10px] text-[#1C9F93] font-bold uppercase
                               tracking-wider whitespace-nowrap">
-                        Immobilier Moderne
+                        Gestion & Suivie des Chantiers
                     </span>
                 </div>
             </div>
@@ -257,11 +257,10 @@
         x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="-translate-x-full"
-        class="fixed top-0 left-0 h-full w-64 bg-[#0F172A] text-white
+        class="fixed top-0 left-0 h-full w-64 bg-[#0F3D37] text-white
               z-30 flex flex-col shadow-xl lg:hidden">
         <div class="flex items-center justify-between px-4 py-5 border-b border-slate-700/50">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/dima-logo.svg') }}" alt="Dima Groupe" class="h-6 brightness-0 invert">
                 <div>
                     <p class="text-base font-bold">Dima Groupe</p>
                     <span class="text-[10px] text-[#1C9F93] font-bold uppercase">

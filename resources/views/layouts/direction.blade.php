@@ -15,7 +15,7 @@
     {{-- SIDEBAR DESKTOP                                     --}}
     {{-- ═══════════════════════════════════════════════════ --}}
     <aside :class="sidebarOpen ? 'w-64' : 'w-16'"
-        class="fixed top-0 left-0 h-full bg-[#0F172A] text-white
+        class="fixed top-0 left-0 h-full bg-[#0F3D37] text-white
               transition-all duration-300 ease-in-out z-30
               flex-col shadow-xl hidden lg:flex">
 
@@ -32,7 +32,7 @@
                     <span
                         class="text-[10px] text-[#1C9F93] font-bold
                               uppercase tracking-wider whitespace-nowrap">
-                        Immobilier Moderne
+                        Gestion & Suivie des Chantiers
                     </span>
                 </div>
             </div>
@@ -74,7 +74,9 @@
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
-                       transition-all">
+                       transition-all {{ request()->routeIs('direction.chantiers*')
+                           ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                           : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9
                          0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
@@ -108,7 +110,9 @@
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
-                       transition-all">
+                       transition-all {{ request()->routeIs('direction.users*')
+                           ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                           : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0
                          0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -141,7 +145,10 @@
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
-                       transition-all">
+                       transition-all
+                       {{ request()->routeIs('direction.personnel*')
+                           ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                           : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126
                          -1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656
@@ -149,7 +156,7 @@
                          11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Collaborateurs
+                        Ouvriers
                     </span>
                     <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
                         class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
@@ -161,7 +168,7 @@
                     <a href="{{ route('direction.personnel.index') }}"
                         class="block px-3 py-2 text-sm text-slate-400 hover:text-white
                       hover:bg-slate-800/50 rounded-lg transition-all">
-                        Liste du personnel
+                        Liste des ouvriers
                     </a>
                     <a href="{{ route('direction.personnel.create') }}"
                         class="block px-3 py-2 text-sm text-slate-400 hover:text-white
@@ -181,14 +188,17 @@
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
-                       transition-all">
+                       transition-all
+                       {{ request()->routeIs('direction.salaires*')
+                           ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                           : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343
                          2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1
                          c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Salaires
+                        Paiement des ouvriers
                     </span>
                     <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
                         class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
@@ -220,7 +230,10 @@
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
-                       transition-all">
+                       transition-all
+                       {{ request()->routeIs('direction.appro*')
+                           ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                           : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -315,7 +328,7 @@
         x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="-translate-x-full"
-        class="fixed top-0 left-0 h-full w-64 bg-[#0F172A] text-white
+        class="fixed top-0 left-0 h-full w-64 bg-[#0F3D37] text-white
               z-30 flex flex-col shadow-xl lg:hidden">
         <div class="flex items-center justify-between px-4 py-5
                 border-b border-slate-700/50">

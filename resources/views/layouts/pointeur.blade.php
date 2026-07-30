@@ -13,7 +13,7 @@
 
     {{-- SIDEBAR DESKTOP --}}
     <aside :class="sidebarOpen ? 'w-64' : 'w-16'"
-        class="fixed top-0 left-0 h-full bg-[#0F172A] text-white
+        class="fixed top-0 left-0 h-full bg-[#0F3D37] text-white
               transition-all duration-300 ease-in-out z-30
               flex-col shadow-xl hidden lg:flex">
 
@@ -29,7 +29,7 @@
                     <span
                         class="text-[10px] text-[#1C9F93] font-bold
                               uppercase tracking-wider whitespace-nowrap">
-                        Immobilier Moderne
+                        Gestion & Suivie des Chantiers
                     </span>
                 </div>
             </div>
@@ -108,7 +108,10 @@
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                        text-slate-400 rounded-lg hover:bg-slate-800/50 hover:text-white
-                       transition-all">
+                       transition-all
+                       {{ request()->routeIs('pointeur.appro*')
+                           ? 'bg-[#1C9F93]/15 text-white border-l-4 border-[#1C9F93]'
+                           : 'text-slate-400 hover:bg-slate-800/50 hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -164,22 +167,21 @@
         x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="-translate-x-full"
-        class="fixed top-0 left-0 h-full w-64 bg-[#0F172A] text-white
+        class="fixed top-0 left-0 h-full w-64 bg-[#0F3D37] text-white
               z-30 flex flex-col shadow-xl lg:hidden">
         <div class="flex items-center justify-between px-4 py-5
                 border-b border-slate-700/50">
             <div class="flex items-center gap-3">
                 <p class="text-base font-bold">Dima Groupe</p>
                 <span class="text-[10px] text-[#1C9F93] font-bold uppercase">
-                    Immobilier Moderne
+                    Gestion & Suivie des Chantiers
                 </span>
             </div>
-        </div>
-        <button @click="sidebarMobile = false" class="text-slate-400 hover:text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+            <button @click="sidebarMobile = false" class="text-slate-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
             <a href="{{ route('pointeur.dashboard') }}"

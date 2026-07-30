@@ -331,7 +331,7 @@
                                                    border-slate-200 transition-colors
                                                    disabled:opacity-40
                                                    disabled:cursor-not-allowed">
-                                                ✓ P
+                                                ✓ Présent
                                             </button>
                                             <button type="button" :disabled="{{ $modifiable ? 'false' : 'true' }}"
                                                 @click="setStatut({{ $id }}, 'absent')"
@@ -342,7 +342,7 @@
                                                    transition-colors
                                                    disabled:opacity-40
                                                    disabled:cursor-not-allowed">
-                                                Abs
+                                                Absent
                                             </button>
                                         </div>
                                     </div>
