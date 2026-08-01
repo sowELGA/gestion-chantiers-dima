@@ -16,10 +16,10 @@ return new class extends Migration
             $table->integer('semaine');
             $table->integer('annee');
             $table->integer('jours_presents')->default(0);
-            $table->decimal('total_heures_sup', 6, 1)->default(0);
-            $table->decimal('salaire_base', 12, 2)->default(0);
-            $table->decimal('salaire_heures_sup', 12, 2)->default(0);
-            $table->decimal('salaire_total', 12, 2)->default(0);
+            $table->integer('total_heures_sup')->default(0);
+            $table->decimal('salaire_base', 10, 2)->default(0);
+            $table->decimal('salaire_heures_sup', 10, 2)->default(0);
+            $table->decimal('salaire_total', 10, 2)->default(0);
             $table->enum('statut', [
                 'en_attente',
                 'soumise',

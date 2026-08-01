@@ -19,12 +19,8 @@ return new class extends Migration
                 'second_oeuvre',
             ]);
             $table->text('descriptionTache')->nullable();
-            $table->text('besoins_materiels')->nullable();
-            $table->text('besoins_materiaux')->nullable();
             $table->date('date_debut_prevue');
             $table->date('date_fin_prevue');
-            $table->date('date_debut_reelle')->nullable();
-            $table->date('date_fin_reelle')->nullable();
             $table->integer('avancement')->default(0);
             $table->enum('statutTache', [
                 'en_attente',

@@ -18,7 +18,7 @@ class ChantierSeeder extends Seeder
         // Chantier 1 — En cours
         Chantier::create([
             'nomChantier'     => '3M',
-            'adresse'         => 'Liberté 1, Dakar',
+            'localisation'         => 'Liberté 1, Dakar',
             'budget_prevu'    => 500000000,
             'budget_consomme' => 45000000,
             'date_debut'      => '2026-01-15',
@@ -31,7 +31,7 @@ class ChantierSeeder extends Seeder
         // Chantier 2 — En cours
         Chantier::create([
             'nomChantier'     => 'Al Makhtoum',
-            'adresse'         => 'Sacré coeur, Dakar',
+            'localisation'         => 'Sacré coeur, Dakar',
             'budget_prevu'    => 600000000,
             'budget_consomme' => 145000000,
             'date_debut'      => '2025-06-01',
@@ -44,7 +44,7 @@ class ChantierSeeder extends Seeder
         // Chantier 3 — En attente
         Chantier::create([
             'nomChantier'     => 'Villa Almadies',
-            'adresse'         => 'Almadies, Dakar',
+            'localisation'         => 'Almadies, Dakar',
             'budget_prevu'    => 200000000,
             'budget_consomme' => 0,
             'date_debut'      => '2026-08-01',
@@ -57,7 +57,7 @@ class ChantierSeeder extends Seeder
         // Chantier 4 — Livré
         Chantier::create([
             'nomChantier'     => 'Immeuble Plateau',
-            'adresse'         => 'Plateau, Dakar',
+            'localisation'         => 'Plateau, Dakar',
             'budget_prevu'    => 300000000,
             'budget_consomme' => 318000000,
             'date_debut'      => '2024-01-01',

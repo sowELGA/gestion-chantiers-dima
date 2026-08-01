@@ -25,6 +25,7 @@ class ApprovisionnementSeeder extends Seeder
             'unite'             => 'sacs',
             'priorite'          => 'urgent',
             'statut'            => 'en_attente',
+             'date_livraison_souhaitee' => now()->addDays(2)->toDateString(),
             'chantier_id'       => $chantier1->id,
             'demandeur_id'      => $chef1->id,
         ]);
@@ -36,7 +37,7 @@ class ApprovisionnementSeeder extends Seeder
             'unite'                 => 'kg',
             'priorite'              => 'normal',
             'statut'                => 'en_attente',
-            'date_livraison_prevue' => now()->addDays(7)->toDateString(),
+            'date_livraison_souhaitee' => now()->addDays(7)->toDateString(),
             'chantier_id'           => $chantier1->id,
             'demandeur_id'          => $chef1->id,
         ]);
@@ -49,7 +50,7 @@ class ApprovisionnementSeeder extends Seeder
             'priorite'              => 'normal',
             'statut'                => 'validee',
             'date_commande'         => now()->subDays(3)->toDateString(),
-            'date_livraison_prevue' => now()->addDays(4)->toDateString(),
+            'date_livraison_souhaitee' => now()->addDays(4)->toDateString(),
             'chantier_id'           => $chantier1->id,
             'demandeur_id'          => $chef1->id,
         ]);
@@ -62,7 +63,7 @@ class ApprovisionnementSeeder extends Seeder
             'priorite'              => 'normal',
             'statut'                => 'en_cours_livraison',
             'date_commande'         => now()->subDays(7)->toDateString(),
-            'date_livraison_prevue' => now()->addDays(2)->toDateString(),
+            'date_livraison_souhaitee' => now()->addDays(2)->toDateString(),
             'chantier_id'           => $chantier1->id,
             'demandeur_id'          => $chef1->id,
         ]);
@@ -122,7 +123,7 @@ class ApprovisionnementSeeder extends Seeder
             'unite'                 => 'm²',
             'priorite'              => 'urgent',
             'statut'                => 'en_attente',
-            'date_livraison_prevue' => now()->addDays(5)->toDateString(),
+            'date_livraison_souhaitee' => now()->addDays(5)->toDateString(),
             'chantier_id'           => $chantier2->id,
             'demandeur_id'          => $chef2->id,
         ]);

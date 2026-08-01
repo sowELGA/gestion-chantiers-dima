@@ -17,9 +17,8 @@ return new class extends Migration
             $table->enum('statutPointage', [
                 'present',
                 'absent',
-                'malade'
             ]);
-            $table->decimal('heures_sup', 4, 1)->default(0);
+            $table->integer('heures_sup')->default(0);
             $table->foreignId('ouvrier_id')
                 ->constrained('personnels', 'id')
                 ->onDelete('restrict');

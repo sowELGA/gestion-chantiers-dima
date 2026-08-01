@@ -1,7 +1,7 @@
 @extends('layouts.direction')
 @section('title', $chantier->nomChantier)
 @section('page_title', $chantier->nomChantier)
-@section('page_subtitle', $chantier->adresse)
+@section('page_subtitle', $chantier->localisation)
 
 @section('content')
 

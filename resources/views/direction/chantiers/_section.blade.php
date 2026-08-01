@@ -24,7 +24,7 @@
                             {{ $chantier->nomChantier }}
                         </p>
                         <p class="text-xs text-slate-500 truncate">
-                            {{ $chantier->adresse }}
+                            {{ $chantier->localisation }}
                         </p>
                     </div>
                 </div>

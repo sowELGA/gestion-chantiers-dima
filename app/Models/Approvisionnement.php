@@ -15,7 +15,7 @@ class Approvisionnement extends Model
         'priorite',
         'statut',
         'date_commande',
-        'date_livraison_prevue',
+        'date_livraison_souhaitee',
         'chantier_id',
         'demandeur_id',
     ];

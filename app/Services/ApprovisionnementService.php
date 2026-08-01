@@ -18,7 +18,7 @@ class ApprovisionnementService
             'unite'                => $data['unite'],
             'priorite'             => $data['priorite'],
             'statut'               => 'en_attente',
-            'date_livraison_prevue' => $data['date_livraison_prevue'] ?? null,
+            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'] ?? null,
             'chantier_id'          => $data['chantier_id'],
             'demandeur_id'         => $demandeurId,
         ]);

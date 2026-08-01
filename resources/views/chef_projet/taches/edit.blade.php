@@ -155,30 +155,6 @@
                                  focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] resize-none">{{ old('descriptionTache', $tache->descriptionTache) }}</textarea>
                 </div>
 
-                {{-- Besoins --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                            Besoins en matériels
-                        </label>
-                        <textarea name="besoins_materiels" rows="3"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                                     text-sm focus:outline-none focus:ring-2
-                                     focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]
-                                     resize-none">{{ old('besoins_materiels', $tache->besoins_materiels) }}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                            Besoins en matériaux
-                        </label>
-                        <textarea name="besoins_materiaux" rows="3"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                                     text-sm focus:outline-none focus:ring-2
-                                     focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]
-                                     resize-none">{{ old('besoins_materiaux', $tache->besoins_materiaux) }}</textarea>
-                    </div>
-                </div>
-
                 {{-- Boutons --}}
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <a href="{{ route('chef_projet.taches.index', $chantier->id) }}"

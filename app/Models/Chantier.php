@@ -11,7 +11,7 @@ class Chantier extends Model
 
     protected $fillable = [
         'nomChantier',
-        'adresse',
+        'localisation',
         'budget_prevu',
         'budget_consomme',
         'date_debut',

@@ -12,7 +12,7 @@ class ChantierService
     {
         return Chantier::create([
             'nomChantier'     => $data['nomChantier'],
-            'adresse'         => $data['adresse'],
+            'localisation'         => $data['localisation'],
             'budget_prevu'    => $data['budget_prevu'],
             'budget_consomme' => 0,
             'date_debut'      => $data['date_debut'],
@@ -28,7 +28,7 @@ class ChantierService
     {
         $chantier->update([
             'nomChantier'     => $data['nomChantier'],
-            'adresse'         => $data['adresse'],
+            'localisation'         => $data['localisation'],
             'budget_prevu'    => $data['budget_prevu'],
             'date_debut'      => $data['date_debut'],
             'date_fin_prevue' => $data['date_fin_prevue'],

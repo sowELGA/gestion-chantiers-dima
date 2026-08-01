@@ -28,8 +28,8 @@ return new class extends Migration
                 'partiellement_recue',
                 'cloturee'
             ])->default('en_attente');
+            $table->date('date_livraison_souhaitee')->nullable();
             $table->date('date_commande')->nullable();
-            $table->date('date_livraison_prevue')->nullable();
             $table->foreignId('chantier_id')
                 ->constrained('chantiers', 'id')
                 ->onDelete('restrict');

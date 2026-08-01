@@ -109,7 +109,7 @@
                             Date de livraison souhaitée
                             <span class="text-slate-400 font-normal">(optionnel)</span>
                         </label>
-                        <input type="date" name="date_livraison_prevue" value="{{ old('date_livraison_prevue') }}"
+                        <input type="date" name="date_livraison_souhaitee" value="{{ old('date_livraison_souhaitee') }}"
                             min="{{ date('Y-m-d') }}"
                             class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
                                   text-sm focus:outline-none focus:ring-2

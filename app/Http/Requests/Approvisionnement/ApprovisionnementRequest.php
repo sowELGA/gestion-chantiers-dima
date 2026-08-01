@@ -19,7 +19,7 @@ class ApprovisionnementRequest extends FormRequest
             'unite'                 => 'required|string|max:50',
             'priorite'              => 'required|in:normal,urgent',
             'chantier_id'           => 'required|exists:chantiers,id',
-            'date_livraison_prevue' => 'nullable|date|after_or_equal:today',
+            'date_livraison_souhaitee' => 'nullable|date|after_or_equal:today',
         ];
     }
 

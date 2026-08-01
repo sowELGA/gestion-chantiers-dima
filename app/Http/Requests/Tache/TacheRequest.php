@@ -22,8 +22,6 @@ class TacheRequest extends FormRequest
             'nomTache'            => 'required|string|max:255',
             'type'                => 'required|in:gros_oeuvre,second_oeuvre',
             'descriptionTache'    => 'nullable|string',
-            'besoins_materiels'   => 'nullable|string',
-            'besoins_materiaux'   => 'nullable|string',
             'date_debut_prevue'   => [
                 'required',
                 'date',

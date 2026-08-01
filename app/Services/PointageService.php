@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Helpers\SemaineHelper;
 use App\Models\Personnel;
 use App\Models\Pointage;
 use App\Models\RecapHebdomadaire;
+use App\Models\RecapsHebdomadaire;
 use App\Models\TauxSalaire;
 use Carbon\Carbon;
 
@@ -14,71 +16,26 @@ class PointageService
     // HELPERS PRIVÉS
     // ══════════════════════════════════════════════════════════
 
-    // Retourne les 7 jours de la semaine (sam → ven)
-    private function joursDeLaSemaine(int $annee, int $semaine): array
-    {
-        // Samedi de la semaine précédente = début de notre cycle
-        $samedi = Carbon::now()
-            ->setISODate($annee, $semaine)
-            ->startOfWeek() // lundi
-            ->subDays(2);   // → samedi précédent
-
-        $jours = [];
-        for ($i = 0; $i <= 6; $i++) {
-            $jours[] = $samedi->copy()->addDays($i);
-        }
-        return $jours; // Sam, Dim, Lun, Mar, Mer, Jeu, Ven
-    }
-
-    // Retourne les pointages d'un chantier sur une semaine, indexés par ouvrier
-    private function pointagesSemaine(int $chantierId, int $semaine, int $annee): \Illuminate\Support\Collection
-    {
-        $samedi   = Carbon::now()->setISODate($annee, $semaine)->startOfWeek()->subDays(2);
-        $vendredi = $samedi->copy()->addDays(6);
-
-        return Pointage::where('chantier_id', $chantierId)
-            ->whereBetween('date', [
-                $samedi->toDateString(),
-                $vendredi->toDateString()
-            ])
-            ->get()
-            ->groupBy('ouvrier_id');
-    }
-
-    // Retourne les récaps d'un chantier pour une semaine, indexés par ouvrier
-    private function recapsSemaine(int $chantierId, int $semaine, int $annee): \Illuminate\Support\Collection
-    {
-        return RecapHebdomadaire::where('chantier_id', $chantierId)
-            ->where('semaine', $semaine)
-            ->where('annee', $annee)
-            ->get()
-            ->keyBy('ouvrier_id');
-    }
-
-    // Retourne tous les ouvriers actifs d'un chantier
     private function personnelActif(int $chantierId): \Illuminate\Support\Collection
     {
-        return Personnel::query()
-            ->select('personnels.*')
-            ->join('postes', 'personnels.poste_id', '=', 'postes.id') // Ajustez 'postes.id' si votre clé a un autre nom
+        return Personnel::with('poste')
+            ->join('postes', 'personnels.poste_id', '=', 'postes.id')
             ->where('personnels.chantier_id', $chantierId)
             ->where('personnels.statutPersonnel', 'actif')
-            // 1. Regroupe par corps de métier (en retirant le mot 'chef')
-            ->orderByRaw("TRIM(REPLACE(LOWER(postes.libelle), 'chef', '')) ASC")
-            // 2. Met le chef en premier dans son groupe
             ->orderByRaw("
-            CASE 
-                WHEN LOWER(postes.libelle) LIKE 'chef%' THEN 0 
-                ELSE 1 
-            END ASC
-        ")
-            // 3. Trie les ouvriers du même rang par ordre alphabétique
-            ->orderBy('personnels.nomPersonnel', 'asc')
-            ->with('poste')
+        TRIM(REPLACE(LOWER(postes.libelle), 'chef ', ''))
+    ")
+            ->orderByRaw("
+        CASE
+            WHEN LOWER(postes.libelle) LIKE 'chef %' THEN 0
+            ELSE 1
+        END
+    ")
+            ->orderBy('personnels.nomPersonnel')
+            ->select('personnels.*')
             ->get();
     }
 
-    // Construit l'objet pagination
     private function paginer(int $total, int $page, int $parPage): array
     {
         $pages = max(1, (int)ceil($total / $parPage));
@@ -93,34 +50,144 @@ class PointageService
         ];
     }
 
+    private function pointagesSemaine(
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): \Illuminate\Support\Collection {
+        $samedi   = SemaineHelper::debutDepuisNumero($semaine, $annee);
+        $vendredi = SemaineHelper::finDepuisNumero($semaine, $annee);
+
+        return Pointage::where('chantier_id', $chantierId)
+            ->whereBetween('date', [
+                $samedi->toDateString(),
+                $vendredi->toDateString(),
+            ])
+            ->get()
+            ->groupBy('ouvrier_id');
+    }
+
+    private function recapsSemaine(
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): \Illuminate\Support\Collection {
+        return RecapHebdomadaire::where('chantier_id', $chantierId)
+            ->where('semaine', $semaine)
+            ->where('annee', $annee)
+            ->get()
+            ->keyBy('ouvrier_id');
+    }
+
+    private function construireLigneOuvrier(
+        Personnel $ouvrier,
+        array $jours,
+        \Illuminate\Support\Collection $pointages,
+        \Illuminate\Support\Collection $recaps
+    ): array {
+        $pointagesOuvrier = $pointages
+            ->get($ouvrier->id, collect())
+            ->keyBy(fn($p) => Carbon::parse($p->date)->toDateString());
+
+        $recap = $recaps->get($ouvrier->id);
+
+        $joursDetails = collect($jours)->map(fn($jour) => [
+            'date'   => $jour,
+            'statut' => $pointagesOuvrier->get($jour->toDateString())?->statutPointage ?? null,
+            'h_sup'  => (int)($pointagesOuvrier->get($jour->toDateString())?->heures_sup ?? 0),
+        ]);
+
+        return [
+            'ouvrier'       => $ouvrier,
+            'jours'         => $joursDetails,
+            'jours_present' => $joursDetails->where('statut', 'present')->count(),
+            'total_h_sup'   => $joursDetails->sum('h_sup'),
+            'salaire_base'  => $recap?->salaire_base ?? 0,
+            'salaire_h_sup' => $recap?->salaire_heures_sup ?? 0,
+            'salaire_total' => $recap?->salaire_total ?? 0,
+        ];
+    }
+
+    private function calculerSalaireOuvrier(
+        Personnel $ouvrier,
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): array {
+        $samedi   = SemaineHelper::debutDepuisNumero($semaine, $annee);
+        $vendredi = SemaineHelper::finDepuisNumero($semaine, $annee);
+
+        $pointages = Pointage::where('ouvrier_id', $ouvrier->idPersonnel)
+            ->where('chantier_id', $chantierId)
+            ->whereBetween('date', [
+                $samedi->toDateString(),
+                $vendredi->toDateString(),
+            ])
+            ->get();
+
+        $joursPresents  = $pointages->where('statutPointage', 'present')->count();
+        $totalHeuresSup = (int) $pointages->sum('heures_sup');
+
+        $taux = TauxSalaire::where('poste_id', $ouvrier->poste_id)
+            ->where('chantier_id', $chantierId)
+            ->first();
+
+        $salaireBase      = $taux ? $joursPresents * $taux->taux_journalier : 0;
+        $salaireHeuresSup = $taux ? $totalHeuresSup * $taux->taux_heure_sup : 0;
+
+        return [
+            'jours_presents'     => $joursPresents,
+            'total_heures_sup'   => $totalHeuresSup,
+            'salaire_base'       => $salaireBase,
+            'salaire_heures_sup' => $salaireHeuresSup,
+            'salaire_total'      => $salaireBase + $salaireHeuresSup,
+        ];
+    }
+
+    private function recalculerRecap(
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): void {
+        $personnel = $this->personnelActif($chantierId);
+
+        foreach ($personnel as $ouvrier) {
+            $recap = RecapHebdomadaire::where('ouvrier_id', $ouvrier->idPersonnel)
+                ->where('chantier_id', $chantierId)
+                ->where('semaine', $semaine)
+                ->where('annee', $annee)
+                ->first();
+
+            // Ne pas recalculer si déjà validé/transmis
+            if ($recap && !in_array($recap->statut, ['en_attente', 'rejetee'])) {
+                continue;
+            }
+
+            $donnees = $this->calculerSalaireOuvrier(
+                $ouvrier,
+                $chantierId,
+                $semaine,
+                $annee
+            );
+
+            RecapHebdomadaire::updateOrCreate(
+                [
+                    'ouvrier_id'  => $ouvrier->id,
+                    'chantier_id' => $chantierId,
+                    'semaine'     => $semaine,
+                    'annee'       => $annee,
+                ],
+                array_merge($donnees, [
+                    'statut' => $recap?->statut ?? 'en_attente',
+                ])
+            );
+        }
+    }
+
     // ══════════════════════════════════════════════════════════
     // FICHE JOURNALIÈRE
     // ══════════════════════════════════════════════════════════
 
-    // Retourne TOUS les ouvriers actifs (pour les champs cachés du formulaire)
-    public function getToutPersonnel(int $chantierId): \Illuminate\Support\Collection
-    {
-        return $this->personnelActif($chantierId);
-    }
-
-    // Retourne les ouvriers actifs paginés pour la fiche du jour
-    public function getPersonnelPagine(int $chantierId, int $page, int $parPage = 20): array
-    {
-        $tous  = $this->personnelActif($chantierId);
-        $total = $tous->count();
-        $pg    = $this->paginer($total, $page, $parPage);
-
-        $personnel = $tous
-            ->forPage($pg['page'], $parPage)
-            ->groupBy(fn($p) => $p->poste->libelle);
-
-        return [
-            'personnel'  => $personnel,
-            'pagination' => $pg,
-        ];
-    }
-
-    // Retourne les pointages du jour pour un chantier
     public function getPointagesDuJour(int $chantierId): array
     {
         $today = Carbon::today();
@@ -137,44 +204,35 @@ class PointageService
         ];
     }
 
-    // Enregistre les pointages du jour
-    public function enregistrerFiche(array $lignes, int $chantierId): void
+    public function getToutPersonnel(int $chantierId): \Illuminate\Support\Collection
     {
-        if (!$this->semaineModifiable($chantierId)) {
-            throw new \Exception(
-                'La fiche hebdomadaire a déjà été soumise. Modification impossible.'
-            );
-        }
-
-        $today = Carbon::today()->toDateString();
-
-        foreach ($lignes as $ligne) {
-            Pointage::updateOrCreate(
-                [
-                    'ouvrier_id'  => $ligne['ouvrier_id'],
-                    'chantier_id' => $chantierId,
-                    'date'        => $today,
-                ],
-                [
-                    'statutPointage' => $ligne['statutPointage'],
-                    'heures_sup'     => $ligne['statutPointage'] === 'present'
-                        ? (float)($ligne['heures_sup'] ?? 0) : 0,
-                ]
-            );
-        }
-
-        $this->recalculerRecap($chantierId, Carbon::today()->isoWeek(), Carbon::today()->year);
+        return $this->personnelActif($chantierId);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // SEMAINE — STATUT
-    // ══════════════════════════════════════════════════════════
+    public function getPersonnelPagine(
+        int $chantierId,
+        int $page,
+        int $parPage = 20
+    ): array {
+        $tous  = $this->personnelActif($chantierId);
+        $total = $tous->count();
+        $pg    = $this->paginer($total, $page, $parPage);
 
-    // Vérifie si la semaine en cours est modifiable
-    public function semaineModifiable(int $chantierId): bool
+        $personnel = $tous
+            ->forPage($pg['page'], $parPage)
+            ->groupBy(fn($p) => $p->poste->libelle);
+
+        return ['personnel' => $personnel, 'pagination' => $pg];
+    }
+
+    /**
+     * Vérifie si la fiche du JOUR DONNÉ est modifiable.
+     * On cherche le cycle (semaine) auquel appartient ce jour.
+     */
+    public function jourModifiable(int $chantierId, Carbon $date): bool
     {
-        $semaine = Carbon::today()->isoWeek();
-        $annee   = Carbon::today()->year;
+        $semaine = SemaineHelper::numeroCycle($date);
+        $annee   = SemaineHelper::anneeCycle($date);
 
         $recaps = RecapHebdomadaire::where('chantier_id', $chantierId)
             ->where('semaine', $semaine)
@@ -188,9 +246,64 @@ class PointageService
         );
     }
 
-    // Retourne le statut global de la semaine
-    public function getStatutSemaine(int $chantierId, int $semaine, int $annee): array
+    /**
+     * Alias pour la semaine courante (utilisé dans ficheJour).
+     */
+    public function semaineModifiable(int $chantierId): bool
     {
+        return $this->jourModifiable($chantierId, Carbon::today());
+    }
+
+    public function enregistrerFiche(array $lignes, int $chantierId): void
+    {
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
+
+        if (!$this->jourModifiable($chantierId, $today)) {
+            throw new \Exception(
+                'La fiche de cette semaine a déjà été soumise.'
+            );
+        }
+
+        foreach ($lignes as $ligne) {
+            Pointage::updateOrCreate(
+                [
+                    'ouvrier_id'  => $ligne['ouvrier_id'],
+                    'chantier_id' => $chantierId,
+                    'date'        => $today->toDateString(),
+                ],
+                [
+                    'statutPointage' => $ligne['statutPointage'],
+                    'heures_sup'     => $ligne['statutPointage'] === 'present'
+                        ? (int)($ligne['heures_sup'] ?? 0) : 0,
+                ]
+            );
+        }
+
+        $this->recalculerRecap($chantierId, $semaine, $annee);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // RÉCAP HEBDOMADAIRE
+    // ══════════════════════════════════════════════════════════
+
+    public function getInfosSemaine(int $semaine, int $annee): array
+    {
+        return [
+            'semaine' => $semaine,
+            'annee'   => $annee,
+            'debut'   => SemaineHelper::debutDepuisNumero($semaine, $annee),
+            'fin'     => SemaineHelper::finDepuisNumero($semaine, $annee),
+            'jours'   => SemaineHelper::jours($semaine, $annee),
+        ];
+    }
+
+    public function getStatutSemaine(
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): array {
         $recaps = $this->recapsSemaine($chantierId, $semaine, $annee);
 
         return [
@@ -199,26 +312,6 @@ class PointageService
         ];
     }
 
-    // ══════════════════════════════════════════════════════════
-    // RÉCAP HEBDOMADAIRE — LECTURE
-    // ══════════════════════════════════════════════════════════
-
-    // Infos générales de la semaine (dates, jours)
-    public function getInfosSemaine(int $semaine, int $annee): array
-    {
-        $samedi   = Carbon::now()->setISODate($annee, $semaine)->startOfWeek()->subDays(2);
-        $vendredi = $samedi->copy()->addDays(6);
-
-        return [
-            'semaine' => $semaine,
-            'annee'   => $annee,
-            'debut'   => $samedi,
-            'fin'     => $vendredi,
-            'jours'   => $this->joursDeLaSemaine($annee, $semaine),
-        ];
-    }
-
-    // Construit les lignes du récap paginées
     public function getLignesRecap(
         int $chantierId,
         int $semaine,
@@ -229,28 +322,30 @@ class PointageService
         $tousPersonnel = $this->personnelActif($chantierId);
         $total         = $tousPersonnel->count();
         $pg            = $this->paginer($total, $page, $parPage);
-        $jours         = $this->joursDeLaSemaine($annee, $semaine);
+        $jours         = SemaineHelper::jours($semaine, $annee);
         $pointages     = $this->pointagesSemaine($chantierId, $semaine, $annee);
         $recaps        = $this->recapsSemaine($chantierId, $semaine, $annee);
 
         $lignes = $tousPersonnel
             ->forPage($pg['page'], $parPage)
             ->values()
-            ->map(function ($ouvrier) use ($jours, $pointages, $recaps) {
-                return $this->construireLigneOuvrier($ouvrier, $jours, $pointages, $recaps);
-            });
+            ->map(fn($o) => $this->construireLigneOuvrier(
+                $o,
+                $jours,
+                $pointages,
+                $recaps
+            ));
 
-        return [
-            'lignes'     => $lignes,
-            'pagination' => $pg,
-        ];
+        return ['lignes' => $lignes, 'pagination' => $pg];
     }
 
-    // Calcule les totaux globaux (toutes pages)
-    public function getTotauxSemaine(int $chantierId, int $semaine, int $annee): array
-    {
+    public function getTotauxSemaine(
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): array {
         $tousPersonnel = $this->personnelActif($chantierId);
-        $jours         = $this->joursDeLaSemaine($annee, $semaine);
+        $jours         = SemaineHelper::jours($semaine, $annee);
         $pointages     = $this->pointagesSemaine($chantierId, $semaine, $annee);
         $recaps        = $this->recapsSemaine($chantierId, $semaine, $annee);
 
@@ -260,7 +355,9 @@ class PointageService
 
         $totauxParJour = collect($jours)->map(
             fn($jour, $i) =>
-            $toutesLignes->sum(fn($l) => $l['jours'][$i]['statut'] === 'present' ? 1 : 0)
+            $toutesLignes->sum(
+                fn($l) => $l['jours'][$i]['statut'] === 'present' ? 1 : 0
+            )
         );
 
         return [
@@ -272,10 +369,9 @@ class PointageService
     }
 
     // ══════════════════════════════════════════════════════════
-    // MODIFICATION PAR JOUR (recap rejeté)
+    // MODIFICATION PAR JOUR (récap rejeté)
     // ══════════════════════════════════════════════════════════
 
-    // Retourne les pointages d'un jour donné paginés (pour la modification)
     public function getPointagesDuJourPagines(
         int $chantierId,
         string $date,
@@ -296,24 +392,23 @@ class PointageService
             ->values()
             ->map(fn($ouvrier) => [
                 'ouvrier' => $ouvrier,
-                'statut'  => $pointagesJour->get($ouvrier->id)?->statutPointage ?? 'absent',
-                'h_sup'   => (float)($pointagesJour->get($ouvrier->id)?->heures_sup ?? 0),
+                'statut'  => $pointagesJour->get($ouvrier->id)
+                    ?->statutPointage ?? 'absent',
+                'h_sup'   => (int)($pointagesJour->get($ouvrier->id)
+                    ?->heures_sup ?? 0),
             ]);
 
-        return [
-            'lignes'     => $lignes,
-            'pagination' => $pg,
-        ];
+        return ['lignes' => $lignes, 'pagination' => $pg];
     }
 
-    // Modifie les pointages d'un jour (depuis le récap rejeté)
     public function modifierPointageJour(
         int $chantierId,
         string $date,
         array $lignes
     ): void {
-        $semaine = Carbon::parse($date)->isoWeek();
-        $annee   = Carbon::parse($date)->year;
+        $dateCarbon = Carbon::parse($date);
+        $semaine    = SemaineHelper::numeroCycle($dateCarbon);
+        $annee      = SemaineHelper::anneeCycle($dateCarbon);
 
         $recaps = RecapHebdomadaire::where('chantier_id', $chantierId)
             ->where('semaine', $semaine)
@@ -336,7 +431,7 @@ class PointageService
                 [
                     'statutPointage' => $ligne['statutPointage'],
                     'heures_sup'     => $ligne['statutPointage'] === 'present'
-                        ? (float)($ligne['heures_sup'] ?? 0) : 0,
+                        ? (int)($ligne['heures_sup'] ?? 0) : 0,
                 ]
             );
         }
@@ -350,8 +445,9 @@ class PointageService
 
     public function soumettreSemaine(int $chantierId, int $pointeurId): void
     {
-        $semaine = Carbon::today()->isoWeek();
-        $annee   = Carbon::today()->year;
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
 
         $this->recalculerRecap($chantierId, $semaine, $annee);
 
@@ -407,27 +503,38 @@ class PointageService
     // CALCUL DES SALAIRES
     // ══════════════════════════════════════════════════════════
 
-    public function calculerSalaires(int $chantierId, int $semaine, int $annee): void
-    {
+    public function calculerSalaires(
+        int $chantierId,
+        int $semaine,
+        int $annee
+    ): void {
         $personnel = $this->personnelActif($chantierId);
 
         foreach ($personnel as $ouvrier) {
-            $donnees = $this->calculerSalaireOuvrier($ouvrier, $chantierId, $semaine, $annee);
+            $donnees = $this->calculerSalaireOuvrier(
+                $ouvrier,
+                $chantierId,
+                $semaine,
+                $annee
+            );
 
             RecapHebdomadaire::where('ouvrier_id', $ouvrier->id)
                 ->where('chantier_id', $chantierId)
                 ->where('semaine', $semaine)
                 ->where('annee', $annee)
-                ->update(array_merge($donnees, ['statut' => 'envoyee_direction']));
+                ->update(array_merge($donnees, [
+                    'statut' => 'envoyee_direction',
+                ]));
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // TEMPS RÉEL
+    // TEMPS RÉEL (dashboard pointeur)
     // ══════════════════════════════════════════════════════════
 
-    public function getPointagesJourTempsReel(int $chantierId): \Illuminate\Support\Collection
-    {
+    public function getPointagesJourTempsReel(
+        int $chantierId
+    ): \Illuminate\Support\Collection {
         $today     = Carbon::today();
         $personnel = $this->personnelActif($chantierId);
 
@@ -438,100 +545,30 @@ class PointageService
 
         return $personnel->map(fn($p) => [
             'ouvrier'    => $p,
-            'statut'     => $pointages->get($p->id)?->statutPointage ?? 'non_pointe',
-            'heures_sup' => $pointages->get($p->id)?->heures_sup ?? 0,
+            'statut'     => $pointages->get($p->id)
+                ?->statutPointage ?? 'non_pointe',
+            'heures_sup' => (int)($pointages->get($p->id)
+                ?->heures_sup ?? 0),
         ]);
     }
 
     // ══════════════════════════════════════════════════════════
-    // CALCULS INTERNES PRIVÉS
+    // SEMAINES DISPONIBLES (pour les sélecteurs)
     // ══════════════════════════════════════════════════════════
 
-    // Construit la ligne d'un ouvrier pour le récap
-    private function construireLigneOuvrier(
-        Personnel $ouvrier,
-        array $jours,
-        \Illuminate\Support\Collection $pointages,
-        \Illuminate\Support\Collection $recaps
-    ): array {
-        $pointagesOuvrier = $pointages->get($ouvrier->id, collect())
-            ->keyBy(fn($p) => Carbon::parse($p->date)->toDateString());
-
-        $recap = $recaps->get($ouvrier->id);
-
-        $joursDetails = collect($jours)->map(fn($jour) => [
-            'date'   => $jour,
-            'statut' => $pointagesOuvrier->get($jour->toDateString())?->statutPointage ?? null,
-            'h_sup'  => $pointagesOuvrier->get($jour->toDateString())?->heures_sup ?? 0,
-        ]);
-
-        return [
-            'ouvrier'       => $ouvrier,
-            'jours'         => $joursDetails,
-            'jours_present' => $joursDetails->where('statut', 'present')->count(),
-            'total_h_sup'   => $joursDetails->sum('h_sup'),
-            'salaire_base'  => $recap?->salaire_base ?? 0,
-            'salaire_h_sup' => $recap?->salaire_heures_sup ?? 0,
-            'salaire_total' => $recap?->salaire_total ?? 0,
-        ];
-    }
-
-    // Recalcule le récap hebdomadaire d'un chantier
-    private function recalculerRecap(int $chantierId, int $semaine, int $annee): void
+    public function getSemainesDisponibles(int $nbSemaines = 12): \Illuminate\Support\Collection
     {
-        $personnel = $this->personnelActif($chantierId);
+        return collect(range(0, $nbSemaines - 1))->map(function ($i) {
+            // Reculer de i cycles de 7 jours depuis aujourd'hui
+            $date    = Carbon::today()->subDays($i * 7);
+            $semaine = SemaineHelper::numeroCycle($date);
+            $annee   = SemaineHelper::anneeCycle($date);
 
-        foreach ($personnel as $ouvrier) {
-            $recap = RecapHebdomadaire::where('ouvrier_id', $ouvrier->id)
-                ->where('chantier_id', $chantierId)
-                ->where('semaine', $semaine)
-                ->where('annee', $annee)
-                ->first();
-
-            if ($recap && !in_array($recap->statut, ['en_attente', 'rejetee'])) {
-                continue;
-            }
-
-            $donnees = $this->calculerSalaireOuvrier($ouvrier, $chantierId, $semaine, $annee);
-
-            RecapHebdomadaire::updateOrCreate(
-                [
-                    'ouvrier_id'  => $ouvrier->id,
-                    'chantier_id' => $chantierId,
-                    'semaine'     => $semaine,
-                    'annee'       => $annee,
-                ],
-                array_merge($donnees, ['statut' => $recap?->statut ?? 'en_attente'])
-            );
-        }
-    }
-
-    private function calculerSalaireOuvrier(Personnel $ouvrier, int $chantierId, int $semaine, int $annee): array
-    {
-        $samedi   = Carbon::now()->setISODate($annee, $semaine)->startOfWeek()->subDays(2);
-        $vendredi = $samedi->copy()->addDays(6);
-
-        $pointages = Pointage::where('ouvrier_id', $ouvrier->id)
-            ->where('chantier_id', $chantierId)
-            ->whereBetween('date', [$samedi->toDateString(), $vendredi->toDateString()])
-            ->get();
-
-        $joursPresents  = $pointages->where('statutPointage', 'present')->count();
-        $totalHeuresSup = $pointages->sum('heures_sup');
-
-        $taux = TauxSalaire::where('poste_id', $ouvrier->poste_id)
-            ->where('chantier_id', $chantierId)
-            ->first();
-
-        $salaireBase      = $taux ? $joursPresents * $taux->taux_journalier : 0;
-        $salaireHeuresSup = $taux ? $totalHeuresSup * $taux->taux_heure_sup : 0;
-
-        return [
-            'jours_presents'     => $joursPresents,
-            'total_heures_sup'   => $totalHeuresSup,
-            'salaire_base'       => $salaireBase,
-            'salaire_heures_sup' => $salaireHeuresSup,
-            'salaire_total'      => $salaireBase + $salaireHeuresSup,
-        ];
+            return [
+                'semaine' => $semaine,
+                'annee'   => $annee,
+                'label'   => SemaineHelper::libelle($semaine, $annee),
+            ];
+        })->unique(fn($s) => $s['semaine'] . '-' . $s['annee']);
     }
 }

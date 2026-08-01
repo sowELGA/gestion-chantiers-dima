@@ -56,8 +56,6 @@ class TacheService
             'nomTache'          => $data['nomTache'],
             'type'              => $data['type'],
             'descriptionTache'  => $data['descriptionTache'] ?? null,
-            'besoins_materiels' => $data['besoins_materiels'] ?? null,
-            'besoins_materiaux' => $data['besoins_materiaux'] ?? null,
             'date_debut_prevue' => $data['date_debut_prevue'],
             'date_fin_prevue'   => $data['date_fin_prevue'],
             'avancement'        => 0,
@@ -77,8 +75,6 @@ class TacheService
             'nomTache'          => $data['nomTache'],
             'type'              => $data['type'],
             'descriptionTache'  => $data['descriptionTache'] ?? null,
-            'besoins_materiels' => $data['besoins_materiels'] ?? null,
-            'besoins_materiaux' => $data['besoins_materiaux'] ?? null,
             'date_debut_prevue' => $data['date_debut_prevue'],
             'date_fin_prevue'   => $data['date_fin_prevue'],
             'sous_traitant'     => $data['sous_traitant'] ?? null,
@@ -92,7 +88,7 @@ class TacheService
     public function mettreAJourAvancement(Tache $tache, int $avancement): Tache
     {
         // Tâche validée → non modifiable
-        if ($tache->statutTache === 'validee') {
+        if ($tache->statutTache === 'terminee') {
             throw new \Exception('Impossible de modifier une tâche terminée.');
         }
 
@@ -101,7 +97,6 @@ class TacheService
             $tache->update([
                 'avancement'      => 100,
                 'statutTache'     => 'terminee',
-                'date_fin_reelle' => now()->toDateString(),
             ]);
         } else {
             $tache->update([
@@ -109,34 +104,6 @@ class TacheService
                 'statutTache' => $avancement > 0 ? 'en_cours' : 'en_attente',
             ]);
         }
-
-        $this->mettreAJourPhase($tache->phase);
-
-        return $tache;
-    }
-
-    public function changerStatut(Tache $tache, string $statut): Tache
-    {
-        // Tâche validée → non modifiable
-        if ($tache->statutTache === 'terminee') {
-            throw new \Exception('Impossible de modifier le statut d\'une tâche terminee.');
-        }
-
-        if ($statut === 'en_cours' && !$tache->date_debut_reelle) {
-            $tache->date_debut_reelle = now()->toDateString();
-        }
-
-        if ($statut === 'terminee') {
-            $tache->avancement      = 100;
-            $tache->date_fin_reelle = now()->toDateString();
-        }
-
-         if ($statut === 'en_attente') {
-            $tache->avancement      = 0;
-        }
-
-        $tache->statutTache = $statut;
-        $tache->save();
 
         $this->mettreAJourPhase($tache->phase);
 

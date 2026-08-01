@@ -18,16 +18,53 @@ class PersonnelSeeder extends Seeder
 
         // Personnel chantier 1
         $personnel1 = [
-            ['Dieng',   'Amadou',     'Pointeur'],
-            ['Thiaw',   'Modou',     'Chef Maçon'],
-            ['Adama',   'El Hadj',   'Maçon'],
-            ['Cissé',   'Abdoulaye', 'Maçon'],
-            ['Ndione',  'Ibrahima',  'Chef Coffreur'],
-            ['Sylla',   'Mamadou',   'Coffreur'],
-            ['Gueye',   'Mory',      'Grutier'],
-            ['Badiane', 'Yankhoba',  'Manœuvre'],
-            ['Diatta',  'Assane',    'Manœuvre'],
-            ['Ndiaye',  'Oumar',     'Ferrailleur'],
+            ['Dieng',      'Amadou',      'Pointeur'],
+
+            // Maçon (7)
+            ['Thiaw',      'Modou',       'Chef Maçon'],
+            ['Adama',      'El Hadj',     'Maçon'],
+            ['Cissé',      'Abdoulaye',   'Maçon'],
+            ['Fall',       'Mamadou',     'Maçon'],
+            ['Sow',        'Cheikh',      'Maçon'],
+            ['Ba',         'Ibrahima',    'Maçon'],
+            ['Ndiaye',     'Moussa',      'Maçon'],
+            ['Gueye',      'Mory',        'Maçon'],
+
+            // Coffreur (6)
+            ['Ndione',     'Ibrahima',    'Chef Coffreur'],
+            ['Sylla',      'Mamadou',     'Coffreur'],
+            ['Faye',       'Ousmane',     'Coffreur'],
+            ['Diop',       'Abdou',       'Coffreur'],
+            ['Gueye',      'Alioune',     'Coffreur'],
+            ['Sarr',       'Lamine',      'Coffreur'],
+
+            // Ferrailleur (5)
+            ['Diallo',     'Omar',        'Chef Ferrailleur'],
+            ['Ndiaye',     'Oumar',       'Ferrailleur'],
+            ['Mbaye',      'Cheikh',      'Ferrailleur'],
+            ['Seck',       'Moustapha',   'Ferrailleur'],
+            ['Ka',         'Mamadou',     'Ferrailleur'],
+
+            // Électricien (4)
+            ['Camara',     'Seydou',      'Chef Électricien'],
+            ['Diallo',     'Amadou',      'Électricien'],
+            ['Barry',      'Moussa',      'Électricien'],
+            ['Bah',        'Ibrahima',    'Électricien'],
+
+            // Grutier (2)
+            ['Lo',         'Abdoulaye',   'Grutier'],
+
+            // Manœuvre (10)
+            ['Badiane',    'Yankhoba',    'Manœuvre'],
+            ['Diatta',     'Assane',      'Manœuvre'],
+            ['Diouf',      'Cheikh',      'Manœuvre'],
+            ['Ndao',       'Papa',        'Manœuvre'],
+            ['Sagna',      'Aliou',       'Manœuvre'],
+            ['Coly',       'Moussa',      'Manœuvre'],
+            ['Sané',       'Ousmane',     'Manœuvre'],
+            ['Bâ',         'Abdou',       'Manœuvre'],
+            ['Camara',     'Lamine',      'Manœuvre'],
+            ['Fall',       'Ibrahima',    'Manœuvre'],
         ];
 
         foreach ($personnel1 as [$nom, $prenom, $poste]) {

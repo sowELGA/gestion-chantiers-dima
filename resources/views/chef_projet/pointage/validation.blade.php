@@ -188,12 +188,6 @@
                                     {{ $total }}
                                 </td>
                             @endforeach
-                            <td class="px-3 py-2.5 text-center text-xs font-bold text-[#1C9F93]">
-                                {{ $totaux['total_presents'] }}
-                            </td>
-                            <td class="px-3 py-2.5 text-center text-xs font-bold text-amber-500">
-                                {{ $totaux['total_h_sup'] > 0 ? $totaux['total_h_sup'] . 'h' : '—' }}
-                            </td>
                         </tr>
                     </tfoot>
                 </table>

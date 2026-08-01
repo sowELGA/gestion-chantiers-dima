@@ -39,7 +39,7 @@
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                         Localisation <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="adresse" value="{{ old('adresse') }}" placeholder="Ex : Almadies, Dakar"
+                    <input type="text" name="localisation" value="{{ old('localisation') }}" placeholder="Ex : Almadies, Dakar"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm
                               focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                               focus:border-[#1C9F93] transition-colors

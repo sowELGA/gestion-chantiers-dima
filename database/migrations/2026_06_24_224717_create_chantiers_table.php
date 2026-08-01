@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('chantiers', function (Blueprint $table) {
             $table->id();
             $table->string('nomChantier');
-            $table->string('adresse');
+            $table->string('localisation');
             $table->decimal('budget_prevu', 15, 2);
             $table->decimal('budget_consomme', 15, 2)->default(0);
             $table->date('date_debut');
