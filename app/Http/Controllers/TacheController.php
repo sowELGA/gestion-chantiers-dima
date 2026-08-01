@@ -126,17 +126,6 @@ class TacheController extends Controller
         );
     }
 
-    public function updateTache(TacheRequest $request, Chantier $chantier, Tache $tache)
-    {
-        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
-
-        $this->tacheService->modifierTache($tache, $request->validated());
-
-        return redirect()
-            ->route('chef_projet.taches.index', $chantier->id)
-            ->with('success', 'Tâche mise à jour avec succès.');
-    }
-
     public function mettreAJourAvancement(Chantier $chantier, Tache $tache)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);

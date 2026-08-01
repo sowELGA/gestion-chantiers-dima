@@ -27,15 +27,13 @@ class Tache extends Model
     protected $casts = [
         'date_debut_prevue' => 'date',
         'date_fin_prevue'   => 'date',
-        'date_debut_reelle' => 'date',
-        'date_fin_reelle'   => 'date',
         'est_en_retard'     => 'boolean',
     ];
 
     // Accesseur retard
     public function getEstEnRetardAttribute(): bool
     {
-        return $this->statutTache !== 'validee'
+        return $this->statutTache !== 'terminee'
             && $this->date_fin_prevue
             && $this->date_fin_prevue->isPast();
     }

@@ -322,7 +322,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <form method="POST"
-                                    action="{{ route('direction.depenses.destroy', [$chantier->id, $depense->id]) }}"
+                                    action="{{ route('direction.depenses.destroy', [$depense->id]) }}"
                                     onsubmit="return confirm('Supprimer cette dépense ?')">
                                     @csrf @method('DELETE')
                                     <button type="submit"

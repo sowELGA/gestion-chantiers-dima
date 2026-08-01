@@ -1,7 +1,7 @@
 @extends('layouts.chef_projet')
 @section('title', 'Mes demandes')
 @section('page_title', 'Approvisionnements')
-@section('page_subtitle', 'Suivez vos demandes de matériaux et matériels.')
+@section('page_subtitle', 'Suivez vos demandes d\'approvisionnements.')
 
 @section('content')
 
@@ -125,7 +125,7 @@
                           {{ $dateDebut === $r['debut'] && $dateFin === $r['fin']
                               ? 'bg-[#1C9F93] text-white border-[#1C9F93]'
                               : 'border-slate-300 text-slate-500 hover:border-[#1C9F93]
-                                                          hover:text-[#1C9F93]' }}">
+                                                                                                                                        hover:text-[#1C9F93]' }}">
                         {{ $r['label'] }}
                     </a>
                 @endforeach
@@ -232,17 +232,42 @@
                         </div>
 
                         {{-- Date livraison prévue --}}
-                        @if ($demande->date_livraison_prevue && in_array($demande->statut, ['en_cours_livraison', 'partiellement_recue']))
+                        @if ($demande->date_livraison_souhaitee && in_array($demande->statut, ['en_cours_livraison', 'partiellement_recue']))
                             <div class="text-right flex-shrink-0 ml-4 hidden sm:block">
                                 <p class="text-[10px] text-slate-400">Livraison prévue</p>
                                 <p
                                     class="text-xs font-semibold
-                                      {{ $demande->date_livraison_prevue->isPast() ? 'text-red-500' : 'text-[#0F172A]' }}">
-                                    {{ $demande->date_livraison_prevue->format('d/m/Y') }}
+                                      {{ $demande->date_livraison_souhaitee->isPast() ? 'text-red-500' : 'text-[#0F172A]' }}">
+                                    {{ $demande->date_livraison_souhaitee->format('d/m/Y') }}
                                 </p>
                             </div>
                         @endif
-
+                        @if ($demande->statut === 'en_attente')
+                            <a href="{{ route('chef_projet.appro.edit', [$demande->chantier_id, $demande->id]) }}"
+                                class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600
+              hover:bg-slate-50 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                                 m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                        @endif
+                        @if ($demande->statut === 'en_attente' || $demande->statut === 'validee')
+                            <div class="border-t border-slate-100 my-1"></div>
+                            <form method="POST"
+                                action="{{ route('chef_projet.appro.destroy', [$demande->chantier_id, $demande->id]) }}"
+                                onsubmit="return confirm('Supprimer cette demande ?')">
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm
+                       text-red-500 hover:bg-red-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858
+                                     L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 @endforeach
             </div>

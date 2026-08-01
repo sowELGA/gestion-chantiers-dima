@@ -164,50 +164,28 @@
                                         </div>
 
                                         {{-- Statut --}}
-                                        <div x-data="{ open: false }" class="relative">
+                                        @php
+                                            $statutConfig = match ($tache->statutTache) {
+                                                'en_cours' => ['En cours', 'bg-blue-50 text-blue-600 border-blue-200'],
+                                                'terminee' => [
+                                                    'Terminée',
+                                                    'bg-[#1C9F93]/10 text-[#1C9F93] border-[#1C9F93]/20',
+                                                ],
+                                                default => [
+                                                    'En attente',
+                                                    'bg-slate-100 text-slate-500 border-slate-200',
+                                                ],
+                                            };
+                                        @endphp
+
+                                        <span
+                                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs
+             font-semibold border cursor-default {{ $statutConfig[1] }}">
                                             @if ($tache->statutTache === 'terminee')
-                                                {{-- Tâche validée → badge non cliquable --}}
-                                                <span
-                                                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs
-                     font-semibold bg-[#1C9F93]/10 text-[#1C9F93] border
-                     border-[#1C9F93]/20 cursor-default">
-                                                    ✓ Terminée
-                                                </span>
-                                            @else
-                                                <button @click="open = !open"
-                                                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs
-                       font-semibold transition-colors border
-                       {{ $tache->statutTache === 'en_cours'
-                           ? 'bg-blue-50 text-blue-600 border-blue-200'
-                           : 'bg-slate-100 text-slate-500 border-slate-200' }}">
-                                                    {{ $tache->statutTache === 'en_cours' ? 'En cours' : 'En attente' }}
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                </button>
-                                                <div x-show="open" @click.outside="open = false" x-transition
-                                                    :class="$el.getBoundingClientRect().bottom > window.innerHeight - 150 ?
-                                                        'bottom-full mb-1' : 'top-full mt-1'"
-                                                    class="absolute right-0 w-36 bg-white rounded-xl shadow-xl
-                    border border-slate-200 py-1 z-20">
-                                                    @foreach (['en_attente' => 'En attente', 'en_cours' => 'En cours'] as $s => $label)
-                                                        @if ($s !== $tache->statutTache)
-                                                            <form method="POST"
-                                                                action="{{ route('chef_projet.taches.statut', [$chantier->id, $tache->id, $s]) }}">
-                                                                @csrf @method('PATCH')
-                                                                <button type="submit"
-                                                                    class="w-full text-left px-4 py-2 text-sm
-                                       text-slate-600 hover:bg-slate-50 transition-colors">
-                                                                    {{ $label }}
-                                                                </button>
-                                                            </form>
-                                                        @endif
-                                                    @endforeach
-                                                </div>
+                                                ✓
                                             @endif
-                                        </div>
+                                            {{ $statutConfig[0] }}
+                                        </span>
 
                                         {{-- Mettre à jour avancement --}}
                                         <button @click="showAvancement = !showAvancement"
@@ -216,8 +194,8 @@
                                             title="Mettre à jour l'avancement">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2
-                                                                     0 002-2v-5m-1.414-9.414a2 2 0 112.828
-                                                                     2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                         0 002-2v-5m-1.414-9.414a2 2 0 112.828
+                                                                         2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </button>
 
@@ -227,18 +205,18 @@
                                               hover:bg-slate-100 rounded-lg transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756
-                                                                     3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94
-                                                                     3.31.826 2.37 2.37a1.724 1.724 0 001.065
-                                                                     2.572c1.756.426 1.756 2.924 0 3.35a1.724
-                                                                     1.724 0 00-1.066 2.573c.94 1.543-.826 3.31
-                                                                     -2.37 2.37a1.724 1.724 0 00-2.572 1.065c
-                                                                     -.426 1.756-2.924 1.756-3.35 0a1.724 1.724
-                                                                     0 00-2.573-1.066c-1.543.94-3.31-.826-2.37
-                                                                     -2.37a1.724 1.724 0 00-1.065-2.572c-1.756
-                                                                     -.426-1.756-2.924 0-3.35a1.724 1.724 0
-                                                                     001.066-2.573c-.94-1.543.826-3.31 2.37-2.37
-                                                                     .996.608 2.296.07 2.572-1.065z M15 12a3
-                                                                     3 0 11-6 0 3 3 0 016 0z" />
+                                                                         3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94
+                                                                         3.31.826 2.37 2.37a1.724 1.724 0 001.065
+                                                                         2.572c1.756.426 1.756 2.924 0 3.35a1.724
+                                                                         1.724 0 00-1.066 2.573c.94 1.543-.826 3.31
+                                                                         -2.37 2.37a1.724 1.724 0 00-2.572 1.065c
+                                                                         -.426 1.756-2.924 1.756-3.35 0a1.724 1.724
+                                                                         0 00-2.573-1.066c-1.543.94-3.31-.826-2.37
+                                                                         -2.37a1.724 1.724 0 00-1.065-2.572c-1.756
+                                                                         -.426-1.756-2.924 0-3.35a1.724 1.724 0
+                                                                         001.066-2.573c-.94-1.543.826-3.31 2.37-2.37
+                                                                         .996.608 2.296.07 2.572-1.065z M15 12a3
+                                                                         3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                         </a>
 
@@ -255,8 +233,8 @@
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                                                         2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                                                         1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                             2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                                                             1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                 </button>
                                             </form>
@@ -272,8 +250,8 @@
                                         {{-- Tâche validée → slider désactivé bloqué à 100 --}}
                                         <div class="flex items-center gap-4">
                                             <div class="flex-1 relative">
-                                                <input type="range" disabled min="0" max="100"
-                                                    value="100" class="w-full opacity-50 cursor-not-allowed">
+                                                <input type="range" disabled min="0" max="100" value="100"
+                                                    class="w-full opacity-50 cursor-not-allowed">
                                             </div>
                                             <span class="text-sm font-bold text-[#1C9F93] w-10 text-right">
                                                 100%

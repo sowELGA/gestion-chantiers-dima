@@ -22,7 +22,7 @@ class Approvisionnement extends Model
 
     protected $casts = [
         'date_commande'         => 'date',
-        'date_livraison_prevue' => 'date',
+        'date_livraison_souhaitee' => 'date',
         'quantite_demandee'     => 'decimal:2',
     ];
 

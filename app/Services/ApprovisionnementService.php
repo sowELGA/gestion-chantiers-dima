@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Approvisionnement;
 use App\Models\RapportsEntree;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ApprovisionnementService
 {
@@ -16,13 +17,49 @@ class ApprovisionnementService
             'designation'          => $data['designation'],
             'quantite_demandee'    => $data['quantite_demandee'],
             'unite'                => $data['unite'],
-            'priorite'             => $data['priorite'],
+            'priorite'             => (Carbon::parse($data['date_livraison_souhaitee'])->diffInHours(now()) <= 24
+                ? 'urgent'
+                : 'normal'),
             'statut'               => 'en_attente',
-            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'] ?? null,
+            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'],
             'chantier_id'          => $data['chantier_id'],
             'demandeur_id'         => $demandeurId,
         ]);
     }
+
+
+    public function modifier(Approvisionnement $appro, array $data): Approvisionnement
+    {
+        if ($appro->statut !== 'en_attente') {
+            throw new \Exception(
+                'Impossible de modifier une demande qui n\'est plus en attente.'
+            );
+        }
+
+        $appro->update([
+            'designation'             => $data['designation'],
+            'quantite_demandee'       => $data['quantite_demandee'],
+            'unite'                   => $data['unite'],
+            'priorite'             => (Carbon::parse($data['date_livraison_souhaitee'])->diffInHours(now()) <= 24
+                ? 'urgent'
+                : 'normal'),
+            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'],
+        ]);
+
+        return $appro->fresh();
+    }
+
+    public function supprimer(Approvisionnement $appro): void
+    {
+        if (!in_array($appro->statut, ['en_attente', 'validee'])) {
+            throw new \Exception(
+                'Impossible de supprimer une demande en cours de livraison ou clôturée.'
+            );
+        }
+
+        $appro->delete();
+    }
+
 
     // ── DIRECTION ─────────────────────────────────────────────
 

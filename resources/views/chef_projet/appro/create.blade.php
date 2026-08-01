@@ -14,27 +14,40 @@
             <form method="POST" action="{{ route('chef_projet.appro.store') }}" class="p-6 space-y-5">
                 @csrf
 
-                {{-- Chantier --}}
-                <div>
-                    <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                        Chantier <span class="text-red-500">*</span>
-                    </label>
-                    <select name="chantier_id"
-                        class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
+                {{-- Chantier et date de livraison souhaitée --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                            Chantier <span class="text-red-500">*</span>
+                        </label>
+                        <select name="chantier_id"
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
                                text-sm focus:outline-none focus:ring-2
                                focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] bg-white
                                @error('chantier_id') border-red-400 @enderror">
-                        <option value="">Sélectionner un chantier</option>
-                        @foreach ($chantiers as $chantier)
-                            <option value="{{ $chantier->id }}"
-                                {{ old('chantier_id') == $chantier->id ? 'selected' : '' }}>
-                                {{ $chantier->nomChantier }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('chantier_id')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
+                            <option value="">Sélectionner un chantier</option>
+                            @foreach ($chantiers as $chantier)
+                                <option value="{{ $chantier->id }}"
+                                    {{ old('chantier_id') == $chantier->id ? 'selected' : '' }}>
+                                    {{ $chantier->nomChantier }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('chantier_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                            Date de livraison souhaitée
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="date_livraison_souhaitee" value="{{ old('date_livraison_souhaitee') }}"
+                            min="{{ date('Y-m-d') }}"
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
+                                  text-sm focus:outline-none focus:ring-2
+                                  focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]">
+                    </div>
                 </div>
 
                 {{-- Désignation --}}
@@ -83,37 +96,6 @@
                         @error('unite')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
-                    </div>
-                </div>
-
-                {{-- Priorité + Date livraison --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                            Priorité <span class="text-red-500">*</span>
-                        </label>
-                        <select name="priorite"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                                   text-sm focus:outline-none focus:ring-2
-                                   focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] bg-white">
-                            <option value="normal" {{ old('priorite') === 'normal' ? 'selected' : '' }}>
-                                Normal
-                            </option>
-                            <option value="urgent" {{ old('priorite') === 'urgent' ? 'selected' : '' }}>
-                                🔴 Urgent
-                            </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                            Date de livraison souhaitée
-                            <span class="text-slate-400 font-normal">(optionnel)</span>
-                        </label>
-                        <input type="date" name="date_livraison_souhaitee" value="{{ old('date_livraison_souhaitee') }}"
-                            min="{{ date('Y-m-d') }}"
-                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                                  text-sm focus:outline-none focus:ring-2
-                                  focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]">
                     </div>
                 </div>
 

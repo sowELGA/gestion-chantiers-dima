@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/depenses/{chantier}', [DepenseChantierController::class, 'store'])
                 ->name('depenses.store');
             Route::delete(
-                '/depenses/{chantier}/{depense}',
+                '/depenses/{depense}',
                 [DepenseChantierController::class, 'destroy']
             )
                 ->name('depenses.destroy');
@@ -316,6 +316,23 @@ Route::middleware('auth')->group(function () {
                 [ApprovisionnementController::class, 'indexChefProjet']
             )
                 ->name('appro.index');
+            Route::get(
+                '/approvisionnements/{chantier}/{demande}/edit',
+                [ApprovisionnementController::class, 'edit']
+            )
+                ->name('appro.edit');
+
+            Route::patch(
+                '/approvisionnements/{chantier}/{demande}',
+                [ApprovisionnementController::class, 'update']
+            )
+                ->name('appro.update');
+
+            Route::delete(
+                '/approvisionnements/{chantier}/{demande}',
+                [ApprovisionnementController::class, 'destroy']
+            )
+                ->name('appro.destroy');
         });
 
     // ── DASHBOARDS Pointeur ──────────────────────────────────────────────────────────

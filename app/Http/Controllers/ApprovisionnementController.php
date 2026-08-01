@@ -92,6 +92,53 @@ class ApprovisionnementController extends Controller
         );
     }
 
+    // Modifier — afficher le formulaire
+    public function edit(Chantier $chantier, Approvisionnement $demande)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($demande->chantier_id !== $chantier->id, 404);
+
+        if ($demande->statut !== 'en_attente') {
+            return redirect()
+                ->route('chef_projet.appro.index')
+                ->with('error', 'Cette demande ne peut plus être modifiée.');
+        }
+
+        return view('chef_projet.appro.edit', compact('chantier', 'demande'));
+    }
+
+    // Modifier — enregistrer
+    public function update(ApprovisionnementRequest $request, Chantier $chantier, Approvisionnement $demande)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($demande->chantier_id !== $chantier->id, 404);
+
+        try {
+            $this->approService->modifier($demande, $request->validated());
+            return redirect()
+                ->route('chef_projet.appro.index')
+                ->with('success', 'Demande modifiée avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    // Supprimer
+    public function destroy(Chantier $chantier, Approvisionnement $demande)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($demande->chantier_id !== $chantier->id, 404);
+
+        try {
+            $this->approService->supprimer($demande);
+            return redirect()
+                ->route('chef_projet.appro.index')
+                ->with('success', 'Demande supprimée.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     // ══════════════════════════════════════════════════════════
     // DIRECTION
     // ══════════════════════════════════════════════════════════
