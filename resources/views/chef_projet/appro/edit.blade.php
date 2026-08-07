@@ -35,8 +35,7 @@
             </p>
         </div>
 
-        <form method="POST"
-            action="{{ route('chef_projet.appro.update', [$chantier->id, $demande->id]) }}"
+        <form method="POST" action="{{ route('chef_projet.appro.update', [$demande->chantier_id, $demande->id]) }}"
             class="p-6 space-y-5">
             @csrf
             @method('PATCH')
@@ -47,6 +46,47 @@
                     {{ $errors->first() }}
                 </div>
             @endif
+
+            {{-- Chantier et date de livraison souhaitée --}}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                        Chantier <span class="text-red-500">*</span>
+                    </label>
+                    <select name="chantier_id"
+                        class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
+           text-sm focus:outline-none focus:ring-2
+           focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] bg-white
+           @error('chantier_id') border-red-400 @enderror">
+
+                        @foreach ($chantiers as $chantier)
+                            <option value="{{ $chantier->id }}"
+                                {{ $chantier->id == $demande->chantier_id ? 'selected' : '' }}>
+                                {{ $chantier->nomChantier }}
+                            </option>
+                        @endforeach
+
+                    </select>
+                    @error('chantier_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                        Date de livraison souhaitée
+                    </label>
+                    <input type="date" name="date_livraison_souhaitee"
+                        value="{{ old('date_livraison_souhaitee', $demande->date_livraison_souhaitee?->format('Y-m-d')) }}"
+                        min="{{ now()->toDateString() }}"
+                        class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
+                          text-sm focus:outline-none focus:ring-2
+                          focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]
+                          @error('date_livraison_souhaitee') border-red-400 @enderror">
+                    @error('date_livraison_souhaitee')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
 
             {{-- Désignation --}}
             <div>
@@ -101,59 +141,6 @@
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-            </div>
-
-            {{-- Date de livraison souhaitée --}}
-            <div>
-                <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                    Date de livraison souhaitée
-                </label>
-                <input type="date" name="date_livraison_souhaitee"
-                    value="{{ old('date_livraison_souhaitee', $demande->date_livraison_souhaitee?->format('Y-m-d')) }}"
-                    min="{{ now()->toDateString() }}"
-                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
-                          text-sm focus:outline-none focus:ring-2
-                          focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]
-                          @error('date_livraison_souhaitee') border-red-400 @enderror">
-                @error('date_livraison_souhaitee')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-
-                {{-- Info priorité automatique --}}
-                <div
-                    class="flex items-center gap-2 mt-2 px-4 py-2.5 bg-amber-50
-                        border border-amber-200 rounded-lg text-xs text-amber-700">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    La priorité est calculée automatiquement :
-                    <strong class="ml-1">Urgent</strong> si livraison souhaitée dans moins de 24h,
-                    <strong class="ml-1">Normal</strong> sinon.
-                </div>
-            </div>
-
-            {{-- Priorité actuelle (lecture seule) --}}
-            <div
-                class="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl
-                    border border-slate-200">
-                <span class="text-xs text-slate-500">Priorité actuelle :</span>
-                @if ($demande->priorite === 'urgent')
-                    <span
-                        class="px-2.5 py-1 rounded-full text-[10px] font-bold
-                             bg-red-100 text-red-600">
-                        URGENT
-                    </span>
-                @else
-                    <span
-                        class="px-2.5 py-1 rounded-full text-[10px] font-bold
-                             bg-slate-100 text-slate-600">
-                        NORMAL
-                    </span>
-                @endif
-                <span class="text-xs text-slate-400">
-                    — sera recalculée selon la nouvelle date choisie
-                </span>
             </div>
 
             {{-- Boutons --}}

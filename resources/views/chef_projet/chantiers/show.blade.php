@@ -276,7 +276,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="font-semibold text-[#0F172A]">Tâches par statut</h3>
-                <a href="{{ route('chef_projet.taches.index', $chantier) }}"
+                <a href="{{ route('chef_projet.phases.index', $chantier) }}"
                     class="text-xs text-[#1C9F93] font-semibold hover:underline">
                     Gérer →
                 </a>

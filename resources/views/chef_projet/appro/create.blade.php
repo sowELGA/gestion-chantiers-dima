@@ -87,12 +87,18 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Unité <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="unite" value="{{ old('unite') }}"
-                            placeholder="Ex : sacs, m³, kg, unités..."
-                            class="w-full px-4 py-2.5 border rounded-lg text-sm
-                                  focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
-                                  focus:border-[#1C9F93] transition-colors
-                                  @error('unite') border-red-400 @else border-slate-300 @enderror">
+                        <select name="unite"
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg
+                               text-sm focus:outline-none focus:ring-2
+                               focus:ring-[#1C9F93]/30 focus:border-[#1C9F93]
+                               bg-white @error('unite') border-red-400 @enderror">
+                            <option value="">Selectionner l'unité</option>
+                            @foreach (['sacs', 'kg', 'tonnes', 'm³', 'm²', 'm', 'L', 'unités', 'planches', 'barres', 'rouleaux'] as $unite)
+                                <option value="{{ $unite }}">
+                                    {{ $unite }}
+                                </option>
+                            @endforeach
+                        </select>
                         @error('unite')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror

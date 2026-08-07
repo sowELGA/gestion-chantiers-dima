@@ -6,31 +6,50 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tache extends Model
 {
-    protected $table = 'taches';
-
     protected $fillable = [
         'nomTache',
-        'type',
-        'descriptionTache',
         'date_debut_prevue',
         'date_fin_prevue',
+        'date_debut_reelle',
+        'date_fin_reelle',
         'avancement',
         'statutTache',
-        'sous_traitant',
         'est_en_retard',
         'chantier_id',
         'phase_id',
-        'tache_precedente_id',
         'responsable_id',
+        'tache_precedente_id',
     ];
 
     protected $casts = [
         'date_debut_prevue' => 'date',
         'date_fin_prevue'   => 'date',
+        'date_debut_reelle' => 'date',
+        'date_fin_reelle'   => 'date',
+        'avancement'        => 'integer',
         'est_en_retard'     => 'boolean',
     ];
 
-    // Accesseur retard
+    public function phase()
+    {
+        return $this->belongsTo(Phase::class, 'phase_id', 'id');
+    }
+
+    public function chantier()
+    {
+        return $this->belongsTo(Chantier::class, 'chantier_id', 'id');
+    }
+
+    public function responsable()
+    {
+        return $this->belongsTo(User::class, 'responsable_id', 'id');
+    }
+
+    public function tachePrecedente()
+    {
+        return $this->belongsTo(Tache::class, 'tache_precedente_id', 'id');
+    }
+
     public function getEstEnRetardAttribute(): bool
     {
         return $this->statutTache !== 'terminee'
@@ -38,24 +57,9 @@ class Tache extends Model
             && $this->date_fin_prevue->isPast();
     }
 
-    // Relations
-    public function chantier()
+    public function getDureePrevisionnelleAttribute(): int
     {
-        return $this->belongsTo(Chantier::class, 'chantier_id');
-    }
-
-    public function phase()
-    {
-        return $this->belongsTo(Phase::class, 'phase_id');
-    }
-
-    public function responsable()
-    {
-        return $this->belongsTo(User::class, 'responsable_id');
-    }
-
-    public function tachePrecedente()
-    {
-        return $this->belongsTo(Tache::class, 'tache_precedente_id');
+        if (!$this->date_debut_prevue || !$this->date_fin_prevue) return 0;
+        return $this->date_debut_prevue->diffInDays($this->date_fin_prevue);
     }
 }

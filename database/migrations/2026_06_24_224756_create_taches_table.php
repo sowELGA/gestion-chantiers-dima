@@ -14,20 +14,16 @@ return new class extends Migration
         Schema::create('taches', function (Blueprint $table) {
             $table->id();
             $table->string('nomTache');
-            $table->enum('type', [
-                'gros_oeuvre',
-                'second_oeuvre',
-            ]);
-            $table->text('descriptionTache')->nullable();
             $table->date('date_debut_prevue');
             $table->date('date_fin_prevue');
+            $table->date('date_debut_reelle')->nullable();
+            $table->date('date_fin_reelle')->nullable();
             $table->integer('avancement')->default(0);
             $table->enum('statutTache', [
                 'en_attente',
                 'en_cours',
                 'terminee'
             ])->default('en_attente');
-            $table->string('sous_traitant')->nullable();
             $table->boolean('est_en_retard')->default(false);
             $table->foreignId('chantier_id')
                 ->constrained('chantiers', 'id')

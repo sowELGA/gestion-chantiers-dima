@@ -7,12 +7,15 @@ use App\Models\DepensesChantier;
 
 class ChantierService
 {
-    // Créer un chantier
+    // ══════════════════════════════════════════════════════════
+    // CHANTIER — CRUD
+    // ══════════════════════════════════════════════════════════
+
     public function creer(array $data): Chantier
     {
         return Chantier::create([
             'nomChantier'     => $data['nomChantier'],
-            'localisation'         => $data['localisation'],
+            'localisation'    => $data['localisation'],
             'budget_prevu'    => $data['budget_prevu'],
             'budget_consomme' => 0,
             'date_debut'      => $data['date_debut'],
@@ -23,85 +26,83 @@ class ChantierService
         ]);
     }
 
-    // Modifier un chantier
     public function modifier(Chantier $chantier, array $data): Chantier
     {
         $chantier->update([
             'nomChantier'     => $data['nomChantier'],
-            'localisation'         => $data['localisation'],
+            'localisation'    => $data['localisation'],
             'budget_prevu'    => $data['budget_prevu'],
             'date_debut'      => $data['date_debut'],
             'date_fin_prevue' => $data['date_fin_prevue'],
         ]);
 
-        return $chantier;
+        return $chantier->fresh();
     }
 
-    // Affecter ou changer le chef de projet
-    public function affecterChefProjet(Chantier $chantier, ?int $chefProjetId): Chantier
-    {
-        $chantier->update(['chef_projet_id' => $chefProjetId]);
-        return $chantier;
-    }
-
-    // Affecter ou changer le pointeur
-    public function affecterPointeur(Chantier $chantier, ?int $pointeurId): Chantier
-    {
-        $chantier->update(['pointeur_id' => $pointeurId]);
-        return $chantier;
-    }
-
-    // Changer le statut avec règles métier
-    public function changerStatut(Chantier $chantier, string $statut): Chantier
-    {
-        // Transitions autorisées par bouton rapide
-        $transitionsAutorisees = [
-            'en_attente' => ['en_cours'],
-            'en_cours'   => ['suspendu', 'livre'],
-            'suspendu'   => ['en_cours'],
-            'livre'      => [], // aucune transition rapide
-        ];
-
-        $statutActuel = $chantier->statut;
-
-        if (!in_array($statut, $transitionsAutorisees[$statutActuel] ?? [])) {
-            throw new \Exception(
-                "Transition de statut invalide : '{$statutActuel}' → '{$statut}'."
-            );
-        }
-
-        $chantier->update(['statut' => $statut]);
-        return $chantier;
-    }
-
-    // Supprimer (uniquement si EN ATTENTE)
     public function supprimer(Chantier $chantier): void
     {
-        if ($chantier->statut !== 'en_attente') {
-            throw new \Exception(
-                'Impossible de supprimer un chantier qui n\'est pas en attente.'
-            );
-        }
+        $this->verifierSupprimable($chantier);
         $chantier->delete();
     }
 
-    // Ajouter une dépense et mettre à jour le budget consommé
+    // ══════════════════════════════════════════════════════════
+    // CHANTIER — AFFECTATIONS
+    // ══════════════════════════════════════════════════════════
+
+    public function affecterChefProjet(Chantier $chantier, ?int $chefProjetId): Chantier
+    {
+        $chantier->update(['chef_projet_id' => $chefProjetId]);
+        return $chantier->fresh();
+    }
+
+    public function affecterPointeur(Chantier $chantier, ?int $pointeurId): Chantier
+    {
+        $chantier->update(['pointeur_id' => $pointeurId]);
+        return $chantier->fresh();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // CHANTIER — STATUT
+    // ══════════════════════════════════════════════════════════
+
+    public function changerStatut(Chantier $chantier, string $nouveauStatut): Chantier
+    {
+        $this->verifierTransitionAutorisee($chantier->statut, $nouveauStatut);
+
+        $chantier->update(['statut' => $nouveauStatut]);
+
+        if ($nouveauStatut === 'livre') {
+            $this->enregistrerDateFinReelle($chantier);
+        }
+
+        return $chantier->fresh();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DÉPENSES
+    // ══════════════════════════════════════════════════════════
+
     public function ajouterDepense(Chantier $chantier, array $data): DepensesChantier
     {
-        $depense = DepensesChantier::create([
-            'chantier_id'  => $chantier->id,
+        $depense = $this->creerDepense($chantier, $data);
+        $this->recalculerBudgetConsomme($chantier);
+        return $depense;
+    }
+
+    public function modifierDepense(DepensesChantier $depense, array $data): DepensesChantier
+    {
+        $depense->update([
             'categorie'    => $data['categorie'],
             'montant'      => $data['montant'],
             'description'  => $data['description'],
             'date_depense' => $data['date_depense'],
         ]);
 
-        $this->recalculerBudgetConsomme($chantier);
+        $this->recalculerBudgetConsomme($depense->chantier);
 
-        return $depense;
+        return $depense->fresh();
     }
 
-    // Supprimer une dépense
     public function supprimerDepense(DepensesChantier $depense): void
     {
         $chantier = $depense->chantier;
@@ -109,7 +110,59 @@ class ChantierService
         $this->recalculerBudgetConsomme($chantier);
     }
 
-    // Recalculer le budget consommé
+    // ══════════════════════════════════════════════════════════
+    // HELPERS PRIVÉS
+    // ══════════════════════════════════════════════════════════
+
+    // Vérifie que la transition de statut est autorisée
+    private function verifierTransitionAutorisee(
+        string $statutActuel, string $nouveauStatut
+    ): void {
+        $transitions = [
+            'en_attente' => ['en_cours'],
+            'en_cours'   => ['suspendu', 'livre'],
+            'suspendu'   => ['en_cours'],
+            'livre'      => [],
+        ];
+
+        if (!in_array($nouveauStatut, $transitions[$statutActuel] ?? [])) {
+            throw new \Exception(
+                "Transition invalide : '{$statutActuel}' → '{$nouveauStatut}'."
+            );
+        }
+    }
+
+    // Vérifie que le chantier peut être supprimé
+    private function verifierSupprimable(Chantier $chantier): void
+    {
+        if ($chantier->statut !== 'en_attente') {
+            throw new \Exception(
+                'Impossible de supprimer un chantier qui n\'est plus en attente.'
+            );
+        }
+    }
+
+    // Enregistre la date de fin réelle lors de la livraison
+    private function enregistrerDateFinReelle(Chantier $chantier): void
+    {
+        $chantier->update([
+            'date_fin_reelle' => now()->toDateString(),
+        ]);
+    }
+
+    // Crée l'entrée dépense en base
+    private function creerDepense(Chantier $chantier, array $data): DepensesChantier
+    {
+        return DepensesChantier::create([
+            'chantier_id'  => $chantier->id,
+            'categorie'    => $data['categorie'],
+            'montant'      => $data['montant'],
+            'description'  => $data['description'],
+            'date_depense' => $data['date_depense'],
+        ]);
+    }
+
+    // Recalcule et met à jour le budget consommé
     private function recalculerBudgetConsomme(Chantier $chantier): void
     {
         $total = $chantier->depenses()->sum('montant');

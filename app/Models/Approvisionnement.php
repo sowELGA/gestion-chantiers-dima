@@ -14,8 +14,9 @@ class Approvisionnement extends Model
         'unite',
         'priorite',
         'statut',
-        'date_commande',
         'date_livraison_souhaitee',
+        'date_commande',
+        'date_livraison_prevue',
         'chantier_id',
         'demandeur_id',
     ];
@@ -23,6 +24,7 @@ class Approvisionnement extends Model
     protected $casts = [
         'date_commande'         => 'date',
         'date_livraison_souhaitee' => 'date',
+        'date_livraison_prevue' => 'date',
         'quantite_demandee'     => 'decimal:2',
     ];
 

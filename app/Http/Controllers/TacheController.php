@@ -7,7 +7,6 @@ use App\Http\Requests\Tache\TacheRequest;
 use App\Models\Chantier;
 use App\Models\Phase;
 use App\Models\Tache;
-use App\Models\User;
 use App\Services\TacheService;
 
 class TacheController extends Controller
@@ -24,115 +23,198 @@ class TacheController extends Controller
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
-        $chantier->load(['phases.taches']);
+        $phases = Phase::with(['taches'])
+            ->where('chantier_id', $chantier->id)
+            ->orderBy('ordre')
+            ->get();
 
-        return view('chef_projet.phases.index', compact('chantier'));
+        return view('chef_projet.phases.index', compact('chantier', 'phases'));
+    }
+
+    public function createPhase(Chantier $chantier)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        $this->verifierChantierModifiable($chantier);
+
+        $prochainOrdre = Phase::where('chantier_id', $chantier->id)
+            ->max('ordre') + 1;
+
+        return view(
+            'chef_projet.phases.create',
+            compact('chantier', 'prochainOrdre')
+        );
     }
 
     public function storePhase(PhaseRequest $request, Chantier $chantier)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        $this->verifierChantierModifiable($chantier);
 
-        if ($chantier->statut === 'livre') {
-            return back()->with(
-                'error',
-                'Impossible de planifier : ce chantier est livré.'
-            );
+        $this->tacheService->creerPhase(
+            $request->validated(),
+            $chantier->id
+        );
+
+        return redirect()
+            ->route('chef_projet.phases.index', $chantier->id)
+            ->with('success', 'Phase créée avec succès.');
+    }
+
+    public function editPhase(Chantier $chantier, Phase $phase)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
+
+        return view('chef_projet.phases.edit', compact('chantier', 'phase'));
+    }
+
+    public function updatePhase(PhaseRequest $request, Chantier $chantier, Phase $phase)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
+
+        try {
+            $this->tacheService->modifierPhase($phase, $request->validated());
+            return redirect()
+                ->route('chef_projet.phases.index', $chantier->id)
+                ->with('success', 'Phase modifiée avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $this->tacheService->creerPhase($request->validated(), $chantier->id);
-        return back()->with('success', 'Phase créée avec succès.');
     }
 
     public function destroyPhase(Chantier $chantier, Phase $phase)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
 
         try {
             $this->tacheService->supprimerPhase($phase);
-            return back()->with('success', 'Phase supprimée avec succès.');
+            return redirect()
+                ->route('chef_projet.phases.index', $chantier->id)
+                ->with('success', 'Phase supprimée.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // TACHES
+    // TÂCHES
     // ══════════════════════════════════════════════════════════
 
-    public function indexTaches(Chantier $chantier)
+    public function indexTaches(Chantier $chantier, Phase $phase)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
 
-        $chantier->load(['phases.taches.responsable']);
-
-        $tachesEnRetard = $chantier->taches()
-            ->where('statutTache', '!=', 'terminee')
-            ->where('date_fin_prevue', '<', now())
-            ->count();
+        $taches = Tache::with(['tachePrecedente'])
+            ->where('phase_id', $phase->id)
+            ->orderBy('date_debut_prevue')
+            ->get();
 
         return view(
             'chef_projet.taches.index',
-            compact('chantier', 'tachesEnRetard')
+            compact('chantier', 'phase', 'taches')
         );
     }
 
-    public function createTache(Chantier $chantier)
+    public function createTache(Chantier $chantier, Phase $phase)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
-        if ($chantier->statut === 'livre') {
-            return redirect()
-                ->route('chef_projet.taches.index', $chantier->id)
-                ->with(
-                    'error',
-                    'Impossible de créer une tâche : ce chantier est livré.'
-                );
-        }
-
-        $phases = $chantier->phases()->orderBy('ordre')->get();
-        $taches = $chantier->taches()->orderBy('nomTache')->get();
+        $tachesDisponibles = Tache::where('phase_id', $phase->id)->get();
 
         return view(
             'chef_projet.taches.create',
-            compact('chantier', 'phases', 'taches')
+            compact('chantier', 'phase', 'tachesDisponibles')
         );
     }
 
-    public function storeTache(TacheRequest $request, Chantier $chantier)
+    public function storeTache(TacheRequest $request, Chantier $chantier, Phase $phase)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
-        $this->tacheService->creerTache($request->validated(), $chantier->id);
+        // Le responsable = chef de projet connecté
+        $data                 = $request->validated();
+        $data['responsable_id'] = auth()->id();
+        $data['phase_id']       = $phase->id;
+
+        $this->tacheService->creerTache($data, $chantier->id);
 
         return redirect()
-            ->route('chef_projet.taches.index', $chantier->id)
+            ->route('chef_projet.taches.index', [$chantier->id, $phase->id])
             ->with('success', 'Tâche créée avec succès.');
     }
 
-    public function editTache(Chantier $chantier, Tache $tache)
+    public function editTache(Chantier $chantier, Phase $phase, Tache $tache)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
+        abort_if($tache->phase_id !== $phase->id, 404);
 
-        $phases = $chantier->phases()->orderBy('ordre')->get();
-        $taches = $chantier->taches()
+        if ($tache->statutTache === 'terminee') {
+            return redirect()
+                ->route('chef_projet.taches.index', [$chantier->id, $phase->id])
+                ->with('error', 'Impossible de modifier une tâche terminée.');
+        }
+
+        $tachesDisponibles = Tache::where('phase_id', $phase->id)
             ->where('id', '!=', $tache->id)
-            ->orderBy('nomTache')
             ->get();
 
         return view(
             'chef_projet.taches.edit',
-            compact('chantier', 'tache', 'phases', 'taches')
+            compact('chantier', 'phase', 'tache', 'tachesDisponibles')
         );
     }
 
-    public function mettreAJourAvancement(Chantier $chantier, Tache $tache)
+    public function updateTache(
+        TacheRequest $request,
+        Chantier $chantier,
+        Phase $phase,
+        Tache $tache
+    ) {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($tache->phase_id !== $phase->id, 404);
+
+        $data                 = $request->validated();
+        $data['responsable_id'] = auth()->id();
+        $data['phase_id']       = $phase->id;
+
+        try {
+            $this->tacheService->modifierTache($tache, $data);
+            return redirect()
+                ->route('chef_projet.taches.index', [$chantier->id, $phase->id])
+                ->with('success', 'Tâche modifiée.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function destroyTache(Chantier $chantier, Phase $phase, Tache $tache)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($tache->phase_id !== $phase->id, 404);
+
+        try {
+            $this->tacheService->supprimerTache($tache);
+            return redirect()
+                ->route('chef_projet.taches.index', [$chantier->id, $phase->id])
+                ->with('success', 'Tâche supprimée.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function mettreAJourAvancement(Chantier $chantier, Phase $phase, Tache $tache)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
-        request()->validate([
-            'avancement' => 'required|integer|min:0|max:100',
-        ]);
+        request()->validate(['avancement' => 'required|integer|min:0|max:100']);
 
         try {
             $this->tacheService->mettreAJourAvancement($tache, (int) request('avancement'));
@@ -142,36 +224,30 @@ class TacheController extends Controller
         }
     }
 
-    public function changerStatutTache(Chantier $chantier, Tache $tache, string $statut)
+    // ══════════════════════════════════════════════════════════
+    // GANTT
+    // ══════════════════════════════════════════════════════════
+
+    public function gantt(Chantier $chantier)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
-        $statuts = ['en_attente', 'en_cours', 'terminee'];
+        $phases = Phase::with(['taches'])
+            ->where('chantier_id', $chantier->id)
+            ->orderBy('ordre')
+            ->get();
 
-        if (!in_array($statut, $statuts)) {
-            return back()->with('error', 'Statut invalide.');
-        }
-
-        try {
-            $this->tacheService->changerStatut($tache, $statut);
-            return back()->with('success', 'Statut mis à jour avec succès.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        return view('chef_projet.taches.gantt', compact('chantier', 'phases'));
     }
 
-    public function destroyTache(Chantier $chantier, Tache $tache)
+    // ══════════════════════════════════════════════════════════
+    // HELPER PRIVÉ
+    // ══════════════════════════════════════════════════════════
+
+    private function verifierChantierModifiable(Chantier $chantier): void
     {
-        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
-
-        try {
-            $this->tacheService->supprimerTache($tache);
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+        if ($chantier->statut === 'livre') {
+            abort(403, 'Ce chantier est livré — la planification est verrouillée.');
         }
-
-        $this->tacheService->supprimerTache($tache);
-
-        return back()->with('success', 'Tâche supprimée avec succès.');
     }
 }

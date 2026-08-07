@@ -212,76 +212,93 @@ Route::middleware('auth')->group(function () {
             Route::get('/chantiers/{chantier}', [ChantierController::class, 'showChefProjet'])
                 ->name('chantiers.show');
 
+            // ── Phases ────────────────────────────────────────────────
+            Route::get(
+                '/chantiers/{chantier}/phases',
+                [TacheController::class, 'indexPhases']
+            )->name('phases.index');
+            Route::get(
+                '/chantiers/{chantier}/phases/create',
+                [TacheController::class, 'createPhase']
+            )->name('phases.create');
+            Route::post(
+                '/chantiers/{chantier}/phases',
+                [TacheController::class, 'storePhase']
+            )->name('phases.store');
+            Route::get(
+                '/chantiers/{chantier}/phases/{phase}/edit',
+                [TacheController::class, 'editPhase']
+            )->name('phases.edit');
+            Route::patch(
+                '/chantiers/{chantier}/phases/{phase}',
+                [TacheController::class, 'updatePhase']
+            )->name('phases.update');
+            Route::delete(
+                '/chantiers/{chantier}/phases/{phase}',
+                [TacheController::class, 'destroyPhase']
+            )->name('phases.destroy');
+
             // Phases
             Route::get(
                 '/chantiers/{chantier}/phases',
                 [TacheController::class, 'indexPhases']
-            )
-                ->name('phases.index');
+            )->name('phases.index');
+            Route::get(
+                '/chantiers/{chantier}/phases/create',
+                [TacheController::class, 'createPhase']
+            )->name('phases.create');
             Route::post(
                 '/chantiers/{chantier}/phases',
                 [TacheController::class, 'storePhase']
-            )
-                ->name('phases.store');
-            Route::put(
+            )->name('phases.store');
+            Route::get(
+                '/chantiers/{chantier}/phases/{phase}/edit',
+                [TacheController::class, 'editPhase']
+            )->name('phases.edit');
+            Route::patch(
                 '/chantiers/{chantier}/phases/{phase}',
                 [TacheController::class, 'updatePhase']
-            )
-                ->name('phases.update');
+            )->name('phases.update');
             Route::delete(
                 '/chantiers/{chantier}/phases/{phase}',
                 [TacheController::class, 'destroyPhase']
-            )
-                ->name('phases.destroy');
+            )->name('phases.destroy');
 
-            // Tâches
+            // Tâches (toujours dans le contexte d'une phase)
             Route::get(
-                '/chantiers/{chantier}/taches',
+                '/chantiers/{chantier}/phases/{phase}/taches',
                 [TacheController::class, 'indexTaches']
-            )
-                ->name('taches.index');
+            )->name('taches.index');
             Route::get(
-                '/chantiers/{chantier}/taches/create',
+                '/chantiers/{chantier}/phases/{phase}/taches/create',
                 [TacheController::class, 'createTache']
-            )
-                ->name('taches.create');
+            )->name('taches.create');
             Route::post(
-                '/chantiers/{chantier}/taches',
+                '/chantiers/{chantier}/phases/{phase}/taches',
                 [TacheController::class, 'storeTache']
-            )
-                ->name('taches.store');
+            )->name('taches.store');
             Route::get(
-                '/chantiers/{chantier}/taches/{tache}/edit',
+                '/chantiers/{chantier}/phases/{phase}/taches/{tache}/edit',
                 [TacheController::class, 'editTache']
-            )
-                ->name('taches.edit');
-            Route::put(
-                '/chantiers/{chantier}/taches/{tache}',
+            )->name('taches.edit');
+            Route::patch(
+                '/chantiers/{chantier}/phases/{phase}/taches/{tache}',
                 [TacheController::class, 'updateTache']
-            )
-                ->name('taches.update');
-            Route::patch(
-                '/chantiers/{chantier}/taches/{tache}/statut/{statut}',
-                [TacheController::class, 'changerStatutTache']
-            )
-                ->name('taches.statut');
-            Route::patch(
-                '/chantiers/{chantier}/taches/{tache}/avancement',
-                [TacheController::class, 'mettreAJourAvancement']
-            )
-                ->name('taches.avancement');
+            )->name('taches.update');
             Route::delete(
-                '/chantiers/{chantier}/taches/{tache}',
+                '/chantiers/{chantier}/phases/{phase}/taches/{tache}',
                 [TacheController::class, 'destroyTache']
-            )
-                ->name('taches.destroy');
+            )->name('taches.destroy');
+            Route::patch(
+                '/chantiers/{chantier}/phases/{phase}/taches/{tache}/avancement',
+                [TacheController::class, 'mettreAJourAvancement']
+            )->name('taches.avancement');
 
-            // Gantt (temporaire)
+            // Gantt
             Route::get(
                 '/chantiers/{chantier}/gantt',
-                fn($chantier) => view('chef_projet.dashboard')
-            )
-                ->name('taches.gantt');
+                [TacheController::class, 'gantt']
+            )->name('taches.gantt');
 
             //Pointage
             Route::get(

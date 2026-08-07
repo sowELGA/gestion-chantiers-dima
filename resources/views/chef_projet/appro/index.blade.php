@@ -232,13 +232,13 @@
                         </div>
 
                         {{-- Date livraison prévue --}}
-                        @if ($demande->date_livraison_souhaitee && in_array($demande->statut, ['en_cours_livraison', 'partiellement_recue']))
+                        @if ($demande->date_livraison_prevue && $demande->statut == 'en_cours_livraison')
                             <div class="text-right flex-shrink-0 ml-4 hidden sm:block">
                                 <p class="text-[10px] text-slate-400">Livraison prévue</p>
                                 <p
                                     class="text-xs font-semibold
-                                      {{ $demande->date_livraison_souhaitee->isPast() ? 'text-red-500' : 'text-[#0F172A]' }}">
-                                    {{ $demande->date_livraison_souhaitee->format('d/m/Y') }}
+                                      {{ $demande->date_livraison_prevue->isPast() ? 'text-red-500' : 'text-[#0F172A]' }}">
+                                    {{ $demande->date_livraison_prevue->format('d/m/Y') }}
                                 </p>
                             </div>
                         @endif

@@ -4,45 +4,42 @@ namespace App\Services;
 
 use App\Models\Approvisionnement;
 use App\Models\RapportsEntree;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ApprovisionnementService
 {
-    // ── CHEF DE PROJET ────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════
+    // DEMANDES — CRUD
+    // ══════════════════════════════════════════════════════════
 
     public function creer(array $data, int $demandeurId): Approvisionnement
     {
         return Approvisionnement::create([
-            'designation'          => $data['designation'],
-            'quantite_demandee'    => $data['quantite_demandee'],
-            'unite'                => $data['unite'],
-            'priorite'             => (Carbon::parse($data['date_livraison_souhaitee'])->diffInHours(now()) <= 24
-                ? 'urgent'
-                : 'normal'),
-            'statut'               => 'en_attente',
-            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'],
-            'chantier_id'          => $data['chantier_id'],
-            'demandeur_id'         => $demandeurId,
+            'designation'             => $data['designation'],
+            'quantite_demandee'       => $data['quantite_demandee'],
+            'unite'                   => $data['unite'],
+            'priorite'                => $this->calculerPriorite(
+                $data['date_livraison_souhaitee'] ?? null
+            ),
+            'statut'                  => 'en_attente',
+            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'] ?? null,
+            'chantier_id'             => $data['chantier_id'],
+            'demandeur_id'            => $demandeurId,
         ]);
     }
 
-
     public function modifier(Approvisionnement $appro, array $data): Approvisionnement
     {
-        if ($appro->statut !== 'en_attente') {
-            throw new \Exception(
-                'Impossible de modifier une demande qui n\'est plus en attente.'
-            );
-        }
+        $this->verifierModifiable($appro);
 
         $appro->update([
             'designation'             => $data['designation'],
             'quantite_demandee'       => $data['quantite_demandee'],
             'unite'                   => $data['unite'],
-            'priorite'             => (Carbon::parse($data['date_livraison_souhaitee'])->diffInHours(now()) <= 24
-                ? 'urgent'
-                : 'normal'),
+            'priorite'                => $this->calculerPriorite(
+                $data['date_livraison_souhaitee']
+            ),
             'date_livraison_souhaitee' => $data['date_livraison_souhaitee'],
         ]);
 
@@ -51,85 +48,167 @@ class ApprovisionnementService
 
     public function supprimer(Approvisionnement $appro): void
     {
+        $this->verifierSupprimable($appro);
+        $appro->delete();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // TRAITEMENT — DIRECTION
+    // ══════════════════════════════════════════════════════════
+
+    public function valider(Approvisionnement $appro): Approvisionnement
+    {
+        $this->verifierStatut($appro, 'en_attente', 'valider');
+
+        $appro->update(['statut' => 'validee']);
+
+        return $appro->fresh();
+    }
+
+    public function rejeter(Approvisionnement $appro): Approvisionnement
+    {
+        $this->verifierStatut($appro, 'en_attente', 'rejeter');
+
+        $appro->update(['statut' => 'rejetee']);
+
+        return $appro->fresh();
+    }
+
+    public function commander(Approvisionnement $appro): Approvisionnement
+    {
+        $this->verifierStatut($appro, 'validee', 'commander');
+
+        $appro->update([
+            'statut'                => 'en_cours_livraison',
+            'date_commande'         => now()->toDateString(),
+        ]);
+
+        return $appro->fresh();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // RÉCEPTION — POINTEUR
+    // ══════════════════════════════════════════════════════════
+
+    public function receptionner(
+        Approvisionnement $appro,
+        array $data,
+        int $pointeurId
+    ): RapportsEntree {
+        $this->verifierReceptionnable($appro);
+
+        $rapport = $this->enregistrerReception($appro, $data, $pointeurId);
+
+        $this->mettreAJourStatutApres($appro, $rapport);
+
+        return $rapport;
+    }
+
+    public function genererBonEntreePdf(RapportsEntree $rapport)
+    {
+        $pdf = Pdf::loadView('pdf.bon-entree', [
+            'rapport'  => $rapport->load(['demande.chantier', 'receptionneeParUser']),
+        ])->setPaper('A4', 'portrait');
+
+        $nomFichier = 'bon-entree-'
+            . $rapport->id
+            . '-' . now()->format('d-m-Y')
+            . '.pdf';
+
+        return $pdf->download($nomFichier);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // HELPERS PRIVÉS — VÉRIFICATIONS
+    // ══════════════════════════════════════════════════════════
+
+    private function verifierModifiable(Approvisionnement $appro): void
+    {
+        if ($appro->statut !== 'en_attente') {
+            throw new \Exception(
+                'Impossible de modifier une demande qui n\'est plus en attente.'
+            );
+        }
+    }
+
+    private function verifierSupprimable(Approvisionnement $appro): void
+    {
         if (!in_array($appro->statut, ['en_attente', 'validee'])) {
             throw new \Exception(
                 'Impossible de supprimer une demande en cours de livraison ou clôturée.'
             );
         }
-
-        $appro->delete();
     }
 
-
-    // ── DIRECTION ─────────────────────────────────────────────
-
-    public function valider(Approvisionnement $demande): Approvisionnement
+    private function verifierReceptionnable(Approvisionnement $appro): void
     {
-        $demande->update(['statut' => 'validee']);
-        return $demande;
+        if (!in_array($appro->statut, ['en_cours_livraison', 'partiellement_recue'])) {
+            throw new \Exception(
+                'Cette demande ne peut pas être réceptionnée.'
+            );
+        }
     }
 
-    public function rejeter(Approvisionnement $demande): Approvisionnement
+    private function verifierStatut(
+        Approvisionnement $appro,
+        string $statutAttendu,
+        string $action
+    ): void {
+        if ($appro->statut !== $statutAttendu) {
+            throw new \Exception(
+                "Impossible de {$action} une demande au statut '{$appro->statut}'."
+            );
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // HELPERS PRIVÉS — ACTIONS
+    // ══════════════════════════════════════════════════════════
+
+    // Calcule la priorité selon la date souhaitée
+    private function calculerPriorite(string $dateLivraison): string
     {
-        $demande->update(['statut' => 'rejetee']);
-        return $demande;
+        $date = Carbon::parse($dateLivraison);
+
+        return now()->diffInHours($date, false) <= 24
+            && $date->isFuture()
+            ? 'urgent'
+            : 'normal';
     }
 
-    public function passerCommande(Approvisionnement $demande): Approvisionnement
-    {
-        $demande->update([
-            'statut' => 'en_cours_livraison',
-            'date_commande' => now()->toDateString(),
-        ]);
-        return $demande;
-    }
-
-    // ── POINTEUR — Réception ──────────────────────────────────
-
-    public function validerReception(
-        Approvisionnement $demande,
+    // Enregistre le rapport d'entrée
+    private function enregistrerReception(
+        Approvisionnement $appro,
         array $data,
         int $pointeurId
     ): RapportsEntree {
+        $totalDejaRecu = $appro->rapportsEntrees()->sum('quantite_recue');
+        $quantiteRecue = (float) $data['quantite_recue'];
+        $totalApres    = $totalDejaRecu + $quantiteRecue;
+        $restante      = max(0, $appro->quantite_demandee - $totalApres);
 
-        // Cumul des réceptions précédentes
-        $quantiteDejRecue = RapportsEntree::where('demande_id', $demande->id)
-            ->sum('quantite_recue');
-
-        $quantiteTotaleRecue = $quantiteDejRecue + $data['quantite_recue'];
-        $quantiteRestante    = max(0, $demande->quantite_demandee - $quantiteTotaleRecue);
-
-        // Créer le bon d'entrée
-        $rapport = RapportsEntree::create([
-            'demande_id'            => $demande->id,
-            'chantier_id'           => $demande->chantier_id,
+        return RapportsEntree::create([
+            'demande_id'            => $appro->id,
+            'chantier_id'           => $appro->chantier_id,
             'receptionnee_par_id'   => $pointeurId,
-            'quantite_commandee'    => $demande->quantite_demandee,
-            'quantite_totale_recue' => $quantiteTotaleRecue,
-            'quantite_recue'        => $data['quantite_recue'],
-            'quantite_restante'     => $quantiteRestante,
+            'quantite_commandee'    => $appro->quantite_demandee,
+            'quantite_totale_recue' => $totalApres,
+            'quantite_recue'        => $quantiteRecue,
+            'quantite_restante'     => $restante,
             'date_reception'        => now()->toDateString(),
             'observation'           => $data['observation'] ?? null,
         ]);
-
-        // Mettre à jour le statut de la demande
-        $statut = $quantiteRestante <= 0 ? 'cloturee' : 'partiellement_recue';
-        $demande->update(['statut' => $statut]);
-
-        return $rapport;
     }
 
-    // Générer le bon d'entrée PDF
-    public function genererBonEntree(RapportsEntree $rapport)
-    {
-        $rapport->load(['demande.chantier', 'receptionneePar']);
+    // Met à jour le statut de la demande après réception
+    private function mettreAJourStatutApres(
+        Approvisionnement $appro,
+        RapportsEntree $rapport
+    ): void {
+        $statut = $rapport->quantite_restante <= 0
+            ? 'cloturee'
+            : 'partiellement_recue';
 
-        $pdf = Pdf::loadView('pdf.bon-entree', compact('rapport'))
-            ->setPaper('a4', 'portrait');
-
-        return $pdf->download(
-            'bon-entree-' . $rapport->id . '-' .
-                now()->format('Y-m-d') . '.pdf'
-        );
+        $appro->update(['statut' => $statut]);
     }
 }

@@ -22,7 +22,7 @@
         </div>
     @else
         {{-- Info chantier --}}
-        <div class="bg-[#0F172A] rounded-xl p-6 flex items-center justify-between flex-wrap gap-4">
+        <div class="bg-[#0F3D37] rounded-xl p-6 flex items-center justify-between flex-wrap gap-4">
             <div class="flex items-center gap-4">
                 <div
                     class="w-12 h-12 bg-[#1C9F93]/20 rounded-xl flex items-center
@@ -202,8 +202,8 @@
 
                     <a href="{{ route('pointeur.pointage.recap') }}"
                         class="w-full flex items-center justify-center gap-2 py-2.5
-                          bg-[#0F172A] text-white rounded-lg text-sm font-medium
-                          hover:bg-[#1e293b] transition-colors">
+                          bg-[#1C9F93] text-white rounded-lg text-sm font-medium
+                          hover:bg-[#178a7f] transition-colors">
                         Voir le récap de la semaine
                     </a>
                 </div>

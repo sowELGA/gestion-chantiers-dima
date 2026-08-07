@@ -116,7 +116,7 @@ class DashboardController extends Controller
                 'chantier',
                 fn($q) => $q->where('chef_projet_id', $userId)
             )
-                ->where('statutTache', '!=', 'validee')
+                ->where('statutTache', '!=', 'terminee')
                 ->where('date_fin_prevue', '<', now())
                 ->count(),
             'fiches_a_valider' => RecapHebdomadaire::whereHas(

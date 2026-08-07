@@ -104,7 +104,12 @@ class ApprovisionnementController extends Controller
                 ->with('error', 'Cette demande ne peut plus être modifiée.');
         }
 
-        return view('chef_projet.appro.edit', compact('chantier', 'demande'));
+        $chantiers = Chantier::where('chef_projet_id', auth()->id())
+            ->whereIn('statut', ['en_cours', 'en_attente'])
+            ->orderBy('nomChantier')
+            ->get();
+
+        return view('chef_projet.appro.edit', compact('chantiers', 'demande'));
     }
 
     // Modifier — enregistrer

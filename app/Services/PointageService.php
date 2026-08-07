@@ -6,7 +6,6 @@ use App\Helpers\SemaineHelper;
 use App\Models\Personnel;
 use App\Models\Pointage;
 use App\Models\RecapHebdomadaire;
-use App\Models\RecapsHebdomadaire;
 use App\Models\TauxSalaire;
 use Carbon\Carbon;
 
@@ -117,7 +116,7 @@ class PointageService
         $samedi   = SemaineHelper::debutDepuisNumero($semaine, $annee);
         $vendredi = SemaineHelper::finDepuisNumero($semaine, $annee);
 
-        $pointages = Pointage::where('ouvrier_id', $ouvrier->idPersonnel)
+        $pointages = Pointage::where('ouvrier_id', $ouvrier->id)
             ->where('chantier_id', $chantierId)
             ->whereBetween('date', [
                 $samedi->toDateString(),
@@ -152,7 +151,7 @@ class PointageService
         $personnel = $this->personnelActif($chantierId);
 
         foreach ($personnel as $ouvrier) {
-            $recap = RecapHebdomadaire::where('ouvrier_id', $ouvrier->idPersonnel)
+            $recap = RecapHebdomadaire::where('ouvrier_id', $ouvrier->id)
                 ->where('chantier_id', $chantierId)
                 ->where('semaine', $semaine)
                 ->where('annee', $annee)
