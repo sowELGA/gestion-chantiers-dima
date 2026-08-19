@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SemaineHelper;
 use App\Models\Chantier;
 use App\Models\RecapHebdomadaire;
 use App\Services\PdfService;
@@ -68,7 +69,7 @@ class RecapHebdomadaireController extends Controller
 
         // 52 semaines disponibles avec libellé Samedi → Vendredi
         $semaines = collect();
-        for ($i = 0; $i <= 51; $i++) {
+        for ($i = 0; $i <= 9; $i++) {
             $date = Carbon::today()->subWeeks($i);
             $s    = (int) $date->isoWeek();
             $a    = (int) $date->year;
@@ -102,44 +103,39 @@ class RecapHebdomadaireController extends Controller
     {
         $semaine  = (int) request('semaine', Carbon::today()->isoWeek());
         $annee    = (int) request('annee',   Carbon::today()->year);
-        $samedi   = $this->getSamedi($annee, $semaine);
-        $vendredi = $this->getVendredi($annee, $semaine);
+        $samedi   = SemaineHelper::debutDepuisNumero($semaine, $annee);
+        $vendredi = SemaineHelper::finDepuisNumero($semaine, $annee);
 
         // Récaps groupés par poste, triés alphabétiquement
-        $recaps = RecapHebdomadaire::with(['ouvrier.poste'])
+        $tousRecaps = RecapHebdomadaire::with(['ouvrier.poste'])
             ->where('chantier_id', $chantier->id)
             ->where('semaine', $semaine)
             ->where('annee', $annee)
             ->whereIn('statut', ['validee_cp', 'envoyee_direction'])
-            ->get()
-            ->groupBy(fn($r) => $r->ouvrier->poste->libelle)
-            ->sortKeys();
+            ->get();
 
-        // Construire les 7 colonnes Sam → Ven pour affichage
+        $groupes = $this->regrouperParCorpsMetier($tousRecaps);
+
+        // Colonnes Sam → Ven
         $colonnes = collect(range(0, 6))->map(
-            fn($i) => $samedi->copy()->addDays($i)
+            fn($i) => $samedi->copy()->addDays($i)->startOfDay()
         );
 
-        $totalGeneral = $recaps->flatten()->sum('salaire_total');
-        $totalPresents = $recaps->flatten()->sum('jours_presents');
-        $totalHSup     = $recaps->flatten()->sum('total_heures_sup');
-
-        $statut = RecapHebdomadaire::where('chantier_id', $chantier->id)
-            ->where('semaine', $semaine)
-            ->where('annee', $annee)
-            ->value('statut');
-
-        $debutSemaine = $samedi->locale('fr')->isoFormat('D MMMM YYYY');
-        $finSemaine   = $vendredi->locale('fr')->isoFormat('D MMMM YYYY');
+        $statut        = $tousRecaps->first()?->statut;
+        $totalGeneral  = $tousRecaps->sum('salaire_total');
+        $totalPresents = $tousRecaps->sum('jours_presents');
+        $totalHSup     = $tousRecaps->sum('total_heures_sup');
+        $debutSemaine  = $samedi->locale('fr')->isoFormat('D MMMM YYYY');
+        $finSemaine    = $vendredi->locale('fr')->isoFormat('D MMMM YYYY');
 
         return view('direction.salaires.apercu', compact(
             'chantier',
-            'recaps',
+            'groupes',
+            'colonnes',
             'semaine',
             'annee',
             'samedi',
             'vendredi',
-            'colonnes',
             'debutSemaine',
             'finSemaine',
             'totalGeneral',
@@ -177,5 +173,31 @@ class RecapHebdomadaireController extends Controller
             $semaine,
             $annee
         );
+    }
+
+    private function regrouperParCorpsMetier(
+        \Illuminate\Support\Collection $recaps
+    ): \Illuminate\Support\Collection {
+        return $recaps
+            ->groupBy(function ($recap) {
+                $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
+                // Extraire la famille : retirer "chef ", "aide ", etc.
+                $famille = preg_replace(
+                    '/^(chef|aide|sous[\s-]chef|premier)\s+/i',
+                    '',
+                    $poste
+                );
+                return ucfirst(trim($famille));
+            })
+            ->map(function ($lignes, $famille) {
+                // Trier : chef en premier, puis membres
+                return $lignes->sortBy(function ($recap) {
+                    $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
+                    if (str_starts_with($poste, 'chef')) return 0;
+                    if (str_starts_with($poste, 'aide')) return 2;
+                    return 1;
+                })->values();
+            })
+            ->sortKeys();
     }
 }

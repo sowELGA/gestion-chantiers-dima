@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SemaineHelper;
 use App\Http\Requests\Pointage\ModifierJourRequest;
 use App\Http\Requests\Pointage\PointageRequest;
 use App\Http\Requests\Pointage\RejetRecapRequest;
@@ -193,8 +194,9 @@ class PointageController extends Controller
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
-        $semaine = request('semaine', Carbon::today()->isoWeek());
-        $annee   = request('annee', Carbon::today()->year);
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
         $page    = (int) request('page', 1);
 
         $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
@@ -251,54 +253,84 @@ class PointageController extends Controller
 
     public function recapDirection()
     {
-        $semaine = request('semaine', Carbon::today()->isoWeek());
-        $annee   = request('annee', Carbon::today()->year);
+        // Semaine courante selon le cycle Sam → Ven
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
 
+        // Chantier sélectionné (premier par défaut)
         $chantiers = Chantier::whereNotNull('pointeur_id')
-            ->whereIn('statut', ['en_cours', 'suspendu'])
-            ->get()
-            ->map(function ($c) use ($semaine, $annee) {
-                $page    = (int) request('page_' . $c->id, 1);
-                $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
-                $statut  = $this->pointageService->getStatutSemaine($c->id, $semaine, $annee);
-                $donnees = $this->pointageService->getLignesRecap($c->id, $semaine, $annee, $page);
-                $totaux  = $this->pointageService->getTotauxSemaine($c->id, $semaine, $annee);
+            ->where('statut','en_cours')
+            ->orderBy('nomChantier')
+            ->get();
 
-                return [
-                    'chantier'   => $c,
-                    'jours'      => $infos['jours'],
-                    'lignes'     => $donnees['lignes'],
-                    'pagination' => $donnees['pagination'],
-                    'statut'     => $statut['statut'],
-                    'totaux'     => $totaux,
-                ];
-            });
+        $chantierId = (int) request(
+            'chantier_id',
+            $chantiers->first()?->id
+        );
 
-        $semaines = collect();
-        for ($i = 0; $i <= 11; $i++) {
-            $date = Carbon::today()->subWeeks($i);
-            $semaines->push([
-                'semaine' => $date->isoWeek(),
-                'annee'   => $date->year,
-                'label'   => 'Semaine ' . $date->isoWeek() . ' — '
-                    . $date->copy()->startOfWeek()->subDays(2)->format('d/m') . ' au '
-                    . $date->copy()->startOfWeek()->subDays(2)->addDays(6)->format('d/m/Y'),
-            ]);
+        $chantierSelectionne = $chantiers->firstWhere('id', $chantierId);
+
+        // Données du chantier sélectionné
+        $donneesChantier = null;
+        if ($chantierSelectionne) {
+            $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
+            $statut  = $this->pointageService->getStatutSemaine(
+                $chantierId,
+                $semaine,
+                $annee
+            );
+            $page    = (int) request('page', 1);
+            $donnees = $this->pointageService->getLignesRecap(
+                $chantierId,
+                $semaine,
+                $annee,
+                $page
+            );
+            $totaux  = $this->pointageService->getTotauxSemaine(
+                $chantierId,
+                $semaine,
+                $annee
+            );
+
+            $donneesChantier = [
+                'chantier'   => $chantierSelectionne,
+                'jours'      => $infos['jours'],
+                'debut'      => $infos['debut'],
+                'fin'        => $infos['fin'],
+                'lignes'     => $donnees['lignes'],
+                'pagination' => $donnees['pagination'],
+                'statut'     => $statut['statut'],
+                'totaux'     => $totaux,
+                'semaine'    => $semaine,
+                'annee'      => $annee,
+            ];
         }
 
-        return view(
-            'direction.pointage.recap',
-            compact('chantiers', 'semaine', 'annee', 'semaines')
-        );
+        return view('direction.pointage.recap', compact(
+            'chantiers',
+            'chantierId',
+            'donneesChantier',
+            'semaine',
+            'annee'
+        ));
     }
 
     public function calculerSalaires(Chantier $chantier)
     {
-        $semaine = request('semaine');
-        $annee   = request('annee');
+        $today   = Carbon::today();
+        $semaine = (int) request('semaine', SemaineHelper::numeroCycle($today));
+        $annee   = (int) request('annee',   SemaineHelper::anneeCycle($today));
 
-        $this->pointageService->calculerSalaires($chantier->id, $semaine, $annee);
+        $this->pointageService->calculerSalaires(
+            $chantier->idChantier,
+            $semaine,
+            $annee
+        );
 
-        return back()->with('success', 'Salaires calculés. Vous pouvez générer la fiche de paie.');
+        return back()->with(
+            'success',
+            'Salaires calculés. La fiche de paie est disponible.'
+        );
     }
 }
