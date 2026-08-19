@@ -21,9 +21,9 @@
                   border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
-                             002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2
-                             2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2
-                             2 0 01-2-2z" />
+                                 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2
+                                 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2
+                                 2 0 01-2-2z" />
                 </svg>
                 Diagramme Gantt
             </a>
@@ -47,8 +47,8 @@
                     mx-auto mb-4">
                 <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0
-                             00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2
-                             2 0 012 2" />
+                                 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2
+                                 2 0 012 2" />
                 </svg>
             </div>
             <p class="text-slate-600 font-medium">Aucune phase créée</p>
@@ -193,9 +193,9 @@
                                     <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14
-                                                     0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1
-                                                     m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5
-                                                     m-4 0h4" />
+                                                         0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1
+                                                         m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5
+                                                         m-4 0h4" />
                                         </svg>
                                         Sous-traitant : <strong>{{ $phase->sous_traitant }}</strong>
                                     </p>
@@ -306,8 +306,8 @@
                               transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2
-                                         0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0
-                                         012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                             0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0
+                                             012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                             </svg>
                             Voir les tâches
                             @if ($nbTaches > 0)
@@ -328,8 +328,8 @@
                                       hover:bg-white hover:shadow-sm transition-all">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2
-                                                 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828
-                                                 L11.828 15H9v-2.828l8.586-8.586z" />
+                                                     0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828
+                                                     L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                     Modifier
                                 </a>
@@ -348,8 +348,8 @@
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862
-                                                         a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10
-                                                         V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                             a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10
+                                                             V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
                                             Supprimer
                                         </button>
@@ -361,8 +361,8 @@
                                         title="Suppression impossible : cette phase contient des tâches">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0
-                                                     00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7
-                                                     a4 4 0 00-8 0v4h8z" />
+                                                         00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7
+                                                         a4 4 0 00-8 0v4h8z" />
                                         </svg>
                                         Verrouillé
                                     </div>

@@ -23,12 +23,31 @@ class TacheController extends Controller
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
-        $phases = Phase::with(['taches'])
-            ->where('chantier_id', $chantier->id)
-            ->orderBy('ordre')
-            ->get();
+        $filtre = request('filtre', 'en_cours');
 
-        return view('chef_projet.phases.index', compact('chantier', 'phases'));
+        $query = Phase::with(['taches'])
+            ->where('chantier_id', $chantier->id)
+            ->orderBy('ordre');
+
+        // Appliquer le filtre
+        if ($filtre !== 'toutes') {
+            $query->where('statutPhase', $filtre);
+        }
+
+        $phases = $query->get();
+
+        // Compteurs pour les onglets
+        $compteurs = Phase::where('chantier_id', $chantier->id)
+            ->selectRaw('statutPhase, count(*) as total')
+            ->groupBy('statutPhase')
+            ->pluck('total', 'statutPhase');
+
+        $totalPhases = Phase::where('chantier_id', $chantier->id)->count();
+
+        return view(
+            'chef_projet.phases.index',
+            compact('chantier', 'phases', 'filtre', 'compteurs', 'totalPhases')
+        );
     }
 
     public function createPhase(Chantier $chantier)
@@ -233,11 +252,19 @@ class TacheController extends Controller
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
 
         $phases = Phase::with(['taches'])
-            ->where('chantier_id', $chantier->id)
+            ->where('chantier_id', $chantier->id) // ← correction
             ->orderBy('ordre')
             ->get();
 
-        return view('chef_projet.taches.gantt', compact('chantier', 'phases'));
+        // Vérifier qu'il y a des tâches avec des dates
+        $hasTaches = $phases->flatMap->taches->filter(
+            fn($t) => $t->date_debut_prevue && $t->date_fin_prevue
+        )->isNotEmpty();
+
+        return view(
+            'chef_projet.taches.gantt',
+            compact('chantier', 'phases', 'hasTaches')
+        );
     }
 
     // ══════════════════════════════════════════════════════════

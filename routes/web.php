@@ -25,6 +25,14 @@ Route::middleware('guest')->group(function () {
         ->name('login');
     Route::post('/login', [AuthController::class, 'login'])
         ->name('login.post');
+    Route::get(
+        '/mot-de-passe-oublie',
+        [AuthController::class, 'motDePasseOublie']
+    )->name('password.oublie');
+    Route::post(
+        '/mot-de-passe-oublie',
+        [AuthController::class, 'signalerOubli']
+    )->name('password.oublie.signaler');
 });
 
 Route::middleware('auth')->group(function () {
@@ -94,20 +102,34 @@ Route::middleware('auth')->group(function () {
                 ->name('depenses.destroy');
 
             // Utilisateurs
-            Route::get('/utilisateurs', [UserController::class, 'index'])
-                ->name('users.index');
-            Route::get('/utilisateurs/create', [UserController::class, 'create'])
-                ->name('users.create');
-            Route::post('/utilisateurs', [UserController::class, 'store'])
-                ->name('users.store');
-            Route::get('/utilisateurs/{user}/edit', [UserController::class, 'edit'])
-                ->name('users.edit');
-            Route::put('/utilisateurs/{user}', [UserController::class, 'update'])
-                ->name('users.update');
-            Route::patch('/utilisateurs/{user}/statut', [UserController::class, 'toggleStatut'])
-                ->name('users.toggle-statut');
-            Route::patch('/utilisateurs/{user}/reinitialiser', [UserController::class, 'reinitialiserMotDePasse'])
-                ->name('users.reinitialiser');
+            Route::get(
+                '/utilisateurs',
+                [UserController::class, 'index']
+            )->name('users.index');
+            Route::get(
+                '/utilisateurs/create',
+                [UserController::class, 'create']
+            )->name('users.create');
+            Route::post(
+                '/utilisateurs',
+                [UserController::class, 'store']
+            )->name('users.store');
+            Route::get(
+                '/utilisateurs/edit',
+                [UserController::class, 'edit']
+            )->name('users.edit');
+            Route::patch(
+                '/utilisateurs/{user}/update',
+                [UserController::class, 'update']
+            )->name('users.update');
+            Route::patch(
+                '/utilisateurs/{user}/reinitialiser',
+                [UserController::class, 'reinitialiserMotDePasse']
+            )->name('users.reinitialiser');
+            Route::patch(
+                '/utilisateurs/{user}/toggle',
+                [UserController::class, 'toggleActif']
+            )->name('users.toggle-statut');
 
             // Postes
             Route::get('/postes', [PosteController::class, 'index'])
