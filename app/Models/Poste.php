@@ -12,6 +12,11 @@ class Poste extends Model
         'libelle',
     ];
 
+    public function getMetierBaseAttribute(): string
+    {
+        return ucfirst(trim(preg_replace('/^(Chef|Membre)\s+(de\s+|d\'|)?/i', '', $this->libelle)));
+    }
+
     public function personnel()
     {
         return $this->hasMany(Personnel::class, 'poste_id');

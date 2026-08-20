@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\SemaineHelper;
+use App\Http\Requests\Pointage\RejetRecapRequest;
 use App\Models\Chantier;
 use App\Models\RecapHebdomadaire;
 use App\Services\PdfService;
+use App\Services\PointageService;
 use Carbon\Carbon;
 
 class RecapHebdomadaireController extends Controller
 {
     public function __construct(
-        private PdfService $pdfService
+        private PointageService $pointageService,
+        private PdfService      $pdfService
     ) {}
 
     // ══════════════════════════════════════════════════════════
@@ -29,6 +32,141 @@ class RecapHebdomadaireController extends Controller
     private function getVendredi(int $annee, int $semaine): Carbon
     {
         return $this->getSamedi($annee, $semaine)->copy()->addDays(6);
+    }
+
+
+    // ══════════════════════════════════════════════════════════
+    // CHEF DE PROJET — Valider / Rejeter
+    // ══════════════════════════════════════════════════════════
+    public function validationChefProjet(Chantier $chantier)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
+        $page    = (int) request('page', 1);
+
+        $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
+        $statut  = $this->pointageService->getStatutSemaine($chantier->id, $semaine, $annee);
+        $donnees = $this->pointageService->getLignesRecap($chantier->id, $semaine, $annee, $page);
+        $totaux  = $this->pointageService->getTotauxSemaine($chantier->id, $semaine, $annee);
+
+        return view('chef_projet.pointage.validation', [
+            'chantier'    => $chantier,
+            'semaine'     => $infos['semaine'],
+            'annee'       => $infos['annee'],
+            'debut'       => $infos['debut'],
+            'fin'         => $infos['fin'],
+            'jours'       => $infos['jours'],
+            'lignes'      => $donnees['lignes'],
+            'pagination'  => $donnees['pagination'],
+            'statut'      => $statut['statut'],
+            'totaux'      => $totaux,
+        ]);
+    }
+
+    public function valider(Chantier $chantier)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
+
+        $this->pointageService->validerSemaine(
+            $chantier->id,
+            $semaine,
+            $annee,
+            auth()->id()
+        );
+
+        return back()->with('success', 'Fiche validée et transmise à la direction.');
+    }
+
+    public function rejeter(RejetRecapRequest $request, Chantier $chantier)
+    {
+        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
+
+        $this->pointageService->rejeterSemaine(
+            $chantier->id,
+            $semaine,
+            $annee,
+            auth()->id(),
+            $request->motif_rejet
+        );
+
+        return back()->with('success', 'Fiche rejetée. Le pointeur peut corriger.');
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DIRECTION — Récap multi-chantiers
+    // ══════════════════════════════════════════════════════════
+
+    public function recapDirection()
+    {
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
+
+        $chantiers = Chantier::whereNotNull('pointeur_id')
+            ->where('statut', 'en_cours')
+            ->orderBy('nomChantier')
+            ->get();
+
+        // On récupère la valeur saisie, sinon null
+        $chantierId = request()->has('chantier_id') && request('chantier_id') !== ''
+            ? (int) request('chantier_id')
+            : null;
+
+        $chantierSelectionne = $chantierId ? $chantiers->firstWhere('id', $chantierId) : null;
+
+        $donneesChantier = null;
+        if ($chantierSelectionne) {
+            $page    = (int) request('page', 1);
+            $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
+            $statut  = $this->pointageService->getStatutSemaine(
+                $chantierId,
+                $semaine,
+                $annee
+            );
+            $donnees = $this->pointageService->getLignesRecap(
+                $chantierId,
+                $semaine,
+                $annee,
+                $page
+            );
+            $totaux  = $this->pointageService->getTotauxSemaine(
+                $chantierId,
+                $semaine,
+                $annee
+            );
+
+            $donneesChantier = [
+                'chantier'   => $chantierSelectionne,
+                'jours'      => $infos['jours'],
+                'debut'      => $infos['debut'],
+                'fin'        => $infos['fin'],
+                'lignes'     => $donnees['lignes'],
+                'pagination' => $donnees['pagination'],
+                'statut'     => $statut['statut'],
+                'totaux'     => $totaux,
+                'semaine'    => $semaine,
+                'annee'      => $annee,
+            ];
+        }
+
+        return view('direction.pointage.recap', compact(
+            'chantiers',
+            'chantierId',
+            'donneesChantier',
+            'semaine',
+            'annee'
+        ));
     }
 
     // ══════════════════════════════════════════════════════════
@@ -67,7 +205,7 @@ class RecapHebdomadaireController extends Controller
                 ];
             });
 
-        // 52 semaines disponibles avec libellé Samedi → Vendredi
+        // semaines disponibles avec libellé Samedi → Vendredi
         $semaines = collect();
         for ($i = 0; $i <= 9; $i++) {
             $date = Carbon::today()->subWeeks($i);
@@ -96,17 +234,38 @@ class RecapHebdomadaireController extends Controller
     }
 
     // ══════════════════════════════════════════════════════════
-    // APERÇU — Détail d'une fiche avant PDF
+    // DIRECTION — Aperçu fiche de paie + calcul salaires
     // ══════════════════════════════════════════════════════════
 
     public function apercu(Chantier $chantier)
     {
-        $semaine  = (int) request('semaine', Carbon::today()->isoWeek());
-        $annee    = (int) request('annee',   Carbon::today()->year);
+        $today   = Carbon::today();
+        $semaine = (int) request('semaine', SemaineHelper::numeroCycle($today));
+        $annee   = (int) request('annee',   SemaineHelper::anneeCycle($today));
+
         $samedi   = SemaineHelper::debutDepuisNumero($semaine, $annee);
         $vendredi = SemaineHelper::finDepuisNumero($semaine, $annee);
 
-        // Récaps groupés par poste, triés alphabétiquement
+        // Vérifier statut
+        $statut = RecapHebdomadaire::where('chantier_id', $chantier->id)
+            ->where('semaine', $semaine)
+            ->where('annee', $annee)
+            ->value('statut');
+
+        // Si validée CP mais salaires pas encore calculés → calculer maintenant
+        if ($statut === 'validee_cp') {
+            $this->pointageService->calculerSalaires(
+                $chantier->id,
+                $semaine,
+                $annee
+            );
+            // Recharger le statut
+            $statut = RecapHebdomadaire::where('chantier_id', $chantier->id)
+                ->where('semaine', $semaine)
+                ->where('annee', $annee)
+                ->value('statut');
+        }
+
         $tousRecaps = RecapHebdomadaire::with(['ouvrier.poste'])
             ->where('chantier_id', $chantier->id)
             ->where('semaine', $semaine)
@@ -116,12 +275,10 @@ class RecapHebdomadaireController extends Controller
 
         $groupes = $this->regrouperParCorpsMetier($tousRecaps);
 
-        // Colonnes Sam → Ven
         $colonnes = collect(range(0, 6))->map(
             fn($i) => $samedi->copy()->addDays($i)->startOfDay()
         );
 
-        $statut        = $tousRecaps->first()?->statut;
         $totalGeneral  = $tousRecaps->sum('salaire_total');
         $totalPresents = $tousRecaps->sum('jours_presents');
         $totalHSup     = $tousRecaps->sum('total_heures_sup');
@@ -145,16 +302,12 @@ class RecapHebdomadaireController extends Controller
         ));
     }
 
-    // ══════════════════════════════════════════════════════════
-    // PDF — Génération de la fiche de paie
-    // ══════════════════════════════════════════════════════════
-
     public function genererPdf(Chantier $chantier)
     {
-        $semaine = (int) request('semaine');
-        $annee   = (int) request('annee');
+        $today   = Carbon::today();
+        $semaine = (int) request('semaine', SemaineHelper::numeroCycle($today));
+        $annee   = (int) request('annee',   SemaineHelper::anneeCycle($today));
 
-        // Vérifier que la fiche est bien transmise à la direction
         $existe = RecapHebdomadaire::where('chantier_id', $chantier->id)
             ->where('semaine', $semaine)
             ->where('annee', $annee)
@@ -162,10 +315,7 @@ class RecapHebdomadaireController extends Controller
             ->exists();
 
         if (!$existe) {
-            return back()->with(
-                'error',
-                'La fiche de paie n\'est pas encore disponible.'
-            );
+            return back()->with('error', 'La fiche de paie n\'est pas disponible.');
         }
 
         return $this->pdfService->genererFichePaie(
@@ -175,29 +325,29 @@ class RecapHebdomadaireController extends Controller
         );
     }
 
+    // ══════════════════════════════════════════════════════════
+    // HELPER PRIVÉ — Regroupement corps de métier
+    // ══════════════════════════════════════════════════════════
+
     private function regrouperParCorpsMetier(
         \Illuminate\Support\Collection $recaps
     ): \Illuminate\Support\Collection {
         return $recaps
             ->groupBy(function ($recap) {
                 $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
-                // Extraire la famille : retirer "chef ", "aide ", etc.
                 $famille = preg_replace(
                     '/^(chef|aide|sous[\s-]chef|premier)\s+/i',
                     '',
                     $poste
                 );
-                return ucfirst(trim($famille));
+                return ucwords(trim($famille));
             })
-            ->map(function ($lignes, $famille) {
-                // Trier : chef en premier, puis membres
-                return $lignes->sortBy(function ($recap) {
-                    $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
-                    if (str_starts_with($poste, 'chef')) return 0;
-                    if (str_starts_with($poste, 'aide')) return 2;
-                    return 1;
-                })->values();
-            })
+            ->map(fn($lignes) => $lignes->sortBy(function ($recap) {
+                $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
+                if (str_starts_with($poste, 'chef')) return 0;
+                if (str_starts_with($poste, 'aide')) return 2;
+                return 1;
+            })->values())
             ->sortKeys();
     }
 }

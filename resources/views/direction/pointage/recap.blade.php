@@ -14,13 +14,16 @@
             </label>
             <div class="flex items-center gap-3 flex-wrap">
                 <select name="chantier_id" id="chantierSelect"
-                    class="flex-1 min-w-48 px-4 py-2.5 border border-slate-300
-                           rounded-lg text-sm focus:outline-none focus:ring-2
-                           focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] bg-white">
+                    class="flex-1 min-w-48 px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] bg-white">
+
+                    <option value="" {{ is_null($chantierId) ? 'selected' : '' }} disabled hidden>
+                        Sélectionner un chantier
+                    </option>
+
                     @foreach ($chantiers as $c)
-                        <option value="{{ $c->id }}" {{ $c->id === $chantierId ? 'selected' : '' }}>
+                        <option value="{{ $c->id }}"
+                            {{ (string) $c->id === (string) $chantierId ? 'selected' : '' }}>
                             {{ $c->nomChantier }}
-                            ({{ $c->statut === 'en_cours' ? 'En cours' : 'Suspendu' }})
                         </option>
                     @endforeach
                 </select>
@@ -84,33 +87,15 @@
                 <span class="px-3 py-1.5 rounded-full text-xs font-semibold {{ $sclass }}">
                     {{ $slabel }}
                 </span>
-                @if ($statut === 'validee_cp')
-                    <form method="POST"
-                        action="{{ route('direction.pointage.calculer', $chantier->id) }}">
-                        @csrf
-                        <input type="hidden" name="semaine" value="{{ $semaine }}">
-                        <input type="hidden" name="annee" value="{{ $annee }}">
-                        <button type="submit"
-                            class="flex items-center gap-2 px-4 py-2 bg-[#0F172A]
-                                   text-white text-sm font-medium rounded-lg
-                                   hover:bg-[#1e293b] transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9
-                                         11h.01M12 11h.01M15 11h.01M9 14h.01
-                                         M15 14h.01M12 14h.01" />
-                            </svg>
-                            Calculer les salaires
-                        </button>
-                    </form>
-                @elseif($statut === 'envoyee_direction')
+                @if ($statut === 'envoyee_direction' || $statut === 'validee_cp')
                     <a href="{{ route('direction.salaires.apercu', $chantier->id) . '?semaine=' . $semaine . '&annee=' . $annee }}"
                         class="flex items-center gap-2 px-4 py-2 bg-[#1C9F93] text-white
                           text-sm font-medium rounded-lg hover:bg-[#178a7f]
                           transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5
-                                     a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414
-                                     a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                 a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414
+                                                 a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Voir la fiche de paie
                     </a>

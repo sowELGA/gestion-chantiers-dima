@@ -191,7 +191,7 @@ class ApprovisionnementController extends Controller
     // Passer commande
     public function passerCommande(Approvisionnement $demande)
     {
-        $this->approService->passerCommande($demande);
+        $this->approService->commander($demande);
         return back()->with('success', 'Commande passée — en cours de livraison.');
     }
 
@@ -255,7 +255,7 @@ class ApprovisionnementController extends Controller
     public function validerReception(ReceptionRequest $request, Approvisionnement $demande)
     {
         try {
-            $rapport = $this->approService->validerReception(
+            $rapport = $this->approService->receptionner(
                 $demande,
                 $request->validated(),
                 auth()->id()

@@ -42,10 +42,7 @@
             <p class="text-xs text-slate-400 mt-1">À traiter en priorité</p>
         </div>
 
-        <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-amber-400
-                {{ $kpi['fiches_a_valider'] > 0 ? 'cursor-pointer hover:shadow-md' : '' }}
-                transition-all"
-            @if ($kpi['fiches_a_valider'] > 0) onclick="window.location='{{ route('chef_projet.chantiers.index') }}'" @endif>
+        <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-amber-400">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Fiches à valider
             </p>

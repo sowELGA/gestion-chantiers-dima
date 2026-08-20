@@ -38,7 +38,7 @@ class PdfService
         $samedi   = $this->getSamedi($annee, $semaine);
         $vendredi = $this->getVendredi($annee, $semaine);
 
-        // Récaps groupés par poste — uniquement les ouvriers avec salaire
+        // Chargement : Ouvrier -> Poste -> CorpsMetier
         $recaps = RecapHebdomadaire::with(['ouvrier.poste'])
             ->where('chantier_id', $chantierId)
             ->where('semaine', $semaine)
@@ -46,7 +46,7 @@ class PdfService
             ->where('statut', 'envoyee_direction')
             ->where('salaire_total', '>', 0)
             ->get()
-            ->groupBy(fn($r) => $r->ouvrier->poste->libelle)
+            ->groupBy(fn($r) => $r->ouvrier?->poste?->metier_base ?? 'Autre')
             ->sortKeys();
 
         $totalGeneral = $recaps->flatten()->sum('salaire_total');
