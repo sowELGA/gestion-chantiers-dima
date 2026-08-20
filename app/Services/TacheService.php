@@ -52,7 +52,7 @@ class TacheService
 
     public function creerTache(array $data, int $chantierId): Tache
     {
-        return Tache::create([
+        $tache = Tache::create([
             'nomTache'            => $data['nomTache'],
             'date_debut_prevue'   => $data['date_debut_prevue'],
             'date_fin_prevue'     => $data['date_fin_prevue'],
@@ -66,6 +66,9 @@ class TacheService
             'responsable_id'      => $data['responsable_id'] ?? null,
             'tache_precedente_id' => $data['tache_precedente_id'] ?? null,
         ]);
+
+        $this->recalculerAvancementPhase($tache->phase);
+        return $tache;
     }
 
     public function modifierTache(Tache $tache, array $data): Tache
@@ -86,6 +89,7 @@ class TacheService
     {
         $this->verifierTacheModifiable($tache);
         $tache->delete();
+        $this->recalculerAvancementPhase($tache->phase);
     }
 
     public function mettreAJourAvancement(Tache $tache, int $avancement): Tache

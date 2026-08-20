@@ -1,101 +1,78 @@
 @extends('layouts.chef_projet')
-@section('title', 'Gantt — ' . $chantier->nomChantier)
+
+@section('title', 'Diagramme de Gantt — ' . $chantier->nomChantier)
 @section('page_title', 'Diagramme de Gantt')
-@section('page_subtitle', $chantier->nomChantier . ' · ' . $phases->count() . ' phase(s)' . ' · ' . $phases->sum(fn($p)
-    => $p->taches->count()) . ' tâche(s)')
+@section('page_subtitle', $chantier->nomChantier . ' · ' . $phases->count() . ' phase(s) · ' . $phases->sum(fn($p) =>
+    $p->taches->count()) . ' tâche(s)')
 
 @section('content')
 
-    {{-- Navigation --}}
-    <div class="flex items-center justify-between flex-wrap gap-3">
-        <div class="flex items-center gap-2">
-            <a href="{{ route('chef_projet.phases.index', $chantier->id) }}"
-                class="px-4 py-2 text-sm text-slate-600 border border-slate-300
-                  rounded-lg hover:bg-slate-50 transition-colors">
-                ← Phases
-            </a>
-        </div>
+    {{-- Entête & Contrôles --}}
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <a href="{{ route('chef_projet.phases.index', $chantier->id) }}"
+            class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Retour aux phases
+        </a>
 
-        {{-- Sélecteur vue --}}
-        <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-            @foreach (['Day' => 'Jour', 'Week' => 'Semaine', 'Month' => 'Mois'] as $val => $label)
-                <button onclick="changerVue('{{ $val }}')" id="btn-{{ $val }}"
-                    class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors
-                           {{ $val === 'Week' ? 'bg-white text-[#0F172A] shadow-sm' : 'text-slate-500 hover:text-[#0F172A]' }}">
-                    {{ $label }}
-                </button>
-            @endforeach
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button onclick="changerVue('Day')" id="btn-Day"
+                class="btn-vue px-3 py-1.5 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-900">Jour</button>
+            <button onclick="changerVue('Week')" id="btn-Week"
+                class="btn-vue px-3 py-1.5 text-xs font-semibold rounded-md bg-white text-slate-900 shadow-sm">Semaine</button>
+            <button onclick="changerVue('Month')" id="btn-Month"
+                class="btn-vue px-3 py-1.5 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-900">Mois</button>
         </div>
     </div>
 
     {{-- Légende --}}
-    <div
-        class="bg-white rounded-xl shadow-sm border border-slate-200 px-5 py-3
-            flex items-center gap-5 flex-wrap">
-        <span class="text-xs text-slate-500 font-medium">Légende :</span>
-        @foreach ([
-            '#1C9F93' => 'Terminée',
-            '#3B82F6' => 'En cours',
-            '#CBD5E1' => 'En attente',
-            '#F87171' => 'En retard',
-            '#0F172A' => 'Phase',
-        ] as $color => $label)
-            <div class="flex items-center gap-1.5">
-                <div class="w-4 h-3 rounded" style="background-color: {{ $color }}"></div>
-                <span class="text-xs text-slate-500">{{ $label }}</span>
-            </div>
-        @endforeach
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 px-5 py-3 mb-6 flex items-center gap-6 flex-wrap">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Légende</span>
+        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded bg-[#0F172A]"></span><span
+                class="text-xs text-slate-600">Phase globale</span></div>
+        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded bg-[#1C9F93]"></span><span
+                class="text-xs text-slate-600">Terminée</span></div>
+        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded bg-[#3B82F6]"></span><span
+                class="text-xs text-slate-600">En cours</span></div>
+        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded bg-[#94A3B8]"></span><span
+                class="text-xs text-slate-600">En attente</span></div>
+        <div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded bg-[#EF4444]"></span><span
+                class="text-xs text-slate-600">En retard</span></div>
     </div>
 
-    @php
-        // Vérifier qu'il y a des tâches avec des dates valides
-        $hasTaches = false;
-        foreach ($phases as $phase) {
-            foreach ($phase->taches as $tache) {
-                if ($tache->date_debut_prevue && $tache->date_fin_prevue) {
-                    $hasTaches = true;
-                    break 2;
-                }
-            }
-        }
-    @endphp
+    {{-- Zone du Diagramme --}}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
+        @if (empty($ganttTasks))
+            <div class="p-12 text-center">
+                <div
+                    class="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-slate-800 font-bold text-base">Aucune donnée affichable</h3>
+                <p class="text-slate-500 text-sm mt-1">Veuillez renseigner les dates de début et de fin pour vos phases ou
+                    tâches.</p>
+            </div>
+        @else
+            <div class="overflow-x-auto w-full">
+                <div id="gantt-chart" class="min-w-[800px] p-4"></div>
+            </div>
+        @endif
+    </div>
 
-    @if (!$hasTaches)
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-            <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
-                         002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2
-                         2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2
-                         2 0 01-2-2z" />
-            </svg>
-            <p class="text-slate-400 text-sm font-medium">
-                Aucune tâche avec des dates pour afficher le Gantt.
-            </p>
-            <a href="{{ route('chef_projet.taches.create', $chantier->id) }}"
-                class="inline-flex mt-4 px-4 py-2 bg-[#1C9F93] text-white text-sm
-                  font-medium rounded-lg hover:bg-[#178a7f]">
-                Créer une tâche
-            </a>
-        </div>
-    @else
-        {{-- Conteneur Gantt --}}
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto p-4">
-            <div id="gantt"></div>
-        </div>
-    @endif
+    {{-- Assets Frappe Gantt CDN --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.umd.js"></script>
 
-    {{-- CSS Frappe Gantt --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css">
-
+    {{-- Styles CSS personnalisés SVG --}}
     <style>
-        /* Reset et personnalisation */
-        #gantt svg {
-            font-family: inherit;
-        }
-
         .gantt .bar {
-            rx: 4;
-            ry: 4;
+            rx: 4px;
+            ry: 4px;
         }
 
         .gantt .bar-progress {
@@ -104,10 +81,13 @@
 
         .gantt .bar-label {
             font-size: 11px !important;
+            font-weight: 600 !important;
+            fill: #FFFFFF !important;
         }
 
-        .gantt .grid-background {
-            fill: #FAFAFA !important;
+        .gantt .grid-header {
+            fill: #F8FAFC !important;
+            stroke: #E2E8F0 !important;
         }
 
         .gantt .grid-row:nth-child(even) {
@@ -130,8 +110,8 @@
         .gantt .upper-text,
         .gantt .lower-text {
             font-size: 11px !important;
-            font-family: inherit !important;
             fill: #64748B !important;
+            font-weight: 500;
         }
 
         .gantt .arrow {
@@ -139,158 +119,99 @@
             stroke-width: 1.5 !important;
         }
 
-        /* Popup */
-        .gantt-popup-wrapper {
-            padding: 10px 14px !important;
-            border-radius: 10px !important;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12) !important;
+        /* Couleurs dynamiques selon les classes */
+        .gantt .bar-phase .bar {
+            fill: #0F172A !important;
+        }
+
+        .gantt .bar-terminee .bar {
+            fill: #1C9F93 !important;
+        }
+
+        .gantt .bar-en-cours .bar {
+            fill: #3B82F6 !important;
+        }
+
+        .gantt .bar-en-attente .bar {
+            fill: #94A3B8 !important;
+        }
+
+        .gantt .bar-retard .bar {
+            fill: #EF4444 !important;
+        }
+
+        /* Pop-up survol */
+        .gantt-container .popup-wrapper {
+            background: #FFFFFF !important;
             border: 1px solid #E2E8F0 !important;
-            font-family: inherit !important;
-            min-width: 200px !important;
-        }
-
-        .gantt-popup-wrapper h5 {
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            color: #0F172A !important;
-            margin: 0 0 4px 0 !important;
-        }
-
-        .gantt-popup-wrapper p {
-            font-size: 11px !important;
-            color: #64748B !important;
-            margin: 0 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+            padding: 10px 14px !important;
         }
     </style>
 
-    @if ($hasTaches)
-        <script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.umd.js"></script>
+    {{-- Script JavaScript --}}
+    @if (!empty($ganttTasks))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                const tasks = @json($ganttTasks);
 
-                // ── Construire les tâches depuis Blade ────────────────────
-                const tasks = [];
+                if (!tasks.length) return;
 
-                @foreach ($phases as $phase)
-                    @if ($phase->date_debut && $phase->date_fin_prevue)
-                        // Phase : {{ $phase->nomPhase }}
-                        tasks.push({
-                            id: 'phase_{{ $phase->id }}',
-                            name: '{{ addslashes($phase->nomPhase) }}',
-                            start: '{{ $phase->date_debut->format('Y-m-d') }}',
-                            end: '{{ $phase->date_fin_prevue->format('Y-m-d') }}',
-                            progress: {{ $phase->avancement }},
-                            custom_class: 'bar-phase',
-                        });
-                    @endif
+                let gantt = null;
 
-                    @foreach ($phase->taches as $tache)
-                        @if ($tache->date_debut_prevue && $tache->date_fin_prevue)
-                            tasks.push({
-                                id: 'tache_{{ $tache->id }}',
-                                name: '{{ addslashes($tache->nomTache) }}',
-                                start: '{{ $tache->date_debut_prevue->format('Y-m-d') }}',
-                                end: '{{ $tache->date_fin_prevue->format('Y-m-d') }}',
-                                progress: {{ $tache->avancement }},
-                                dependencies: '{{ $tache->tache_precedente_id ? 'tache_' . $tache->tache_precedente_id : '' }}',
-                                custom_class: '{{ $tache->est_en_retard? 'bar-retard': match ($tache->statutTache) {'terminee' => 'bar-terminee','en_cours' => 'bar-en-cours',default => 'bar-en-attente'} }}',
-                            });
-                        @endif
-                    @endforeach
-                @endforeach
+                try {
+                    gantt = new Gantt('#gantt-chart', tasks, {
+                        view_mode: 'Week',
+                        date_format: 'YYYY-MM-DD',
+                        bar_height: 28,
+                        bar_corner_radius: 4,
+                        arrow_curve: 6,
+                        padding: 18,
+                        language: 'fr',
+                        custom_popup_html: function(task) {
+                            const options = {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            };
+                            const start = new Date(task._start).toLocaleDateString('fr-FR', options);
+                            const end = new Date(task._end).toLocaleDateString('fr-FR', options);
 
-                if (tasks.length === 0) {
-                    document.getElementById('gantt').innerHTML =
-                        '<p style="text-align:center;color:#94A3B8;padding:40px">Aucune tâche à afficher.</p>';
-                    return;
+                            return `
+                                <div class="p-1 max-w-xs">
+                                    <p class="font-bold text-xs text-slate-800 mb-1">${task.name}</p>
+                                    <p class="text-[11px] text-slate-500 mb-2">${start} — ${end}</p>
+                                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden flex items-center">
+                                        <div class="bg-[#1C9F93] h-full" style="width: ${task.progress}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-slate-600 mt-1 inline-block">${task.progress}% accompli</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } catch (e) {
+                    console.error("Erreur Frappe Gantt:", e);
                 }
 
-                // ── Initialiser Frappe Gantt ──────────────────────────────
-                const gantt = new Gantt('#gantt', tasks, {
-                    view_mode: 'Week',
-                    date_format: 'YYYY-MM-DD',
-                    bar_height: 28,
-                    bar_corner_radius: 4,
-                    arrow_curve: 5,
-                    padding: 16,
-                    language: 'fr',
-                    readonly: true,
-                    custom_popup_html: function(task) {
-                        const fmt = d => new Date(d).toLocaleDateString('fr-FR');
-                        return `
-                <div>
-                    <h5>${task.name}</h5>
-                    <p>${fmt(task.start)} → ${fmt(task.end)}</p>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-                        <div style="flex:1;height:5px;background:#F1F5F9;border-radius:3px">
-                            <div style="height:5px;width:${task.progress}%;
-                                        background:#1C9F93;border-radius:3px;
-                                        transition:width .3s"></div>
-                        </div>
-                        <span style="font-size:11px;font-weight:600;color:#0F172A">
-                            ${task.progress}%
-                        </span>
-                    </div>
-                </div>`;
-                    },
-                });
+                // Changement de mode de vue
+                window.changerVue = function(mode) {
+                    if (gantt) {
+                        gantt.change_view_mode(mode);
 
-                // ── Couleurs personnalisées ───────────────────────────────
-                // Appliquées après rendu car Frappe Gantt utilise des classes CSS
-                function appliquerCouleurs() {
-                    const styles = {
-                        'bar-phase': {
-                            bar: '#0F172A',
-                            label: '#FFFFFF'
-                        },
-                        'bar-terminee': {
-                            bar: '#1C9F93',
-                            label: '#FFFFFF'
-                        },
-                        'bar-en-cours': {
-                            bar: '#3B82F6',
-                            label: '#FFFFFF'
-                        },
-                        'bar-en-attente': {
-                            bar: '#CBD5E1',
-                            label: '#334155'
-                        },
-                        'bar-retard': {
-                            bar: '#F87171',
-                            label: '#FFFFFF'
-                        },
-                    };
-
-                    Object.entries(styles).forEach(([cls, colors]) => {
-                        document.querySelectorAll('.' + cls).forEach(el => {
-                            const bar = el.querySelector('.bar');
-                            const label = el.querySelector('.bar-label');
-                            if (bar) bar.style.fill = colors.bar;
-                            if (label) label.style.fill = colors.label;
+                        document.querySelectorAll('.btn-vue').forEach(btn => {
+                            btn.className =
+                                'btn-vue px-3 py-1.5 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-900';
                         });
-                    });
-                }
 
-                // Délai pour laisser Frappe Gantt finir le rendu SVG
-                setTimeout(appliquerCouleurs, 200);
-
-                // ── Changer de vue ────────────────────────────────────────
-                window.changerVue = function(vue) {
-                    gantt.change_view_mode(vue);
-                    setTimeout(appliquerCouleurs, 200);
-
-                    document.querySelectorAll('[id^="btn-"]').forEach(btn => {
-                        btn.className =
-                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-slate-500 hover:text-[#0F172A]';
-                    });
-                    const actif = document.getElementById('btn-' + vue);
-                    if (actif) {
-                        actif.className =
-                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors bg-white text-[#0F172A] shadow-sm';
+                        const activeBtn = document.getElementById('btn-' + mode);
+                        if (activeBtn) {
+                            activeBtn.className =
+                                'btn-vue px-3 py-1.5 text-xs font-semibold rounded-md bg-white text-slate-900 shadow-sm';
+                        }
                     }
                 };
             });
         </script>
     @endif
-
 @endsection

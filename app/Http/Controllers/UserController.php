@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
+use App\Mail\CompteCreeMail;
+use App\Mail\MdpReinitialiseMail;
+use App\Models\DemandeResetMdp;
 use App\Models\User;
 use App\Services\UserService;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -20,7 +24,14 @@ class UserController extends Controller
             ->get()
             ->groupBy('role');
 
-        return view('direction.users.index', compact('users'));
+        $demandesReset = DemandeResetMdp::where('statut', 'en_attente')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view(
+            'direction.users.index',
+            compact('users', 'demandesReset')
+        );
     }
 
     // Formulaire création
@@ -33,12 +44,25 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $result = $this->userService->creer($request->validated());
+        $lien       = config('app.url');
+
+        try {
+            Mail::to($result['user']->email)->send(
+                new CompteCreeMail($result['user'], $result['motDePasseTemp'], $lien)
+            );
+            $emailEnvoye = true;
+        } catch (\Exception $e) {
+            $emailEnvoye = false;
+        }
 
         return redirect()
             ->route('direction.users.index')
-            ->with('success', 'Compte créé avec succès.')
-            ->with('mot_de_passe', $result['motDePasseTemp'])
-            ->with('user_nom', $result['user']->nomComplet);
+            ->with('compte_cree', [
+                'nom'          => $result['user']->prenomUser . ' ' . $result['user']->nomUser,
+                'email'        => $result['user']->email,
+                'mot_passe'    => $result['motDePasseTemp'],
+                'email_envoye' => $emailEnvoye,
+            ]);
     }
 
     // Formulaire édition
@@ -72,11 +96,30 @@ class UserController extends Controller
     // Réinitialiser le mot de passe
     public function reinitialiserMotDePasse(User $user)
     {
-        $motDePasseTemp = $this->userService->reinitialiserMotDePasse($user);
+        $nouveauMdp = $this->userService->reinitialiserMotDePasse($user);
+        $lien       = config('app.url');
 
-        return back()
-            ->with('success', 'Mot de passe réinitialisé avec succès.')
-            ->with('mot_de_passe', $motDePasseTemp)
-            ->with('user_nom', $user->nomComplet);
+        DemandeResetMdp::where('email', $user->email)
+            ->where('statut', 'en_attente')
+            ->update([
+                'statut'     => 'traitee',
+                'traite_le'  => now(),
+            ]);
+
+        try {
+            Mail::to($user->email)->send(
+                new MdpReinitialiseMail($user, $nouveauMdp, $lien)
+            );
+            $emailEnvoye = true;
+        } catch (\Exception $e) {
+            $emailEnvoye = false;
+        }
+
+        return back()->with('mdp_reinitialise', [
+            'nom'          => $user->prenomUser . ' ' . $user->nomUser,
+            'email'        => $user->email,
+            'mot_passe'    => $nouveauMdp,
+            'email_envoye' => $emailEnvoye,
+        ]);
     }
 }

@@ -33,28 +33,6 @@
                     </div>
                 @endif
 
-                {{-- Responsable automatique --}}
-                <div
-                    class="flex items-center gap-3 px-4 py-3.5 bg-[#1C9F93]/5 border
-            border-[#1C9F93]/20 rounded-xl">
-                    <div
-                        class="w-9 h-9 rounded-full bg-[#1C9F93] text-white flex items-center
-                justify-center text-xs font-bold flex-shrink-0">
-                        {{ strtoupper(substr(auth()->user()->prenomUser, 0, 1)) }}{{ strtoupper(substr(auth()->user()->nomUser, 0, 1)) }}
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-[#0F172A]">
-                            {{ auth()->user()->prenomUser }} {{ auth()->user()->nomUser }}
-                        </p>
-                        <p class="text-xs text-slate-400">Responsable de la tâche · Chef de projet</p>
-                    </div>
-                    <svg class="w-4 h-4 text-[#1C9F93] ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955
-                         11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824
-                         10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                </div>
-
                 {{-- Phase parente (info) --}}
                 <div class="flex items-center gap-3 px-4 py-3.5 bg-slate-50 border border-slate-200
             rounded-xl">

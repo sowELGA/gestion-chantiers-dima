@@ -185,7 +185,7 @@
             </a>
 
             <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
-                <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">03 — Logistique</p>
+                <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">03 — Approvisionnement</p>
             </div>
 
             {{-- Réceptions --}}

@@ -230,14 +230,82 @@ class TacheController extends Controller
 
     public function gantt(Chantier $chantier)
     {
-        abort_if($chantier->chef_projet_id !== auth()->id(), 403);
-
-        $phases = Phase::with(['taches'])
+        // 1. Charger les phases avec leurs tâches triées
+        $phases = Phase::with(['taches' => function ($query) {
+            $query->orderBy('date_debut_prevue', 'asc');
+        }])
             ->where('chantier_id', $chantier->id)
-            ->orderBy('ordre')
+            ->orderBy('ordre', 'asc')
             ->get();
 
-        return view('chef_projet.taches.gantt', compact('chantier', 'phases'));
+        // 2. Extraire tous les IDs de tâches valides avec dates
+        $tachesValidesIds = $phases->flatMap->taches
+            ->filter(fn($t) => !empty($t->date_debut_prevue) && !empty($t->date_fin_prevue))
+            ->pluck('id')
+            ->toArray();
+
+        // 3. Transformer les données pour Frappe Gantt côté PHP
+        $ganttTasks = [];
+
+        foreach ($phases as $phase) {
+            $pDebut = $phase->date_debut ? \Carbon\Carbon::parse($phase->date_debut)->format('Y-m-d') : null;
+            $pFin = $phase->date_fin_prevue ? \Carbon\Carbon::parse($phase->date_fin_prevue)->format('Y-m-d') : null;
+
+            // Élément Phase
+            if ($pDebut && $pFin) {
+                if ($pDebut === $pFin) {
+                    $pFin = \Carbon\Carbon::parse($pFin)->addDay()->format('Y-m-d');
+                }
+
+                $ganttTasks[] = [
+                    'id' => 'phase_' . $phase->idPhase,
+                    'name' => '📂 ' . $phase->nomPhase,
+                    'start' => $pDebut,
+                    'end' => $pFin,
+                    'progress' => (int) ($phase->avancement ?? 0),
+                    'dependencies' => '',
+                    'custom_class' => 'bar-phase'
+                ];
+            }
+
+            // Élément Tâche
+            foreach ($phase->taches as $tache) {
+                $tDebut = $tache->date_debut_prevue ? \Carbon\Carbon::parse($tache->date_debut_prevue)->format('Y-m-d') : null;
+                $tFin = $tache->date_fin_prevue ? \Carbon\Carbon::parse($tache->date_fin_prevue)->format('Y-m-d') : null;
+
+                if ($tDebut && $tFin) {
+                    if ($tDebut === $tFin) {
+                        $tFin = \Carbon\Carbon::parse($tFin)->addDay()->format('Y-m-d');
+                    }
+
+                    // Classe selon statut/retard
+                    $classeStatut = $tache->est_en_retard
+                        ? 'bar-retard'
+                        : match ($tache->statutTache) {
+                            'terminee' => 'bar-terminee',
+                            'en_cours' => 'bar-en-cours',
+                            default => 'bar-en-attente',
+                        };
+
+                    // Vérification de dépendance valide
+                    $dependency = ($tache->tache_precedente_id && in_array($tache->tache_precedente_id, $tachesValidesIds))
+                        ? 'tache_' . $tache->tache_precedente_id
+                        : '';
+
+                    $ganttTasks[] = [
+                        'id' => 'tache_' . $tache->id,
+                        'name' => $tache->nomTache,
+                        'start' => $tDebut,
+                        'end' => $tFin,
+                        'progress' => (int) ($tache->avancement ?? 0),
+                        'dependencies' => $dependency,
+                        'custom_class' => $classeStatut
+                    ];
+                }
+            }
+        }
+
+        return view('chef_projet.taches.gantt', compact('chantier', 'phases', 'ganttTasks'));
     }
 
     // ══════════════════════════════════════════════════════════

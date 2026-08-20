@@ -25,6 +25,14 @@ Route::middleware('guest')->group(function () {
         ->name('login');
     Route::post('/login', [AuthController::class, 'login'])
         ->name('login.post');
+    Route::get(
+        '/mot-de-passe-oublie',
+        [AuthController::class, 'motDePasseOublie']
+    )->name('password.oublie');
+    Route::post(
+        '/mot-de-passe-oublie',
+        [AuthController::class, 'signalerOubli']
+    )->name('password.oublie.signaler');
 });
 
 Route::middleware('auth')->group(function () {
@@ -94,20 +102,34 @@ Route::middleware('auth')->group(function () {
                 ->name('depenses.destroy');
 
             // Utilisateurs
-            Route::get('/utilisateurs', [UserController::class, 'index'])
-                ->name('users.index');
-            Route::get('/utilisateurs/create', [UserController::class, 'create'])
-                ->name('users.create');
-            Route::post('/utilisateurs', [UserController::class, 'store'])
-                ->name('users.store');
-            Route::get('/utilisateurs/{user}/edit', [UserController::class, 'edit'])
-                ->name('users.edit');
-            Route::put('/utilisateurs/{user}', [UserController::class, 'update'])
-                ->name('users.update');
-            Route::patch('/utilisateurs/{user}/statut', [UserController::class, 'toggleStatut'])
-                ->name('users.toggle-statut');
-            Route::patch('/utilisateurs/{user}/reinitialiser', [UserController::class, 'reinitialiserMotDePasse'])
-                ->name('users.reinitialiser');
+            Route::get(
+                '/utilisateurs',
+                [UserController::class, 'index']
+            )->name('users.index');
+            Route::get(
+                '/utilisateurs/create',
+                [UserController::class, 'create']
+            )->name('users.create');
+            Route::post(
+                '/utilisateurs',
+                [UserController::class, 'store']
+            )->name('users.store');
+            Route::get(
+                '/utilisateurs/edit',
+                [UserController::class, 'edit']
+            )->name('users.edit');
+            Route::patch(
+                '/utilisateurs/{user}/update',
+                [UserController::class, 'update']
+            )->name('users.update');
+            Route::patch(
+                '/utilisateurs/{user}/reinitialiser',
+                [UserController::class, 'reinitialiserMotDePasse']
+            )->name('users.reinitialiser');
+            Route::patch(
+                '/utilisateurs/{user}/toggle',
+                [UserController::class, 'toggleActif']
+            )->name('users.toggle-statut');
 
             // Postes
             Route::get('/postes', [PosteController::class, 'index'])
@@ -120,18 +142,12 @@ Route::middleware('auth')->group(function () {
                 ->name('postes.destroy');
 
             // Personnel
-            Route::get('/personnel', [PersonnelController::class, 'index'])
-                ->name('personnel.index');
-            Route::get('/personnel/create', [PersonnelController::class, 'create'])
-                ->name('personnel.create');
-            Route::post('/personnel', [PersonnelController::class, 'store'])
-                ->name('personnel.store');
-            Route::get('/personnel/{personnel}/edit', [PersonnelController::class, 'edit'])
-                ->name('personnel.edit');
-            Route::put('/personnel/{personnel}', [PersonnelController::class, 'update'])
-                ->name('personnel.update');
-            Route::patch('/personnel/{personnel}/statut', [PersonnelController::class, 'toggleStatut'])
-                ->name('personnel.toggle-statut');
+            Route::resource('personnel', PersonnelController::class)->except(['show']);
+            Route::patch(
+                'personnel/{personnel}/toggle',
+                [PersonnelController::class, 'toggleStatut']
+            )
+                ->name('personnel.toggle');
 
             Route::get('/salaires/taux', [TauxSalaireController::class, 'index'])
                 ->name('salaires.taux');
@@ -142,29 +158,24 @@ Route::middleware('auth')->group(function () {
 
             Route::get(
                 '/pointage/recap',
-                [PointageController::class, 'recapDirection']
+                [RecapHebdomadaireController::class, 'recapDirection']
             )
                 ->name('pointage.recap');
-            Route::post(
-                '/pointage/{chantier}/calculer',
-                [PointageController::class, 'calculerSalaires']
-            )
-                ->name('pointage.calculer');
 
             // Fiches de paie
             Route::get('/salaires/recaps', [RecapHebdomadaireController::class, 'index'])
                 ->name('salaires.recaps');
+
             Route::get(
-                '/salaires/recaps/{chantier}/apercu',
+                '/salaires/{chantier}/apercu',
                 [RecapHebdomadaireController::class, 'apercu']
             )
                 ->name('salaires.apercu');
             Route::get(
-                '/salaires/recaps/{chantier}/pdf',
+                '/salaires/{chantier}/pdf',
                 [RecapHebdomadaireController::class, 'genererPdf']
             )
                 ->name('salaires.pdf');
-
             // Approvisionnements
             Route::get(
                 '/approvisionnements',
@@ -238,32 +249,6 @@ Route::middleware('auth')->group(function () {
                 [TacheController::class, 'destroyPhase']
             )->name('phases.destroy');
 
-            // Phases
-            Route::get(
-                '/chantiers/{chantier}/phases',
-                [TacheController::class, 'indexPhases']
-            )->name('phases.index');
-            Route::get(
-                '/chantiers/{chantier}/phases/create',
-                [TacheController::class, 'createPhase']
-            )->name('phases.create');
-            Route::post(
-                '/chantiers/{chantier}/phases',
-                [TacheController::class, 'storePhase']
-            )->name('phases.store');
-            Route::get(
-                '/chantiers/{chantier}/phases/{phase}/edit',
-                [TacheController::class, 'editPhase']
-            )->name('phases.edit');
-            Route::patch(
-                '/chantiers/{chantier}/phases/{phase}',
-                [TacheController::class, 'updatePhase']
-            )->name('phases.update');
-            Route::delete(
-                '/chantiers/{chantier}/phases/{phase}',
-                [TacheController::class, 'destroyPhase']
-            )->name('phases.destroy');
-
             // Tâches (toujours dans le contexte d'une phase)
             Route::get(
                 '/chantiers/{chantier}/phases/{phase}/taches',
@@ -303,17 +288,17 @@ Route::middleware('auth')->group(function () {
             //Pointage
             Route::get(
                 '/chantiers/{chantier}/pointage',
-                [PointageController::class, 'validationChefProjet']
+                [RecapHebdomadaireController::class, 'validationChefProjet']
             )
                 ->name('pointage.validation');
             Route::post(
                 '/chantiers/{chantier}/pointage/valider',
-                [PointageController::class, 'validerSemaine']
+                [RecapHebdomadaireController::class, 'valider']
             )
                 ->name('pointage.valider');
             Route::post(
                 '/chantiers/{chantier}/pointage/rejeter',
-                [PointageController::class, 'rejeterSemaine']
+                [RecapHebdomadaireController::class, 'rejeter']
             )
                 ->name('pointage.rejeter');
 

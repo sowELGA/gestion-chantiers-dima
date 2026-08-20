@@ -67,9 +67,9 @@
 
         <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-blue-400
                 hover:shadow-md transition-all cursor-pointer"
-            onclick="window.location='{{ route('direction.pointage.recap') }}'">
+            onclick="window.location='{{ route('direction.salaires.recaps') }}'">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Fiches à calculer
+                Fiches de paie disponible
             </p>
             <p class="text-3xl font-extrabold text-blue-500 mt-2">
                 {{ $kpi['fiches_a_calculer'] }}
@@ -81,12 +81,11 @@
                 hover:shadow-md transition-all cursor-pointer"
             onclick="window.location='{{ route('direction.pointage.recap') }}'">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Fiches soumises
+                Rapport disponible
             </p>
             <p class="text-3xl font-extrabold text-purple-500 mt-2">
                 {{ $fichesSoumises }}
             </p>
-            <p class="text-xs text-slate-400 mt-1">En attente validation CP</p>
         </div>
 
     </div>

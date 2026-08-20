@@ -239,6 +239,14 @@
                             @enderror
                         </div>
 
+                        {{-- Mot de passe oublié --}}
+                        <div class="flex justify-end mb-6">
+                            <a href="{{ route('password.oublie') }}"
+                                class="text-xs text-primary hover:underline transition-colors">
+                                Mot de passe oublié ?
+                            </a>
+                        </div>
+
                         {{-- Bouton --}}
                         <button type="submit"
                             class="w-full bg-primary text-white py-2.5 rounded-md

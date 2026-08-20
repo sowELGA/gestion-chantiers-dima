@@ -170,7 +170,7 @@ class ApprovisionnementService
     {
         $date = Carbon::parse($dateLivraison);
 
-        return now()->diffInHours($date, false) <= 24
+        return now()->diffInHours($date, false) <= 48
             && $date->isFuture()
             ? 'urgent'
             : 'normal';

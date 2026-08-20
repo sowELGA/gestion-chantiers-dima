@@ -18,6 +18,7 @@ class PersonnelController extends Controller
     {
         $chantierId = request('chantier_id');
         $statut     = request('statut', 'tous');
+        $recherche  = request('recherche');
 
         $query = Personnel::with(['poste', 'chantier'])
             ->orderBy('nomPersonnel');
@@ -30,7 +31,14 @@ class PersonnelController extends Controller
             $query->where('statutPersonnel', $statut);
         }
 
-        $personnel = $query->paginate(10);
+        if ($recherche) {
+            $query->where(function ($q) use ($recherche) {
+                $q->where('nomPersonnel', 'like', '%' . $recherche . '%')
+                    ->orWhere('prenomPersonnel', 'like', '%' . $recherche . '%');
+            });
+        }
+
+        $personnel = $query->paginate(15)->withQueryString();
 
         $stats = [
             'total'    => Personnel::count(),
@@ -42,7 +50,14 @@ class PersonnelController extends Controller
 
         return view(
             'direction.personnel.index',
-            compact('personnel', 'stats', 'chantiers', 'chantierId', 'statut')
+            compact(
+                'personnel',
+                'stats',
+                'chantiers',
+                'chantierId',
+                'statut',
+                'recherche'
+            )
         );
     }
 
@@ -92,9 +107,28 @@ class PersonnelController extends Controller
         $this->personnelService->toggleStatut($personnel);
 
         $message = $personnel->fresh()->statutPersonnel === 'actif'
-            ? 'Ouvrier activé avec succès.'
-            : 'Ouvrier désactivé avec succès.';
+            ? 'Ouvrier activé.'
+            : 'Ouvrier désactivé.';
 
         return back()->with('success', $message);
+    }
+
+    public function destroy(Personnel $personnel)
+    {
+        // Suppression uniquement si inactif
+        if ($personnel->statutPersonnel === 'actif') {
+            return back()->with(
+                'error',
+                'Impossible de supprimer un ouvrier actif. '
+                    . 'Désactivez-le d\'abord.'
+            );
+        }
+
+        $nom = $personnel->nomPersonnel . ' ' . $personnel->prenomPersonnel;
+        $personnel->delete();
+
+        return redirect()
+            ->route('direction.personnel.index')
+            ->with('success', $nom . ' a été supprimé.');
     }
 }
