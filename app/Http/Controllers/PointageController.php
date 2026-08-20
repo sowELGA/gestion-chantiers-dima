@@ -27,7 +27,7 @@ class PointageController extends Controller
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
 
-        if (!in_array($chantier->statut, ['en_cours', 'suspendu'])) {
+        if ($chantier->statut !=  'en_cours') {
             return view('pointeur.pointage.bloque', compact('chantier'));
         }
 
@@ -75,8 +75,9 @@ class PointageController extends Controller
             return view('pointeur.pointage.bloque', compact('chantier'));
         }
 
-        $semaine = Carbon::today()->isoWeek();
-        $annee   = Carbon::today()->year;
+        $today   = Carbon::today();
+        $semaine = SemaineHelper::numeroCycle($today);
+        $annee   = SemaineHelper::anneeCycle($today);
         $page    = (int) request('page', 1);
 
         $infos   = $this->pointageService->getInfosSemaine($semaine, $annee);
@@ -260,7 +261,7 @@ class PointageController extends Controller
 
         // Chantier sélectionné (premier par défaut)
         $chantiers = Chantier::whereNotNull('pointeur_id')
-            ->where('statut','en_cours')
+            ->where('statut', 'en_cours')
             ->orderBy('nomChantier')
             ->get();
 
