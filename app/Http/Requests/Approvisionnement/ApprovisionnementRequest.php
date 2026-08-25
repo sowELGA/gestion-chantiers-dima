@@ -14,26 +14,26 @@ class ApprovisionnementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'designation'           => 'required|string|max:255',
-            'quantite_demandee'     => 'required|numeric|min:0.1',
-            'unite'                 => 'required|string|max:50',
-            'priorite'              => 'nullable|in:normal,urgent',
-            'chantier_id'           => 'required|exists:chantiers,id',
-            'date_livraison_souhaitee' => 'required|date|after_or_equal:today',
+            'chantier_id'                        => 'required|exists:chantiers,id',
+            'demandes'                           => 'required|array|min:1',
+            'demandes.*.designation'             => 'required|string|max:255',
+            'demandes.*.quantite_demandee'        => 'required|numeric|min:0.1',
+            'demandes.*.unite'                   => 'required|string|max:50',
+            'demandes.*.date_livraison_souhaitee' => 'required|date|after_or_equal:today',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'designation.required'       => 'La désignation est obligatoire.',
-            'quantite_demandee.required' => 'La quantité est obligatoire.',
-            'quantite_demandee.min'      => 'La quantité doit être supérieure à 0.',
-            'unite.required'             => 'L\'unité est obligatoire.',
-            'chantier_id.required'       => 'Le chantier est obligatoire.',
-            'date_livraison_souhaitee.required'       => 'La date de livraison souhaitée est obligatoire.',
-            'date_livraison_souhaitee.after_or_equal' =>
-                'La date de livraison doit être aujourd\'hui ou dans le futur.',
+            'chantier_id.required'                      => 'Le chantier est obligatoire.',
+            'demandes.required'                         => 'Vous devez ajouter au moins une demande.',
+            'demandes.*.designation.required'           => 'La désignation est obligatoire.',
+            'demandes.*.quantite_demandee.required'     => 'La quantité est obligatoire.',
+            'demandes.*.quantite_demandee.min'          => 'La quantité doit être supérieure à 0.',
+            'demandes.*.unite.required'                 => 'L\'unité est obligatoire.',
+            'demandes.*.date_livraison_souhaitee.required'       => 'La date de livraison est obligatoire.',
+            'demandes.*.date_livraison_souhaitee.after_or_equal' => 'La date doit être aujourd\'hui ou dans le futur.',
         ];
     }
 }

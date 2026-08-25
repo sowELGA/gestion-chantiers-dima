@@ -33,11 +33,11 @@ class ApprovisionnementController extends Controller
     // Enregistrer la demande
     public function store(ApprovisionnementRequest $request)
     {
-        $this->approService->creer($request->validated(), auth()->id());
+        $this->approService->creerPlusieurs($request->validated(), auth()->id());
 
         return redirect()
             ->route('chef_projet.appro.index')
-            ->with('success', 'Demande créée avec succès.');
+            ->with('success', 'Demandes d\'approvisionnement enregistrées avec succès.');
     }
 
     // Liste des demandes du chef de projet

@@ -6,6 +6,7 @@ use App\Models\Approvisionnement;
 use App\Models\RapportsEntree;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class ApprovisionnementService
 {
@@ -13,20 +14,22 @@ class ApprovisionnementService
     // DEMANDES — CRUD
     // ══════════════════════════════════════════════════════════
 
-    public function creer(array $data, int $demandeurId): Approvisionnement
+    public function creerPlusieurs(array $data, int $demandeurId): void
     {
-        return Approvisionnement::create([
-            'designation'             => $data['designation'],
-            'quantite_demandee'       => $data['quantite_demandee'],
-            'unite'                   => $data['unite'],
-            'priorite'                => $this->calculerPriorite(
-                $data['date_livraison_souhaitee'] ?? null
-            ),
-            'statut'                  => 'en_attente',
-            'date_livraison_souhaitee' => $data['date_livraison_souhaitee'] ?? null,
-            'chantier_id'             => $data['chantier_id'],
-            'demandeur_id'            => $demandeurId,
-        ]);
+        DB::transaction(function () use ($data, $demandeurId) {
+            foreach ($data['demandes'] as $item) {
+                Approvisionnement::create([
+                    'designation'              => $item['designation'],
+                    'quantite_demandee'        => $item['quantite_demandee'],
+                    'unite'                    => $item['unite'],
+                    'date_livraison_souhaitee' => $item['date_livraison_souhaitee'],
+                    'priorite'                 => $this->calculerPriorite($item['date_livraison_souhaitee']),
+                    'statut'                   => 'en_attente',
+                    'chantier_id'              => $data['chantier_id'],
+                    'demandeur_id'             => $demandeurId,
+                ]);
+            }
+        });
     }
 
     public function modifier(Approvisionnement $appro, array $data): Approvisionnement
