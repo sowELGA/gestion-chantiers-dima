@@ -24,7 +24,6 @@ return new class extends Migration
             $table->integer('ordre')->default(1);
             $table->date('date_debut')->nullable();
             $table->date('date_fin_prevue')->nullable();
-            $table->integer('avancement')->default(0);
             $table->enum('statutPhase', [
                 'en_attente',
                 'en_cours',

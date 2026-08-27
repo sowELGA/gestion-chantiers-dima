@@ -20,7 +20,7 @@ return new class extends Migration
                 'normal',
                 'urgent'
             ])->default('normal');
-            $table->enum('statut', [
+            $table->enum('statutAppro', [
                 'en_attente',
                 'validee',
                 'rejetee',

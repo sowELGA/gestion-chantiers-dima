@@ -20,7 +20,7 @@ return new class extends Migration
             ]);
             $table->integer('heures_sup')->default(0);
             $table->foreignId('ouvrier_id')
-                ->constrained('personnels', 'id')
+                ->constrained('ouvriers', 'id')
                 ->onDelete('restrict');
             $table->foreignId('chantier_id')
                 ->constrained('chantiers', 'id')

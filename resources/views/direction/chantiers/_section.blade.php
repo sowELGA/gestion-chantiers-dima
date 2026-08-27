@@ -62,6 +62,18 @@
                             {{ $chantier->pourcentage_budget }}%
                         </p>
                     </div>
+                    {{-- Avancement global --}}
+                    <div class="w-24">
+                        <p class="text-xs text-slate-400 mb-1">Avancement</p>
+                        <div class="w-full bg-slate-100 rounded-full h-1.5">
+                            <div class="h-1.5 rounded-full bg-blue-500 transition-all"
+                                style="width: {{ min(100, $chantier->avancement_global) }}%">
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5 text-right">
+                            {{ $chantier->avancement_global }}%
+                        </p>
+                    </div>
                     {{-- Délai --}}
                     <div class="text-center">
                         <p class="text-xs text-slate-400">Fin prévue</p>
@@ -90,8 +102,7 @@
                         </svg>
                     </a>
                     @if ($chantier->statut === 'en_attente')
-                        <form method="POST"
-                            action="{{ route('direction.chantiers.destroy', $chantier->id) }}"
+                        <form method="POST" action="{{ route('direction.chantiers.destroy', $chantier->id) }}"
                             onsubmit="return confirm('Supprimer ce chantier ?')">
                             @csrf @method('DELETE')
                             <button type="submit"

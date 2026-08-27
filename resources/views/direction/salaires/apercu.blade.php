@@ -113,14 +113,10 @@
                                             'chef',
                                         );
 
-                                        $pointagesOuvrier = \App\Models\Pointage::where(
-                                            'ouvrier_id',
-                                            $recap->ouvrier_id,
-                                        )
-                                            ->where('chantier_id', $recap->chantier_id)
-                                            ->whereBetween('date', [$samedi->toDateString(), $vendredi->toDateString()])
-                                            ->get()
-                                            ->keyBy(fn($p) => \Carbon\Carbon::parse($p->date)->toDateString());
+                                        // Détail jour par jour préparé côté contrôleur
+                                        // (SalaireController::apercu) — pas de requête
+                                        // supplémentaire ici.
+                                        $pointagesOuvrier = $recap->pointagesParJour;
                                     @endphp
                                     <tr
                                         class="hover:bg-slate-50/80 transition-colors {{ $isChef ? 'bg-slate-50/40' : '' }}">

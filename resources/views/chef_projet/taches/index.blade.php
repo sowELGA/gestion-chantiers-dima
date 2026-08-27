@@ -109,7 +109,7 @@
             </div>
 
             @if ($chantier->statut !== 'livre')
-                <a href="{{ route('chef_projet.taches.create', [$chantier->id, $phase->id]) }}"
+                <a href="{{ route('chef_projet.phases.taches.create', [$chantier->id, $phase->id]) }}"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1C9F93] hover:bg-[#178a7f] text-white text-sm font-semibold rounded-lg transition-colors shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -133,7 +133,7 @@
                 <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">Décomposez cette phase en sous-tâches pour suivre la
                     progression précise du chantier.</p>
                 @if ($chantier->statut !== 'livre')
-                    <a href="{{ route('chef_projet.taches.create', [$chantier->id, $phase->id]) }}"
+                    <a href="{{ route('chef_projet.phases.taches.create', [$chantier->id, $phase->id]) }}"
                         class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 bg-[#1C9F93] hover:bg-[#178a7f] text-white text-sm font-semibold rounded-lg transition-colors">
                         Créer la première tâche
                     </a>
@@ -273,7 +273,7 @@
 
                                                 @if ($chantier->statut !== 'livre')
                                                     <form method="POST"
-                                                        action="{{ route('chef_projet.taches.avancement', [$chantier->id, $phase->id, $tache->id]) }}"
+                                                        action="{{ route('chef_projet.phases.taches.avancement', [$chantier->id, $phase->id, $tache->id]) }}"
                                                         @submit.prevent="if(parseInt(val) === 100 && !confirm('Valider définitivement cette tâche ?')) return; $el.submit()">
                                                         @csrf @method('PATCH')
                                                         <input type="hidden" name="avancement" :value="val">
@@ -312,7 +312,7 @@
                                         <div x-show="open" @click.outside="open = false" x-transition
                                             class="absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-30 {{ $ouvrirVersHaut ? 'bottom-full mb-2' : 'top-full mt-2' }}">
 
-                                            <a href="{{ route('chef_projet.taches.edit', [$chantier->id, $phase->id, $tache->id]) }}"
+                                            <a href="{{ route('chef_projet.phases.taches.edit', [$chantier->id, $phase->id, $tache->id]) }}"
                                                 class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">
                                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -325,7 +325,7 @@
                                             <div class="border-t border-slate-100 my-1"></div>
 
                                             <form method="POST"
-                                                action="{{ route('chef_projet.taches.destroy', [$chantier->id, $phase->id, $tache->id]) }}"
+                                                action="{{ route('chef_projet.phases.taches.destroy', [$chantier->id, $phase->id, $tache->id]) }}"
                                                 onsubmit="return confirm('Supprimer définitivement la tâche « {{ $tache->nomTache }} » ?')">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"

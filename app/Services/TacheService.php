@@ -20,7 +20,6 @@ class TacheService
             'sous_traitant'   => $data['sous_traitant'] ?? null,
             'date_debut'      => $data['date_debut'],
             'date_fin_prevue' => $data['date_fin_prevue'],
-            'avancement'      => 0,
             'est_en_retard'   => false,
             'statutPhase'     => 'en_attente',
             'chantier_id'     => $chantierId,
@@ -170,15 +169,14 @@ class TacheService
         $taches = $phase->taches;
         if ($taches->isEmpty()) return;
 
-        $avancement = (int) round($taches->avg('avancement'));
-        $statut     = $this->determinerStatutPhase($taches, $avancement);
+        $avancement  = (int) round($taches->avg('avancement'));
+        $statut      = $this->determinerStatutPhase($taches, $avancement);
         $estEnRetard = $statut !== 'terminee'
             && $phase->date_fin_prevue
             && $phase->date_fin_prevue->isPast();
 
         $phase->update([
-            'avancement'   => $avancement,
-            'statutPhase'  => $statut,
+            'statutPhase'   => $statut,
             'est_en_retard' => $estEnRetard,
         ]);
     }

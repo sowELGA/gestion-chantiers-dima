@@ -18,7 +18,12 @@
                       {{ !$user->actif ? 'opacity-50' : '' }}">
                 {{ $user->nomComplet }}
             </p>
-            <p class="text-xs text-slate-500">{{ $user->email }}</p>
+            <p class="text-xs text-slate-500">
+                {{ $user->email }}
+                @if ($user->telUser)
+                    · {{ $user->telUser }}
+                @endif
+            </p>
         </div>
     </div>
 

@@ -11,8 +11,7 @@
                 <h3 class="font-semibold text-[#0F172A]">Informations de l'ouvrier</h3>
             </div>
 
-            <form method="POST" action="{{ route('direction.personnel.update', $personnel->id) }}"
-                class="p-6 space-y-5">
+            <form method="POST" action="{{ route('direction.personnel.update', $personnel->id) }}" class="p-6 space-y-5">
                 @csrf @method('PUT')
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -20,13 +19,12 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Nom <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="nomPersonnel"
-                            value="{{ old('nomPersonnel', $personnel->nomPersonnel) }}"
+                        <input type="text" name="nomOuvrier" value="{{ old('nomOuvrier', $personnel->nomOuvrier) }}"
                             class="w-full px-4 py-2.5 border rounded-lg text-sm
                                   focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                   focus:border-[#1C9F93] transition-colors
-                                  @error('nomPersonnel') border-red-400 @else border-slate-300 @enderror">
-                        @error('nomPersonnel')
+                                  @error('nomOuvrier') border-red-400 @else border-slate-300 @enderror">
+                        @error('nomOuvrier')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -34,16 +32,30 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Prénom <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="prenomPersonnel"
-                            value="{{ old('prenomPersonnel', $personnel->prenomPersonnel) }}"
+                        <input type="text" name="prenomOuvrier"
+                            value="{{ old('prenomOuvrier', $personnel->prenomOuvrier) }}"
                             class="w-full px-4 py-2.5 border rounded-lg text-sm
                                   focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                   focus:border-[#1C9F93] transition-colors
-                                  @error('prenomPersonnel') border-red-400 @else border-slate-300 @enderror">
-                        @error('prenomPersonnel')
+                                  @error('prenomOuvrier') border-red-400 @else border-slate-300 @enderror">
+                        @error('prenomOuvrier')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                        Téléphone
+                    </label>
+                    <input type="tel" name="telOuvrier" value="{{ old('telOuvrier', $personnel->telOuvrier) }}"
+                        class="w-full px-4 py-2.5 border rounded-lg text-sm
+                              focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
+                              focus:border-[#1C9F93] transition-colors
+                              @error('telOuvrier') border-red-400 @else border-slate-300 @enderror">
+                    @error('telOuvrier')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>

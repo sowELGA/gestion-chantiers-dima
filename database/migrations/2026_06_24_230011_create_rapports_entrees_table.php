@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('rapports_entrees', function (Blueprint $table) {
             $table->id();
-            $table->decimal('quantite_commandee', 10, 2);
-            $table->decimal('quantite_totale_recue', 10, 2)->default(0);
             $table->decimal('quantite_recue', 10, 2);
-            $table->decimal('quantite_restante', 10, 2)->default(0);
             $table->date('date_reception');
             $table->text('observation')->nullable();
             $table->foreignId('demande_id')

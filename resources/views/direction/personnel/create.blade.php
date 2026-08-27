@@ -19,12 +19,12 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Nom <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="nomPersonnel" value="{{ old('nomPersonnel') }}" placeholder="Ex : Dieng"
+                        <input type="text" name="nomOuvrier" value="{{ old('nomOuvrier') }}" placeholder="Ex : Dieng"
                             class="w-full px-4 py-2.5 border rounded-lg text-sm
                                   focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                   focus:border-[#1C9F93] transition-colors
-                                  @error('nomPersonnel') border-red-400 @else border-slate-300 @enderror">
-                        @error('nomPersonnel')
+                                  @error('nomOuvrier') border-red-400 @else border-slate-300 @enderror">
+                        @error('nomOuvrier')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -32,16 +32,30 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Prénom <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="prenomPersonnel" value="{{ old('prenomPersonnel') }}"
+                        <input type="text" name="prenomOuvrier" value="{{ old('prenomOuvrier') }}"
                             placeholder="Ex : Amadou"
                             class="w-full px-4 py-2.5 border rounded-lg text-sm
                                   focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                   focus:border-[#1C9F93] transition-colors
-                                  @error('prenomPersonnel') border-red-400 @else border-slate-300 @enderror">
-                        @error('prenomPersonnel')
+                                  @error('prenomOuvrier') border-red-400 @else border-slate-300 @enderror">
+                        @error('prenomOuvrier')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                        Téléphone
+                    </label>
+                    <input type="tel" name="telOuvrier" value="{{ old('telOuvrier') }}" placeholder="Ex : 77 123 45 67"
+                        class="w-full px-4 py-2.5 border rounded-lg text-sm
+                              focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
+                              focus:border-[#1C9F93] transition-colors
+                              @error('telOuvrier') border-red-400 @else border-slate-300 @enderror">
+                    @error('telOuvrier')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
@@ -55,8 +69,7 @@
                                @error('poste_id') border-red-400 @enderror">
                         <option value="">Sélectionner un poste</option>
                         @foreach ($postes as $poste)
-                            <option value="{{ $poste->id }}"
-                                {{ old('poste_id') == $poste->id ? 'selected' : '' }}>
+                            <option value="{{ $poste->id }}" {{ old('poste_id') == $poste->id ? 'selected' : '' }}>
                                 {{ $poste->libelle }}
                             </option>
                         @endforeach

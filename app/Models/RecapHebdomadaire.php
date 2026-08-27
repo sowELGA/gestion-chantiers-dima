@@ -13,10 +13,7 @@ class RecapHebdomadaire extends Model
         'annee',
         'jours_presents',
         'total_heures_sup',
-        'salaire_base',
-        'salaire_heures_sup',
-        'salaire_total',
-        'statut',
+        'statutRecap',
         'motif_rejet',
         'valide_le',
         'ouvrier_id',
@@ -26,16 +23,13 @@ class RecapHebdomadaire extends Model
     ];
 
     protected $casts = [
-        'valide_le'          => 'datetime',
-        'salaire_base'       => 'decimal:2',
-        'salaire_heures_sup' => 'decimal:2',
-        'salaire_total'      => 'decimal:2',
-        'total_heures_sup'   => 'decimal:1',
+        'valide_le'        => 'datetime',
+        'total_heures_sup' => 'decimal:1',
     ];
 
     public function ouvrier()
     {
-        return $this->belongsTo(Personnel::class, 'ouvrier_id');
+        return $this->belongsTo(Ouvrier::class, 'ouvrier_id');
     }
 
     public function chantier()

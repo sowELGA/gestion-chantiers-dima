@@ -14,8 +14,9 @@ class PersonnelRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nomPersonnel'    => 'required|string|max:255',
-            'prenomPersonnel' => 'required|string|max:255',
+            'nomOuvrier'    => 'required|string|max:255',
+            'prenomOuvrier' => 'required|string|max:255',
+            'telOuvrier' => 'required|string|max:20',
             'poste_id'        => 'required|exists:postes,id',
             'chantier_id'     => 'required|exists:chantiers,id',
         ];
@@ -26,6 +27,7 @@ class PersonnelRequest extends FormRequest
         return [
             'nomPersonnel.required'    => 'Le nom est obligatoire.',
             'prenomPersonnel.required' => 'Le prénom est obligatoire.',
+            'prenomOuvrier.required' => 'Le téléphone est obligatoire.',
             'poste_id.required'        => 'Le poste est obligatoire.',
             'poste_id.exists'          => 'Le poste sélectionné est invalide.',
             'chantier_id.required'     => 'Le chantier est obligatoire.',

@@ -13,7 +13,6 @@ class Chantier extends Model
         'nomChantier',
         'localisation',
         'budget_prevu',
-        'budget_consomme',
         'date_debut',
         'date_fin_prevue',
         'date_fin_reelle',
@@ -27,10 +26,25 @@ class Chantier extends Model
         'date_fin_prevue' => 'date',
         'date_fin_reelle' => 'date',
         'budget_prevu'    => 'decimal:2',
-        'budget_consomme' => 'decimal:2',
     ];
 
-    // Accesseurs
+    // ══════════════════════════════════════════════════════════
+    // ACCESSEURS
+    // ══════════════════════════════════════════════════════════
+
+    // budget_consomme n'est plus une colonne : c'est la somme des
+    // dépenses liées au chantier, calculée à la volée. Si la relation
+    // "depenses" est déjà chargée (eager loading), on réutilise la
+    // collection en mémoire pour éviter une requête supplémentaire.
+    public function getBudgetConsommeAttribute(): float
+    {
+        if ($this->relationLoaded('depenses')) {
+            return (float) $this->depenses->sum('montant');
+        }
+
+        return (float) $this->depenses()->sum('montant');
+    }
+
     public function getBudgetRestantAttribute(): float
     {
         return $this->budget_prevu - $this->budget_consomme;
@@ -42,6 +56,9 @@ class Chantier extends Model
         return round(($this->budget_consomme / $this->budget_prevu) * 100, 2);
     }
 
+    // Avancement global du chantier = moyenne de l'avancement de toutes
+    // ses tâches. Réutilise la collection "taches" si elle est déjà
+    // chargée, pour rester performant sur la liste des chantiers.
     public function getAvancementGlobalAttribute(): float
     {
         $taches = $this->taches;
@@ -54,7 +71,10 @@ class Chantier extends Model
         return $this->date_fin_prevue < now() && $this->statut !== 'livre';
     }
 
-    // Relations
+    // ══════════════════════════════════════════════════════════
+    // RELATIONS
+    // ══════════════════════════════════════════════════════════
+
     public function chefProjet()
     {
         return $this->belongsTo(User::class, 'chef_projet_id');
@@ -78,7 +98,7 @@ class Chantier extends Model
 
     public function personnel()
     {
-        return $this->hasMany(Personnel::class, 'chantier_id');
+        return $this->hasMany(Ouvrier::class, 'chantier_id');
     }
 
     public function tauxSalaires()
@@ -113,7 +133,7 @@ class Chantier extends Model
 
     public function rapports()
     {
-        return $this->hasMany(RapportsChantier::class, 'chantier_id');
+        return $this->hasMany(RapportChantier::class, 'chantier_id');
     }
 
     public function notifications()

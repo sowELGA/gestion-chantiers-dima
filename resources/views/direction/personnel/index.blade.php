@@ -136,6 +136,7 @@
                                 <th class="py-3 px-4 text-center w-12">#</th>
                                 <th class="py-3 px-4">Ouvrier</th>
                                 <th class="py-3 px-4">Poste</th>
+                                <th class="py-3 px-4">Téléphone</th>
                                 <th class="py-3 px-4">Chantier Affecté</th>
                                 <th class="py-3 px-4 text-center">Statut</th>
                                 <th class="py-3 px-4 text-right">Actions</th>
@@ -153,12 +154,12 @@
                                     <td class="py-3 px-4">
                                         <div class="flex items-center gap-3">
                                             <div
-                                                class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {{ $ouvrier->statutPersonnel === 'actif' ? 'bg-[#1C9F93]/10 text-[#1C9F93]' : 'bg-slate-100 text-slate-400' }}">
-                                                {{ strtoupper(substr($ouvrier->prenomPersonnel, 0, 1)) }}{{ strtoupper(substr($ouvrier->nomPersonnel, 0, 1)) }}
+                                                class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {{ $ouvrier->statutOuvrier === 'actif' ? 'bg-[#1C9F93]/10 text-[#1C9F93]' : 'bg-slate-100 text-slate-400' }}">
+                                                {{ strtoupper(substr($ouvrier->prenomOuvrier, 0, 1)) }}{{ strtoupper(substr($ouvrier->nomOuvrier, 0, 1)) }}
                                             </div>
                                             <div>
                                                 <p class="font-medium text-[#0F172A] leading-tight">
-                                                    {{ $ouvrier->prenomPersonnel }} {{ $ouvrier->nomPersonnel }}
+                                                    {{ $ouvrier->prenomOuvrier }} {{ $ouvrier->nomOuvrier }}
                                                 </p>
                                             </div>
                                         </div>
@@ -170,6 +171,11 @@
                                             title="{{ $ouvrier->poste->libelle ?? '-' }}">
                                             {{ $ouvrier->poste->libelle ?? '-' }}
                                         </span>
+                                    </td>
+
+                                    {{-- Téléphone --}}
+                                    <td class="py-3 px-4 text-slate-600">
+                                        {{ $ouvrier->telOuvrier ?: '-' }}
                                     </td>
 
                                     {{-- Chantier --}}
@@ -188,8 +194,8 @@
                                     {{-- Statut --}}
                                     <td class="py-3 px-4 text-center">
                                         <span
-                                            class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold {{ $ouvrier->statutPersonnel === 'actif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200' }}">
-                                            {{ $ouvrier->statutPersonnel === 'actif' ? 'Actif' : 'Inactif' }}
+                                            class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold {{ $ouvrier->statutOuvrier === 'actif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200' }}">
+                                            {{ $ouvrier->statutOuvrier === 'actif' ? 'Actif' : 'Inactif' }}
                                         </span>
                                     </td>
 
@@ -213,9 +219,9 @@
                                                 class="inline">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
-                                                    title="{{ $ouvrier->statutPersonnel === 'actif' ? 'Désactiver' : 'Activer' }}"
-                                                    class="p-1.5 rounded-lg transition-colors {{ $ouvrier->statutPersonnel === 'actif' ? 'text-amber-500 hover:bg-amber-50' : 'text-[#1C9F93] hover:bg-[#1C9F93]/10' }}">
-                                                    @if ($ouvrier->statutPersonnel === 'actif')
+                                                    title="{{ $ouvrier->statutOuvrier === 'actif' ? 'Désactiver' : 'Activer' }}"
+                                                    class="p-1.5 rounded-lg transition-colors {{ $ouvrier->statutOuvrier === 'actif' ? 'text-amber-500 hover:bg-amber-50' : 'text-[#1C9F93] hover:bg-[#1C9F93]/10' }}">
+                                                    @if ($ouvrier->statutOuvrier === 'actif')
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -234,7 +240,7 @@
                                             </form>
 
                                             {{-- Supprimer --}}
-                                            @if ($ouvrier->statutPersonnel === 'inactif')
+                                            @if ($ouvrier->statutOuvrier === 'inactif')
                                                 <form method="POST"
                                                     action="{{ route('direction.personnel.destroy', $ouvrier->id) }}"
                                                     onsubmit="return confirm('Supprimer définitivement cet ouvrier ?')"

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Chantier\AffectationRequest;
 use App\Http\Requests\Chantier\ChantierRequest;
 use App\Http\Requests\Chantier\DepenseRequest;
@@ -9,6 +10,7 @@ use App\Models\Chantier;
 use App\Models\DepensesChantier;
 use App\Models\User;
 use App\Services\ChantierService;
+use Illuminate\Http\Request;
 
 class ChantierController extends Controller
 {
@@ -18,14 +20,28 @@ class ChantierController extends Controller
 
     // ── DIRECTION ─────────────────────────────────────────────
 
-    public function index()
+    public function index(Request $request)
     {
-        $chantiers = Chantier::with(['chefProjet', 'pointeur'])
+        $query = Chantier::with(['chefProjet', 'pointeur', 'depenses'])
+        ->where('statut', '!=', 'livre');
+
+        // Filtre par statut (en_cours, en_attente, suspendu, livre)
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->input('statut'));
+        }
+
+        // Filtre par nom de chantier (recherche partielle)
+        if ($request->filled('nomChantier')) {
+            $query->where('nomChantier', 'like', '%' . $request->input('nomChantier') . '%');
+        }
+
+        $chantiers = $query
             ->orderByRaw("FIELD(statut,
                                  'en_cours', 'en_attente', 'suspendu', 'livre')")
             ->get()
             ->groupBy('statut');
 
+        // Les statistiques restent globales (non affectées par les filtres)
         $stats = [
             'total'      => Chantier::count(),
             'en_cours'   => Chantier::where('statut', 'en_cours')->count(),

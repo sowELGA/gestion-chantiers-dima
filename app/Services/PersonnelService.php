@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Ouvrier;
 use App\Models\Personnel;
 use App\Models\Poste;
 use App\Models\TauxSalaire;
@@ -12,22 +13,24 @@ class PersonnelService
     // PERSONNEL — CRUD
     // ══════════════════════════════════════════════════════════
 
-    public function creer(array $data): Personnel
+    public function creer(array $data): Ouvrier
     {
-        return Personnel::create([
-            'nomPersonnel'    => $data['nomPersonnel'],
-            'prenomPersonnel' => $data['prenomPersonnel'],
-            'statutPersonnel' => 'actif',
+        return Ouvrier::create([
+            'nomOuvrier'    => $data['nomOuvrier'],
+            'prenomOuvrier' => $data['prenomOuvrier'],
+            'telOuvrier' => $data['telOuvrier'],
+            'statutOuvrier' => 'actif',
             'poste_id'        => $data['poste_id'],
             'chantier_id'     => $data['chantier_id'],
         ]);
     }
 
-    public function modifier(Personnel $personnel, array $data): Personnel
+    public function modifier(Ouvrier $personnel, array $data): Ouvrier
     {
         $personnel->update([
-            'nomPersonnel'    => $data['nomPersonnel'],
-            'prenomPersonnel' => $data['prenomPersonnel'],
+            'nomOuvrier'    => $data['nomOuvrier'],
+            'prenomOuvrier' => $data['prenomOuvrier'],
+            'telOuvrier' => $data['telOuvrier'],
             'poste_id'        => $data['poste_id'],
             'chantier_id'     => $data['chantier_id'],
         ]);
@@ -35,10 +38,10 @@ class PersonnelService
         return $personnel->fresh();
     }
 
-    public function toggleStatut(Personnel $personnel): Personnel
+    public function toggleStatut(Ouvrier $personnel): Ouvrier
     {
         $personnel->update([
-            'statutPersonnel' => $personnel->statutPersonnel === 'actif'
+            'statutOuvrier' => $personnel->statutPersonnel === 'actif'
                 ? 'inactif'
                 : 'actif',
         ]);

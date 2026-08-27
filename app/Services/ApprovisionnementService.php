@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
+use App\Helpers\ApprovisionnementHelper;
 use App\Models\Approvisionnement;
-use App\Models\RapportsEntree;
-use Carbon\Carbon;
+use App\Models\RapportEntree;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
 class ApprovisionnementService
 {
     // ══════════════════════════════════════════════════════════
-    // DEMANDES — CRUD
+    // CHEF DE PROJET — ACTIONS
     // ══════════════════════════════════════════════════════════
 
     public function creerPlusieurs(array $data, int $demandeurId): void
@@ -23,8 +23,8 @@ class ApprovisionnementService
                     'quantite_demandee'        => $item['quantite_demandee'],
                     'unite'                    => $item['unite'],
                     'date_livraison_souhaitee' => $item['date_livraison_souhaitee'],
-                    'priorite'                 => $this->calculerPriorite($item['date_livraison_souhaitee']),
-                    'statut'                   => 'en_attente',
+                    'priorite'                 => ApprovisionnementHelper::calculerPriorite($item['date_livraison_souhaitee']),
+                    'statutAppro'                   => 'en_attente',
                     'chantier_id'              => $data['chantier_id'],
                     'demandeur_id'             => $demandeurId,
                 ]);
@@ -34,15 +34,15 @@ class ApprovisionnementService
 
     public function modifier(Approvisionnement $appro, array $data): Approvisionnement
     {
-        $this->verifierModifiable($appro);
+        if ($appro->statutAppro !== 'en_attente') {
+            throw new \Exception("Impossible de modifier une demande qui n'est plus en attente.");
+        }
 
         $appro->update([
-            'designation'             => $data['designation'],
-            'quantite_demandee'       => $data['quantite_demandee'],
-            'unite'                   => $data['unite'],
-            'priorite'                => $this->calculerPriorite(
-                $data['date_livraison_souhaitee']
-            ),
+            'designation'              => $data['designation'],
+            'quantite_demandee'        => $data['quantite_demandee'],
+            'unite'                    => $data['unite'],
+            'priorite'                 => ApprovisionnementHelper::calculerPriorite($data['date_livraison_souhaitee']),
             'date_livraison_souhaitee' => $data['date_livraison_souhaitee'],
         ]);
 
@@ -51,19 +51,21 @@ class ApprovisionnementService
 
     public function supprimer(Approvisionnement $appro): void
     {
-        $this->verifierSupprimable($appro);
+        if (!in_array($appro->statutAppro, ['en_attente', 'validee'])) {
+            throw new \Exception("Impossible de supprimer une demande en cours de livraison ou clôturée.");
+        }
+
         $appro->delete();
     }
 
     // ══════════════════════════════════════════════════════════
-    // TRAITEMENT — DIRECTION
+    // DIRECTION — ACTIONS
     // ══════════════════════════════════════════════════════════
 
     public function valider(Approvisionnement $appro): Approvisionnement
     {
         $this->verifierStatut($appro, 'en_attente', 'valider');
-
-        $appro->update(['statut' => 'validee']);
+        $appro->update(['statutAppro' => 'validee']);
 
         return $appro->fresh();
     }
@@ -71,8 +73,7 @@ class ApprovisionnementService
     public function rejeter(Approvisionnement $appro): Approvisionnement
     {
         $this->verifierStatut($appro, 'en_attente', 'rejeter');
-
-        $appro->update(['statut' => 'rejetee']);
+        $appro->update(['statutAppro' => 'rejetee']);
 
         return $appro->fresh();
     }
@@ -80,138 +81,61 @@ class ApprovisionnementService
     public function commander(Approvisionnement $appro): Approvisionnement
     {
         $this->verifierStatut($appro, 'validee', 'commander');
-
         $appro->update([
-            'statut'                => 'en_cours_livraison',
-            'date_commande'         => now()->toDateString(),
+            'statutAppro'        => 'en_cours_livraison',
+            'date_commande' => now()->toDateString(),
         ]);
 
         return $appro->fresh();
     }
 
     // ══════════════════════════════════════════════════════════
-    // RÉCEPTION — POINTEUR
+    // POINTEUR — ACTIONS
     // ══════════════════════════════════════════════════════════
 
-    public function receptionner(
-        Approvisionnement $appro,
-        array $data,
-        int $pointeurId
-    ): RapportsEntree {
-        $this->verifierReceptionnable($appro);
+    public function receptionner(Approvisionnement $appro, array $data, int $pointeurId): RapportEntree
+    {
+        if (!in_array($appro->statutAppro, ['en_cours_livraison', 'partiellement_recue'])) {
+            throw new \Exception("Cette demande ne peut pas être réceptionnée.");
+        }
 
-        $rapport = $this->enregistrerReception($appro, $data, $pointeurId);
+        return DB::transaction(function () use ($appro, $data, $pointeurId) {
+            $rapport = RapportEntree::create([
+                'demande_id'          => $appro->id,
+                'chantier_id'         => $appro->chantier_id,
+                'receptionnee_par_id' => $pointeurId,
+                'quantite_recue'      => (float) $data['quantite_recue'],
+                'date_reception'      => now()->toDateString(),
+                'observation'         => $data['observation'] ?? null,
+            ]);
 
-        $this->mettreAJourStatutApres($appro, $rapport);
+            $appro->update([
+                'statutAppro' => ApprovisionnementHelper::determinerStatutApresReception($appro),
+            ]);
 
-        return $rapport;
+            return $rapport;
+        });
     }
 
-    public function genererBonEntreePdf(RapportsEntree $rapport)
+    public function genererBonEntreePdf(RapportEntree $rapport)
     {
         $pdf = Pdf::loadView('pdf.bon-entree', [
-            'rapport'  => $rapport->load(['demande.chantier', 'receptionneeParUser']),
+            'rapport' => $rapport->load(['demande.chantier', 'receptionneePar']),
         ])->setPaper('A4', 'portrait');
 
-        $nomFichier = 'bon-entree-'
-            . $rapport->id
-            . '-' . now()->format('d-m-Y')
-            . '.pdf';
+        $nomFichier = 'bon-entree-' . $rapport->id . '-' . now()->format('d-m-Y') . '.pdf';
 
         return $pdf->download($nomFichier);
     }
 
     // ══════════════════════════════════════════════════════════
-    // HELPERS PRIVÉS — VÉRIFICATIONS
+    // HELPER PRIVÉ INTERNE
     // ══════════════════════════════════════════════════════════
 
-    private function verifierModifiable(Approvisionnement $appro): void
+    private function verifierStatut(Approvisionnement $appro, string $statutAttendu, string $action): void
     {
-        if ($appro->statut !== 'en_attente') {
-            throw new \Exception(
-                'Impossible de modifier une demande qui n\'est plus en attente.'
-            );
+        if ($appro->statutAppro !== $statutAttendu) {
+            throw new \Exception("Impossible de {$action} une demande au statut '{$appro->statutAppro}'.");
         }
-    }
-
-    private function verifierSupprimable(Approvisionnement $appro): void
-    {
-        if (!in_array($appro->statut, ['en_attente', 'validee'])) {
-            throw new \Exception(
-                'Impossible de supprimer une demande en cours de livraison ou clôturée.'
-            );
-        }
-    }
-
-    private function verifierReceptionnable(Approvisionnement $appro): void
-    {
-        if (!in_array($appro->statut, ['en_cours_livraison', 'partiellement_recue'])) {
-            throw new \Exception(
-                'Cette demande ne peut pas être réceptionnée.'
-            );
-        }
-    }
-
-    private function verifierStatut(
-        Approvisionnement $appro,
-        string $statutAttendu,
-        string $action
-    ): void {
-        if ($appro->statut !== $statutAttendu) {
-            throw new \Exception(
-                "Impossible de {$action} une demande au statut '{$appro->statut}'."
-            );
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // HELPERS PRIVÉS — ACTIONS
-    // ══════════════════════════════════════════════════════════
-
-    // Calcule la priorité selon la date souhaitée
-    private function calculerPriorite(string $dateLivraison): string
-    {
-        $date = Carbon::parse($dateLivraison);
-
-        return now()->diffInHours($date, false) <= 48
-            && $date->isFuture()
-            ? 'urgent'
-            : 'normal';
-    }
-
-    // Enregistre le rapport d'entrée
-    private function enregistrerReception(
-        Approvisionnement $appro,
-        array $data,
-        int $pointeurId
-    ): RapportsEntree {
-        $totalDejaRecu = $appro->rapportsEntrees()->sum('quantite_recue');
-        $quantiteRecue = (float) $data['quantite_recue'];
-        $totalApres    = $totalDejaRecu + $quantiteRecue;
-        $restante      = max(0, $appro->quantite_demandee - $totalApres);
-
-        return RapportsEntree::create([
-            'demande_id'            => $appro->id,
-            'chantier_id'           => $appro->chantier_id,
-            'receptionnee_par_id'   => $pointeurId,
-            'quantite_commandee'    => $appro->quantite_demandee,
-            'quantite_totale_recue' => $totalApres,
-            'quantite_recue'        => $quantiteRecue,
-            'quantite_restante'     => $restante,
-            'date_reception'        => now()->toDateString(),
-            'observation'           => $data['observation'] ?? null,
-        ]);
-    }
-
-    // Met à jour le statut de la demande après réception
-    private function mettreAJourStatutApres(
-        Approvisionnement $appro,
-        RapportsEntree $rapport
-    ): void {
-        $statut = $rapport->quantite_restante <= 0
-            ? 'cloturee'
-            : 'partiellement_recue';
-
-        $appro->update(['statut' => $statut]);
     }
 }

@@ -23,8 +23,8 @@
                   font-medium rounded-lg hover:bg-[#178a7f] transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0
-                             012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0
-                             01.293.707V19a2 2 0 01-2 2z" />
+                                 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0
+                                 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Télécharger le bon d'entrée PDF
             </a>
@@ -42,6 +42,12 @@
     @else
         <div class="space-y-4">
             @foreach ($livraisons as $demande)
+                @php
+                    $totalRecu = $demande->rapportsEntrees->sum('quantite_recue');
+                    $quantiteRestante = max(0, $demande->quantite_demandee - $totalRecu);
+                    $pct =
+                        $demande->quantite_demandee > 0 ? round(($totalRecu / $demande->quantite_demandee) * 100) : 0;
+                @endphp
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" x-data="{ showForm: false }">
 
                     {{-- Infos livraison --}}
@@ -67,13 +73,6 @@
                                     </div>
 
                                     {{-- Progression --}}
-                                    @php
-                                        $totalRecu = $demande->rapportsEntrees->sum('quantite_recue');
-                                        $pct =
-                                            $demande->quantite_demandee > 0
-                                                ? round(($totalRecu / $demande->quantite_demandee) * 100)
-                                                : 0;
-                                    @endphp
                                     <div class="mt-2">
                                         <div class="flex justify-between text-xs text-slate-500 mb-1">
                                             <span>
@@ -90,7 +89,7 @@
                                         <p class="text-xs text-slate-500 mt-1">
                                             Restant :
                                             <strong class="text-[#0F172A]">
-                                                {{ $demande->quantite_restante }}
+                                                {{ $quantiteRestante }}
                                                 {{ $demande->unite }}
                                             </strong>
                                         </p>
@@ -126,13 +125,13 @@
                                         <span class="text-red-500">*</span>
                                     </label>
                                     <input type="number" name="quantite_recue" step="0.1" min="0.1"
-                                        max="{{ $demande->quantite_restante }}" placeholder="Ex : 25"
+                                        max="{{ $quantiteRestante }}" placeholder="Ex : 25"
                                         class="w-full px-3 py-2 border border-slate-300
                                               rounded-lg text-sm focus:outline-none
                                               focus:ring-2 focus:ring-[#1C9F93]/30
                                               focus:border-[#1C9F93]">
                                     <p class="text-xs text-slate-400 mt-1">
-                                        Max : {{ $demande->quantite_restante }} {{ $demande->unite }}
+                                        Max : {{ $quantiteRestante }} {{ $demande->unite }}
                                     </p>
                                 </div>
                                 <div class="sm:col-span-2">
@@ -174,16 +173,16 @@
                                 @foreach ($demande->rapportsEntrees as $r)
                                     <div class="flex items-center justify-between text-xs">
                                         <span class="text-slate-500">
-                                            {{ $r->date_reception->format('d/m/Y') }}
+                                            {{ \Carbon\Carbon::parse($r->date_reception)->format('d/m/Y') }}
                                             — {{ $r->quantite_recue }} {{ $demande->unite }}
                                         </span>
                                         <a href="{{ route('pointeur.appro.bon-entree-pdf', $r->id) }}"
                                             class="text-[#1C9F93] hover:underline flex items-center gap-1">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0
-                                                         01-2-2V5a2 2 0 012-2h5.586a1 1 0
-                                                         01.707.293l5.414 5.414a1 1 0
-                                                         01.293.707V19a2 2 0 01-2 2z" />
+                                                             01-2-2V5a2 2 0 012-2h5.586a1 1 0
+                                                             01.707.293l5.414 5.414a1 1 0
+                                                             01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Bon d'entrée
                                         </a>

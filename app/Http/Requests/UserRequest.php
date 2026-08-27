@@ -20,6 +20,7 @@ class UserRequest extends FormRequest
             'nomUser'    => 'required|string|max:255',
             'prenomUser' => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email,' . $id . ',id',
+            'telUser' => 'required|string|max:20',
             'role'       => 'required|in:direction,chef_projet,pointeur',
         ];
     }
@@ -29,6 +30,7 @@ class UserRequest extends FormRequest
         return [
             'nomUser.required'    => 'Le nom est obligatoire.',
             'prenomUser.required' => 'Le prénom est obligatoire.',
+            'telUser.required' => 'Le téléphone est obligatoire.',
             'email.required'      => 'L\'email est obligatoire.',
             'email.email'         => 'L\'email n\'est pas valide.',
             'email.unique'        => 'Cet email est déjà utilisé.',

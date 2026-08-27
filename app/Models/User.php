@@ -14,6 +14,7 @@ class User extends Authenticatable
         'nomUser',
         'prenomUser',
         'email',
+        'telUser',
         'password',
         'role',
         'premiere_connexion',

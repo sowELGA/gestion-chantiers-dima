@@ -16,6 +16,7 @@ class UserService
             'nomUser'           => $data['nomUser'],
             'prenomUser'        => $data['prenomUser'],
             'email'             => $data['email'],
+            'telUser'             => $data['telUser'],
             'password'          => Hash::make($motDepasseTemp),
             'role'              => $data['role'],
             'premiere_connexion' => true
@@ -34,6 +35,7 @@ class UserService
             'nomUser'           => $data['nomUser'],
             'prenomUser'        => $data['prenomUser'],
             'email'             => $data['email'],
+            'telUser'             => $data['telUser'],
             'role'              => $data['role']
         ]);
 

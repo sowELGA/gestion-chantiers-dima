@@ -13,7 +13,6 @@ class Phase extends Model
         'sous_traitant',
         'date_debut',
         'date_fin_prevue',
-        'avancement',
         'statutPhase',
         'est_en_retard',
         'chantier_id',
@@ -22,7 +21,6 @@ class Phase extends Model
     protected $casts = [
         'date_debut'      => 'date',
         'date_fin_prevue' => 'date',
-        'avancement'      => 'integer',
     ];
 
     public function chantier()
@@ -34,6 +32,15 @@ class Phase extends Model
     {
         return $this->hasMany(Tache::class, 'phase_id', 'id')
             ->orderBy('date_debut_prevue');
+    }
+
+    public function getAvancementAttribute(): int
+    {
+        if ($this->taches->isEmpty()) {
+            return 0;
+        }
+
+        return (int) round($this->taches->avg('avancement'));
     }
 
     public function getEstEnRetardAttribute(): bool

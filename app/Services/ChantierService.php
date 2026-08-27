@@ -17,7 +17,6 @@ class ChantierService
             'nomChantier'     => $data['nomChantier'],
             'localisation'    => $data['localisation'],
             'budget_prevu'    => $data['budget_prevu'],
-            'budget_consomme' => 0,
             'date_debut'      => $data['date_debut'],
             'date_fin_prevue' => $data['date_fin_prevue'],
             'statut'          => 'en_attente',
@@ -81,12 +80,14 @@ class ChantierService
     // ══════════════════════════════════════════════════════════
     // DÉPENSES
     // ══════════════════════════════════════════════════════════
+    // Remarque : budget_consomme n'étant plus stocké en base, il n'y a
+    // plus besoin de le recalculer/mettre à jour après chaque opération
+    // sur les dépenses. Il est recalculé automatiquement à chaque lecture
+    // via l'accesseur du modèle Chantier.
 
     public function ajouterDepense(Chantier $chantier, array $data): DepensesChantier
     {
-        $depense = $this->creerDepense($chantier, $data);
-        $this->recalculerBudgetConsomme($chantier);
-        return $depense;
+        return $this->creerDepense($chantier, $data);
     }
 
     public function modifierDepense(DepensesChantier $depense, array $data): DepensesChantier
@@ -98,16 +99,12 @@ class ChantierService
             'date_depense' => $data['date_depense'],
         ]);
 
-        $this->recalculerBudgetConsomme($depense->chantier);
-
         return $depense->fresh();
     }
 
     public function supprimerDepense(DepensesChantier $depense): void
     {
-        $chantier = $depense->chantier;
         $depense->delete();
-        $this->recalculerBudgetConsomme($chantier);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -116,7 +113,8 @@ class ChantierService
 
     // Vérifie que la transition de statut est autorisée
     private function verifierTransitionAutorisee(
-        string $statutActuel, string $nouveauStatut
+        string $statutActuel,
+        string $nouveauStatut
     ): void {
         $transitions = [
             'en_attente' => ['en_cours'],
@@ -160,12 +158,5 @@ class ChantierService
             'description'  => $data['description'],
             'date_depense' => $data['date_depense'],
         ]);
-    }
-
-    // Recalcule et met à jour le budget consommé
-    private function recalculerBudgetConsomme(Chantier $chantier): void
-    {
-        $total = $chantier->depenses()->sum('montant');
-        $chantier->update(['budget_consomme' => $total]);
     }
 }

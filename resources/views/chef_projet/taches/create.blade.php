@@ -12,7 +12,7 @@
                     Phase {{ $phase->ordre }} : {{ $phase->nomPhase }}
                 </p>
             </div>
-            <form method="POST" action="{{ route('chef_projet.taches.store', [$chantier->id, $phase->id]) }}"
+            <form method="POST" action="{{ route('chef_projet.phases.taches.store', [$chantier->id, $phase->id]) }}"
                 class="p-6 space-y-5">
                 @csrf
 
@@ -159,7 +159,7 @@
 
                 {{-- Boutons --}}
                 <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-                    <a href="{{ route('chef_projet.taches.index', [$chantier->id, $phase->id]) }}"
+                    <a href="{{ route('chef_projet.phases.taches.index', [$chantier->id, $phase->id]) }}"
                         class="px-5 py-2.5 text-sm text-slate-600 border border-slate-300
               rounded-lg hover:bg-slate-50 transition-colors">
                         Annuler

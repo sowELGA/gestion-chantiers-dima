@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('nomChantier');
             $table->string('localisation');
             $table->decimal('budget_prevu', 15, 2);
-            $table->decimal('budget_consomme', 15, 2)->default(0);
             $table->date('date_debut');
             $table->date('date_fin_prevue');
             $table->date('date_fin_reelle')->nullable();

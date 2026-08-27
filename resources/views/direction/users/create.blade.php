@@ -69,6 +69,22 @@
                     @enderror
                 </div>
 
+                {{-- Téléphone --}}
+                <div>
+                    <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
+                        Téléphone
+                    </label>
+                    <input type="tel" name="telUser" value="{{ old('telUser') }}" placeholder="Ex : 77 123 45 67"
+                        class="w-full px-4 py-2.5 border rounded-lg text-sm
+                              focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
+                              focus:border-[#1C9F93] transition-colors
+                              @error('telUser') border-red-400 bg-red-50
+                              @else border-slate-300 @enderror">
+                    @error('telUser')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 {{-- Rôle --}}
                 <div>
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">

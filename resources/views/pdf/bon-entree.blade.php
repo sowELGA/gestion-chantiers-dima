@@ -224,7 +224,8 @@
                 <div class="info-title">Réception</div>
                 <div class="info-row">
                     <span class="info-label">Date :</span>
-                    <span class="info-value">{{ $rapport->date_reception->format('d/m/Y') }}</span>
+                    <span
+                        class="info-value">{{ \Carbon\Carbon::parse($rapport->date_reception)->format('d/m/Y') }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Réceptionné par :</span>
@@ -239,6 +240,10 @@
     </div>
 
     {{-- DÉTAILS --}}
+    @php
+        $totalCumul = $rapport->demande->rapportsEntrees->sum('quantite_recue');
+        $quantiteRestante = max(0, $rapport->demande->quantite_demandee - $totalCumul);
+    @endphp
     <div class="section-title">Détails de la réception</div>
     <table>
         <thead>
@@ -255,23 +260,23 @@
             <tr class="highlight">
                 <td><strong>{{ $rapport->demande->designation }}</strong></td>
                 <td>
-                    {{ $rapport->quantite_commandee }}
+                    {{ $rapport->demande->quantite_demandee }}
                     {{ $rapport->demande->unite }}
                 </td>
                 <td>
-                    {{ $rapport->quantite_totale_recue }}
+                    {{ $totalCumul }}
                     {{ $rapport->demande->unite }}
                 </td>
                 <td class="text-green">
                     {{ $rapport->quantite_recue }}
                     {{ $rapport->demande->unite }}
                 </td>
-                <td class="{{ $rapport->quantite_restante > 0 ? 'text-orange' : 'text-green' }}">
-                    {{ $rapport->quantite_restante }}
+                <td class="{{ $quantiteRestante > 0 ? 'text-orange' : 'text-green' }}">
+                    {{ $quantiteRestante }}
                     {{ $rapport->demande->unite }}
                 </td>
                 <td>
-                    @if ($rapport->quantite_restante <= 0)
+                    @if ($quantiteRestante <= 0)
                         <span style="color:#1C9F93; font-weight:bold;">✓ Complet</span>
                     @else
                         <span style="color:#f59e0b; font-weight:bold;">Partiel</span>

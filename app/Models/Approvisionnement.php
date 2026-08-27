@@ -13,7 +13,7 @@ class Approvisionnement extends Model
         'quantite_demandee',
         'unite',
         'priorite',
-        'statut',
+        'statutAppro',
         'date_livraison_souhaitee',
         'date_commande',
         'date_livraison_prevue',
@@ -48,6 +48,6 @@ class Approvisionnement extends Model
 
     public function rapportsEntrees()
     {
-        return $this->hasMany(RapportsEntree::class, 'demande_id');
+        return $this->hasMany(RapportEntree::class, 'demande_id');
     }
 }

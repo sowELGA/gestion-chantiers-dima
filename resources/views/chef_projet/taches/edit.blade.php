@@ -10,7 +10,7 @@
                 <h3 class="font-semibold text-[#0F172A]">Modifier la tâche</h3>
                 <p class="text-xs text-slate-400 mt-0.5">{{ $tache->nomTache }}</p>
             </div>
-            <form method="POST" action="{{ route('chef_projet.taches.update', [$chantier->id, $phase->id, $tache->id]) }}"
+            <form method="POST" action="{{ route('chef_projet.phases.taches.update', [$chantier->id, $phase->id, $tache->id]) }}"
                 class="p-6 space-y-5">
                 @csrf
                 @method('PATCH')
@@ -183,7 +183,7 @@
 
                 {{-- Boutons --}}
                 <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-                    <a href="{{ route('chef_projet.taches.index', [$chantier->id, $phase->id]) }}"
+                    <a href="{{ route('chef_projet.phases.taches.index', [$chantier->id, $phase->id]) }}"
                         class="px-5 py-2.5 text-sm text-slate-600 border border-slate-300
               rounded-lg hover:bg-slate-50 transition-colors">
                         Annuler

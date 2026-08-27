@@ -91,7 +91,7 @@
                   bg-[#1C9F93] text-white rounded-lg hover:bg-[#178a7f] transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2
-                                     2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                         2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Modifier
             </a>
@@ -99,7 +99,7 @@
     </div>
 
     {{-- KPI --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Budget prévu</p>
             <p class="text-xl font-extrabold text-[#0F172A] mt-2">
@@ -137,6 +137,19 @@
                 {{ number_format($chantier->budget_restant, 0, ',', ' ') }}
                 <span class="text-sm font-normal text-slate-400">FCFA</span>
             </p>
+        </div>
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Avancement global
+            </p>
+            <p class="text-xl font-extrabold text-[#0F172A] mt-2">
+                {{ $chantier->avancement_global }}
+                <span class="text-sm font-normal text-slate-400">%</span>
+            </p>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                <div class="h-1.5 rounded-full bg-blue-500" style="width: {{ min(100, $chantier->avancement_global) }}%">
+                </div>
+            </div>
         </div>
         <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fin prévue</p>
@@ -345,7 +358,7 @@
 
     </div>
 
-     {{-- Lien retour --}}
+    {{-- Lien retour --}}
     <div>
         <a href="{{ route('direction.chantiers.index') }}"
             class="inline-flex items-center gap-2 text-sm text-slate-500

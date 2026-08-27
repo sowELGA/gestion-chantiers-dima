@@ -15,7 +15,7 @@ class ChantierRequest extends FormRequest
     {
         return [
             'nomChantier'     => 'required|string|max:255',
-            'adresse'         => 'required|string|max:255',
+            'localisation'         => 'required|string|max:255',
             'budget_prevu'    => 'required|numeric|min:1',
             'date_debut'      => 'required|date',
             'date_fin_prevue' => 'required|date|after:date_debut',
@@ -27,7 +27,7 @@ class ChantierRequest extends FormRequest
     {
         return [
             'nomChantier.required'     => 'Le nom du chantier est obligatoire.',
-            'adresse.required'         => 'L\'adresse est obligatoire.',
+            'localisation.required'         => 'La localisatiion est obligatoire.',
             'budget_prevu.required'    => 'Le budget est obligatoire.',
             'budget_prevu.numeric'     => 'Le budget doit être un nombre.',
             'budget_prevu.min'         => 'Le budget doit être supérieur à 0.',

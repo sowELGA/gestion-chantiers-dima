@@ -6,28 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('rapports_chantiers', function (Blueprint $table) {
             $table->id();
             $table->date('date_rapport');
+            $table->string('titre')->nullable();
+            $table->enum('type', [
+                'avancement',
+                'incident',
+                'livraison',
+                'reunion',
+                'autre'
+            ])->default('avancement');
             $table->text('contenu');
-            $table->foreignId('chantier_id')
-                ->constrained('chantiers', 'id')
-                ->onDelete('cascade');
-            $table->foreignId('auteur_id')
-                ->constrained('users', 'id')
-                ->onDelete('restrict');
+            $table->unsignedBigInteger('chantier_id');
+            $table->foreign('chantier_id')->references('id')->on('chantiers')->onDelete('cascade');
+            $table->unsignedBigInteger('auteur_id');
+            $table->foreign('auteur_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('rapports_chantiers');

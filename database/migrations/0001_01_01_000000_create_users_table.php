@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nomUser');
             $table->string('prenomUser');
             $table->string('email')->unique();
+            $table->string('telUser');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('premiere_connexion')->default(true);

@@ -38,7 +38,7 @@
         <form method="POST" action="{{ route('chef_projet.appro.update', [$demande->chantier_id, $demande->id]) }}"
             class="p-6 space-y-5">
             @csrf
-            @method('PATCH')
+            @method('PUT')
 
             {{-- Erreurs globales --}}
             @if ($errors->any())

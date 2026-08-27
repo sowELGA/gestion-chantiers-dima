@@ -23,7 +23,7 @@ class Pointage extends Model
 
     public function ouvrier()
     {
-        return $this->belongsTo(Personnel::class, 'ouvrier_id');
+        return $this->belongsTo(Ouvrier::class, 'ouvrier_id');
     }
 
     public function chantier()

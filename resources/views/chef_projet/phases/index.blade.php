@@ -15,14 +15,6 @@
             Mes chantiers
         </a>
         <div class="flex items-center gap-2">
-            <a href="{{ route('chef_projet.taches.gantt', $chantier->id) }}"
-                class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Diagramme Gantt
-            </a>
             @if ($chantier->statut !== 'livre')
                 <a href="{{ route('chef_projet.phases.create', $chantier->id) }}"
                     class="flex items-center gap-2 px-4 py-2.5 bg-[#1C9F93] text-white text-sm font-medium rounded-lg hover:bg-[#178a7f] transition-colors">
@@ -33,6 +25,27 @@
                 </a>
             @endif
         </div>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+        @php
+            $filtres = [
+                'actives' => 'En cours & en attente',
+                'toutes' => 'Toutes',
+                'en_attente' => 'En attente',
+                'en_cours' => 'En cours',
+                'terminee' => 'Terminées',
+            ];
+        @endphp
+        @foreach ($filtres as $valeur => $label)
+            <a href="{{ route('chef_projet.phases.index', $chantier->id) }}?statut={{ $valeur }}"
+                class="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors
+                {{ $statutFiltre === $valeur
+                    ? 'bg-[#0F3D37] text-white border-[#0F3D37]'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#1C9F93] hover:text-[#1C9F93]' }}">
+                {{ $label }}
+            </a>
+        @endforeach
     </div>
 
     @if ($phases->isEmpty())
@@ -92,7 +105,7 @@
 
         {{-- Cards phases --}}
         <div class="space-y-4">
-            @foreach ($phases as $phase)
+            @foreach ($phasesAffichees as $phase)
                 @php
                     $nbTaches = $phase->taches->count();
                     $nbTerminees = $phase->taches->where('statutTache', 'terminee')->count();
@@ -233,9 +246,8 @@
                     </div>
 
                     {{-- Footer actions --}}
-                    <div
-                        class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
-                        <a href="{{ route('chef_projet.taches.index', [$chantier->id, $phase->id]) }}"
+                    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
+                        <a href="{{ route('chef_projet.phases.taches.index', [$chantier->id, $phase->id]) }}"
                             class="flex items-center gap-2 px-4 py-2.5 bg-[#1C9F93] text-white text-sm font-medium rounded-lg hover:bg-[#178a7f] transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

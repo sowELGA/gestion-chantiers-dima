@@ -228,15 +228,15 @@
             </div>
 
             {{-- Pointage → liste chantiers pour choisir --}}
-            <div x-data="{ open: {{ request()->routeIs('chef_projet.pointage*') ? 'true' : 'false' }} }">
+            <div x-data="{ open: {{ request()->routeIs('chef_projet.recap*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
                            rounded-lg transition-all
-                           {{ request()->routeIs('chef_projet.pointage*')
+                           {{ request()->routeIs('chef_projet.recap*')
                                ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
                                : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
                     <svg class="w-5 h-5 flex-shrink-0
-                            {{ request()->routeIs('chef_projet.pointage*') ? 'text-[#1C9F93]' : '' }}"
+                            {{ request()->routeIs('chef_projet.recap*') ? 'text-[#1C9F93]' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2
                              2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0
@@ -261,11 +261,11 @@
                             ->get();
                     @endphp
                     @forelse($chantiersPointage as $c)
-                        <a href="{{ route('chef_projet.pointage.validation', $c->id) }}"
+                        <a href="{{ route('chef_projet.recap.validation', $c->id) }}"
                             class="flex items-center justify-between px-2 py-1.5 rounded-lg
                               text-xs text-white/45 hover:text-white
                               hover:bg-white/[0.06] transition-all group
-                              {{ request()->is('*/' . $c->id . '/pointage*') ? 'text-white bg-white/[0.08]' : '' }}">
+                              {{ request()->is('*/' . $c->id . '/recap*') ? 'text-white bg-white/[0.08]' : '' }}">
                             <span class="truncate max-w-36" title="{{ $c->nomChantier }}">
                                 {{ Str::limit($c->nomChantier, 22) }}
                             </span>
@@ -317,6 +317,21 @@
                         Mes demandes
                     </a>
                 </div>
+                {{-- Rapports --}}
+                <a href="{{ route('chef_projet.rapports.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+              transition-all
+              {{ request()->routeIs('chef_projet.rapports*')
+                  ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                  : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
+                     1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                        Rapports
+                    </span>
+                </a>
             </div>
 
         </nav>
@@ -402,6 +417,11 @@
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
                 Approvisionnements
             </a>
+             <a href="{{ route('chef_projet.rapports.index') }}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                  text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
+                Rapports
+            </a>
         </nav>
         <div class="px-4 py-4 border-t border-white/10">
             <p class="font-mono-tag text-[9px] text-white/40 text-center uppercase tracking-wider">© 2026 Dima Groupe —
@@ -416,7 +436,7 @@
         {{-- HEADER --}}
         <header
             class="h-[76px] flex-shrink-0 bg-white border-b border-slate-200 px-6
-           flex items-center justify-between shadow-sm sticky top-0 z-10">
+           flex items-center justify-between shadow-sm sticky top-0 z-40">
             <div class="flex items-center gap-4">
                 <button @click="sidebarMobile = true"
                     class="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg

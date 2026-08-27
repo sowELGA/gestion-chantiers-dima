@@ -15,7 +15,7 @@ class PointageRequest extends FormRequest
     {
         return [
             'pointages'                  => 'required|array|min:1',
-            'pointages.*.ouvrier_id'     => 'required|exists:personnels,id',
+            'pointages.*.ouvrier_id'     => 'required|exists:ouvriers,id',
             'pointages.*.statutPointage' => 'required|in:present,absent,maladie',
             'pointages.*.heures_sup'     => 'nullable|numeric|min:0|max:12',
         ];

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Approvisionnement;
 use App\Models\Chantier;
-use App\Models\RapportsEntree;
+use App\Models\RapportEntree;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -24,8 +24,8 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee' => 500,
             'unite'             => 'sacs',
             'priorite'          => 'urgent',
-            'statut'            => 'en_attente',
-             'date_livraison_souhaitee' => now()->addDays(2)->toDateString(),
+            'statutAppro'            => 'en_attente',
+            'date_livraison_souhaitee' => now()->addDays(2)->toDateString(),
             'chantier_id'       => $chantier1->id,
             'demandeur_id'      => $chef1->id,
         ]);
@@ -36,7 +36,7 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee'     => 2000,
             'unite'                 => 'kg',
             'priorite'              => 'normal',
-            'statut'                => 'en_attente',
+            'statutAppro'                => 'en_attente',
             'date_livraison_souhaitee' => now()->addDays(7)->toDateString(),
             'chantier_id'           => $chantier1->id,
             'demandeur_id'          => $chef1->id,
@@ -48,7 +48,7 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee'     => 20,
             'unite'                 => 'm³',
             'priorite'              => 'normal',
-            'statut'                => 'validee',
+            'statutAppro'                => 'validee',
             'date_commande'         => now()->subDays(3)->toDateString(),
             'date_livraison_souhaitee' => now()->addDays(4)->toDateString(),
             'chantier_id'           => $chantier1->id,
@@ -61,7 +61,7 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee'     => 3000,
             'unite'                 => 'unités',
             'priorite'              => 'normal',
-            'statut'                => 'en_cours_livraison',
+            'statutAppro'                => 'en_cours_livraison',
             'date_commande'         => now()->subDays(7)->toDateString(),
             'date_livraison_souhaitee' => now()->addDays(2)->toDateString(),
             'chantier_id'           => $chantier1->id,
@@ -74,22 +74,19 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee' => 30,
             'unite'             => 'm³',
             'priorite'          => 'normal',
-            'statut'            => 'partiellement_recue',
+            'statutAppro'            => 'partiellement_recue',
             'date_commande'     => now()->subDays(10)->toDateString(),
             'chantier_id'       => $chantier1->id,
             'demandeur_id'      => $chef1->id,
         ]);
 
-        RapportsEntree::create([
-            'demande_id'            => $demandePartielle->id,
-            'chantier_id'           => $chantier1->id,
-            'receptionnee_par_id'   => $pointeur1->id,
-            'quantite_commandee'    => 30,
-            'quantite_totale_recue' => 15,
-            'quantite_recue'        => 15,
-            'quantite_restante'     => 15,
-            'date_reception'        => now()->subDays(5)->toDateString(),
-            'observation'           => 'Livraison partielle, camion en panne.',
+        RapportEntree::create([
+            'demande_id'          => $demandePartielle->id,
+            'chantier_id'         => $chantier1->id,
+            'receptionnee_par_id' => $pointeur1->id,
+            'quantite_recue'      => 15,
+            'date_reception'      => now()->subDays(5)->toDateString(),
+            'observation'         => 'Livraison partielle, camion en panne.',
         ]);
 
         // 6. Clôturée
@@ -98,22 +95,19 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee' => 100,
             'unite'             => 'planches',
             'priorite'          => 'normal',
-            'statut'            => 'cloturee',
+            'statutAppro'            => 'cloturee',
             'date_commande'     => now()->subDays(20)->toDateString(),
             'chantier_id'       => $chantier1->id,
             'demandeur_id'      => $chef1->id,
         ]);
 
-        RapportsEntree::create([
-            'demande_id'            => $demandeCloturee->id,
-            'chantier_id'           => $chantier1->id,
-            'receptionnee_par_id'   => $pointeur1->id,
-            'quantite_commandee'    => 100,
-            'quantite_totale_recue' => 100,
-            'quantite_recue'        => 100,
-            'quantite_restante'     => 0,
-            'date_reception'        => now()->subDays(15)->toDateString(),
-            'observation'           => null,
+        RapportEntree::create([
+            'demande_id'          => $demandeCloturee->id,
+            'chantier_id'         => $chantier1->id,
+            'receptionnee_par_id' => $pointeur1->id,
+            'quantite_recue'      => 100,
+            'date_reception'      => now()->subDays(15)->toDateString(),
+            'observation'         => null,
         ]);
 
         // 7. Demande chantier 2
@@ -122,7 +116,7 @@ class ApprovisionnementSeeder extends Seeder
             'quantite_demandee'     => 300,
             'unite'                 => 'm²',
             'priorite'              => 'urgent',
-            'statut'                => 'en_attente',
+            'statutAppro'                => 'en_attente',
             'date_livraison_souhaitee' => now()->addDays(5)->toDateString(),
             'chantier_id'           => $chantier2->id,
             'demandeur_id'          => $chef2->id,

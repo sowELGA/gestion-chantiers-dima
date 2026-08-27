@@ -215,7 +215,7 @@
             </div>
 
             {{-- Formulaire caché envoyé au Controller --}}
-            <form id="fiche-form" method="POST" action="{{ route('pointeur.pointage.enregistrer') }}" class="hidden">
+            <form id="fiche-form" method="POST" action="{{ route('pointeur.pointage.enregistrer-fiche') }}" class="hidden">
                 @csrf
             </form>
 

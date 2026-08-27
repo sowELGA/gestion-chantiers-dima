@@ -79,9 +79,9 @@
 
         <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-purple-400
                 hover:shadow-md transition-all cursor-pointer"
-            onclick="window.location='{{ route('direction.pointage.recap') }}'">
+            onclick="window.location='{{ route('direction.rapports.index') }}'">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Rapport disponible
+                Rapports de ls semaine
             </p>
             <p class="text-3xl font-extrabold text-purple-500 mt-2">
                 {{ $fichesSoumises }}

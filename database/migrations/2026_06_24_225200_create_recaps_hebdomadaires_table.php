@@ -17,10 +17,7 @@ return new class extends Migration
             $table->integer('annee');
             $table->integer('jours_presents')->default(0);
             $table->integer('total_heures_sup')->default(0);
-            $table->decimal('salaire_base', 10, 2)->default(0);
-            $table->decimal('salaire_heures_sup', 10, 2)->default(0);
-            $table->decimal('salaire_total', 10, 2)->default(0);
-            $table->enum('statut', [
+            $table->enum('statutRecap', [
                 'en_attente',
                 'soumise',
                 'validee_cp',
@@ -30,7 +27,7 @@ return new class extends Migration
             $table->text('motif_rejet')->nullable();
             $table->timestamp('valide_le')->nullable();
             $table->foreignId('ouvrier_id')
-                ->constrained('personnels', 'id')
+                ->constrained('ouvriers', 'id')
                 ->onDelete('restrict');
             $table->foreignId('chantier_id')
                 ->constrained('chantiers', 'id')

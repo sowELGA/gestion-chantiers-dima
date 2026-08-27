@@ -19,7 +19,7 @@ class Poste extends Model
 
     public function personnel()
     {
-        return $this->hasMany(Personnel::class, 'poste_id');
+        return $this->hasMany(Ouvrier::class, 'poste_id');
     }
 
     public function tauxSalaires()
