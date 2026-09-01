@@ -4,6 +4,21 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+
+        if ($user->premiere_connexion) {
+            return redirect()->route('password.change');
+        }
+
+        return redirect(match ($user->role) {
+            'direction'   => route('direction.dashboard'),
+            'chef_projet' => route('chef_projet.dashboard'),
+            'pointeur'    => route('pointeur.dashboard'),
+            default       => route('login'),
+        });
+    }
+
     return redirect()->route('login');
 });
 

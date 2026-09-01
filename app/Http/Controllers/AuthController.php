@@ -100,7 +100,7 @@ class AuthController extends Controller
 
         // Notifier la direction par email
         $userDemandeur = User::where('email', $request->email)->first();
-        $directions    = User::where('role', 'direction')->where('actif', true)->get();
+        $directions    = User::where('role', 'direction')->where('actif', true)->where('est_super_admin', true)->get();
 
         foreach ($directions as $dir) {
             Mail::to($dir->email)->send(

@@ -87,7 +87,7 @@
                             </p>
                         </div>
                     @else
-                        <div class="grid grid-cols-4 gap-3 mb-4">
+                        <div class="grid grid-cols-3 gap-3 mb-4">
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-[#1C9F93]">
                                     {{ $ficheJour['presents'] }}
@@ -99,12 +99,6 @@
                                     {{ $ficheJour['absents'] }}
                                 </p>
                                 <p class="text-xs text-slate-400 mt-0.5">Absents</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold text-amber-500">
-                                    {{ $ficheJour['maladies'] }}
-                                </p>
-                                <p class="text-xs text-slate-400 mt-0.5">Maladies</p>
                             </div>
                         </div>
                         {{-- Barre de présence --}}

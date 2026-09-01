@@ -23,7 +23,7 @@ class ChantierController extends Controller
     public function index(Request $request)
     {
         $query = Chantier::with(['chefProjet', 'pointeur', 'depenses'])
-        ->where('statut', '!=', 'livre');
+            ->where('statut', '!=', 'livre');
 
         // Filtre par statut (en_cours, en_attente, suspendu, livre)
         if ($request->filled('statut')) {
@@ -73,7 +73,14 @@ class ChantierController extends Controller
 
     public function show(Chantier $chantier)
     {
-        $chantier->load(['chefProjet', 'pointeur', 'depenses', 'phases.taches']);
+        $chantier->load([
+            'chefProjet',
+            'pointeur',
+            'depenses',
+            'phases.taches',
+            'historiqueChefsProjets.user',
+            'historiquePointeurs.user',
+        ]);
 
         $chefsProjets = User::where('role', 'chef_projet')
             ->where('actif', true)
@@ -82,6 +89,7 @@ class ChantierController extends Controller
 
         $pointeurs = User::where('role', 'pointeur')
             ->where('actif', true)
+            ->doesntHave('chantiersPointes')
             ->orderBy('nomUser')
             ->get();
 

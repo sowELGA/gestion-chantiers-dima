@@ -13,6 +13,10 @@
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         .font-display {
             font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
         }
@@ -21,7 +25,6 @@
             font-family: 'JetBrains Mono', ui-monospace, monospace;
         }
 
-        /* Texture façon plan technique, très discrète, derrière le logo */
         .sidebar-grid {
             background-image:
                 linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
@@ -29,7 +32,6 @@
             background-size: 22px 22px;
         }
 
-        /* Liseré de séparation avec petites amorces, comme une cote de plan */
         .dim-rule {
             position: relative;
             height: 1px;
@@ -53,8 +55,6 @@
         .dim-rule::after {
             right: 0;
         }
-
-        /* Petits repères d'angle sur les cartes flottantes (notifications, profil) */
 
         .tick-card .tick {
             position: absolute;
@@ -122,7 +122,7 @@
                 <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">01 — Pilotage</p>
             </div>
 
-            {{-- Dashboard --}}
+            {{-- Dashboard (toujours visible pour un compte direction) --}}
             <a href="{{ route('direction.dashboard') }}"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
               transition-all
@@ -143,250 +143,284 @@
                 </span>
             </a>
 
-            <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
-                <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">02 — Chantiers</p>
-            </div>
-
-            {{-- Chantiers --}}
-            <div x-data="{ open: {{ request()->routeIs('direction.chantiers*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
-                       text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
-                       transition-all
-                       {{ request()->routeIs('direction.chantiers*')
-                           ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
-                           : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9
-                         0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
-                         1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Suivi des Chantiers
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('direction.chantiers.index') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Liste des chantiers
-                    </a>
-                    <a href="{{ route('direction.chantiers.create') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Nouveau chantier
-                    </a>
+            @can('permission', 'gerer_chantiers')
+                <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
+                    <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">02 — Chantiers</p>
                 </div>
-            </div>
 
-            <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
-                <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">03 — Personels</p>
-            </div>
+                {{-- Chantiers --}}
+                <div x-data="{ open: {{ request()->routeIs('direction.chantiers*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
+                           transition-all
+                           {{ request()->routeIs('direction.chantiers*')
+                               ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                               : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9
+                                                         0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
+                                                         1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
+                            Suivi des Chantiers
+                        </span>
+                        <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
+                            class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
+                        <a href="{{ route('direction.chantiers.index') }}"
+                            class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                          hover:bg-white/[0.06] rounded-lg transition-all">
+                            Liste des chantiers
+                        </a>
+                        <a href="{{ route('direction.chantiers.create') }}"
+                            class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                          hover:bg-white/[0.06] rounded-lg transition-all">
+                            Nouveau chantier
+                        </a>
+                    </div>
+                </div>
+            @endcan
+
+            @if (auth()->user()->can('permission', 'gerer_utilisateurs') ||
+                    auth()->user()->can('permission', 'gerer_ouvriers') ||
+                    auth()->user()->can('permission', 'gerer_postes'))
+                <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
+                    <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">03 — Personels</p>
+                </div>
+            @endif
 
             {{-- Utilisateurs --}}
-            <div x-data="{ open: {{ request()->routeIs('direction.users*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
-                       text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
-                       transition-all
-                       {{ request()->routeIs('direction.users*')
-                           ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
-                           : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0
-                         0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Utilisateurs
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('direction.users.index') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Liste des utilisateurs
-                    </a>
-                    <a href="{{ route('direction.users.create') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Nouvel utilisateur
-                    </a>
+            @can('permission', 'gerer_utilisateurs')
+                <div x-data="{ open: {{ request()->routeIs('direction.users*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
+                           transition-all
+                           {{ request()->routeIs('direction.users*')
+                               ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                               : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0
+                                                     0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
+                            Utilisateurs
+                        </span>
+                        <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
+                            class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
+                        <a href="{{ route('direction.users.index') }}"
+                            class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                          hover:bg-white/[0.06] rounded-lg transition-all">
+                            Liste des utilisateurs
+                        </a>
+                        <a href="{{ route('direction.users.create') }}"
+                            class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                          hover:bg-white/[0.06] rounded-lg transition-all">
+                            Nouvel utilisateur
+                        </a>
+                    </div>
                 </div>
-            </div>
+            @endcan
 
             {{-- Personnel --}}
-            <div x-data="{ open: {{ request()->routeIs('direction.personnel*') || request()->routeIs('direction.postes*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
-                       text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
-                       transition-all
-                       {{ request()->routeIs('direction.personnel*') || request()->routeIs('direction.postes*')
-                           ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
-                           : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656
-                         -1.283-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656
-                         .126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0
-                         11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Gestion des ouviers
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('direction.personnel.index') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Liste des ouvriers
-                    </a>
-                    <a href="{{ route('direction.personnel.create') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Ajouter un ouvrier
-                    </a>
-                    <a href="{{ route('direction.postes.index') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Gérer les postes
-                    </a>
+            @if (auth()->user()->can('permission', 'gerer_ouvriers') || auth()->user()->can('permission', 'gerer_postes'))
+                <div x-data="{ open: {{ request()->routeIs('direction.personnel*') || request()->routeIs('direction.postes*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
+                           transition-all
+                           {{ request()->routeIs('direction.personnel*') || request()->routeIs('direction.postes*')
+                               ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                               : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656
+                                 -1.283-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656
+                                 .126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0
+                                 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
+                            Gestion des ouviers
+                        </span>
+                        <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
+                            class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
+                        @can('permission', 'gerer_ouvriers')
+                            <a href="{{ route('direction.personnel.index') }}"
+                                class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                              hover:bg-white/[0.06] rounded-lg transition-all">
+                                Liste des ouvriers
+                            </a>
+                            <a href="{{ route('direction.personnel.create') }}"
+                                class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                              hover:bg-white/[0.06] rounded-lg transition-all">
+                                Ajouter un ouvrier
+                            </a>
+                        @endcan
+                        @can('permission', 'gerer_postes')
+                            <a href="{{ route('direction.postes.index') }}"
+                                class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                              hover:bg-white/[0.06] rounded-lg transition-all">
+                                Gérer les postes
+                            </a>
+                        @endcan
+                    </div>
                 </div>
-            </div>
+            @endif
 
-            <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
-                <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">04 — Ressources</p>
-            </div>
+            @if (auth()->user()->can('permission', 'gerer_taux_salariaux') || auth()->user()->can('permission', 'gerer_salaires'))
+                <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
+                    <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">04 — Ressources</p>
+                </div>
+            @endif
 
             {{-- Salaires --}}
-            <div x-data="{ open: {{ request()->routeIs('direction.salaires*') || request()->routeIs('direction.pointage*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
-                       text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
-                       transition-all 
-                       {{ request()->routeIs('direction.salaires*') || request()->routeIs('direction.pointage*') 
-                           ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
-                           : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343
-                         2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1
-                         c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Salaires
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('direction.salaires.taux') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Taux salariaux
-                    </a>
-                    <a href="{{ route('direction.pointage.recap') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Pointage
-                    </a>
-                    <a href="{{ route('direction.salaires.recaps') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Fiches de paie
-                    </a>
+            @if (auth()->user()->can('permission', 'gerer_taux_salariaux') ||
+                    auth()->user()->can('permission', 'gerer_salaires') ||
+                    auth()->user()->can('permission', 'gerer_approvisionnements'))
+                <div x-data="{ open: {{ request()->routeIs('direction.salaires*') || request()->routeIs('direction.pointage*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
+                           transition-all 
+                           {{ request()->routeIs('direction.salaires*') || request()->routeIs('direction.pointage*')
+                               ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                               : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343
+                                 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1
+                                 c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
+                            Salaires
+                        </span>
+                        <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
+                            class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
+                        @can('permission', 'gerer_taux_salariaux')
+                            <a href="{{ route('direction.salaires.taux') }}"
+                                class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                              hover:bg-white/[0.06] rounded-lg transition-all">
+                                Taux salariaux
+                            </a>
+                        @endcan
+                        @can('permission', 'gerer_salaires')
+                            <a href="{{ route('direction.pointage.recap') }}"
+                                class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                              hover:bg-white/[0.06] rounded-lg transition-all">
+                                Pointage
+                            </a>
+                            <a href="{{ route('direction.salaires.recaps') }}"
+                                class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                              hover:bg-white/[0.06] rounded-lg transition-all">
+                                Fiches de paie
+                            </a>
+                        @endcan
+                    </div>
                 </div>
-            </div>
+            @endif
 
             {{-- Approvisionnements --}}
-            <div x-data="{ open: {{ request()->routeIs('direction.appro*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
-                       text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
-                       transition-all 
-                       {{ request()->routeIs('direction.appro*')
-                           ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
-                           : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
-                        Approvisionnements
-                    </span>
-                    <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
-                        class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
-                    <a href="{{ route('direction.appro.index') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Demandes en attente
-                    </a>
-                    <a href="{{ route('direction.appro.historique') }}"
-                        class="block px-3 py-2 text-sm text-white/45 hover:text-white
-                      hover:bg-white/[0.06] rounded-lg transition-all">
-                        Historique
-                    </a>
+            @can('permission', 'gerer_approvisionnements')
+                <div x-data="{ open: {{ request()->routeIs('direction.appro*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
+                           text-white/45 rounded-lg hover:bg-white/[0.06] hover:text-white
+                           transition-all 
+                           {{ request()->routeIs('direction.appro*')
+                               ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                               : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <span x-show="sidebarOpen" x-transition class="flex-1 text-left whitespace-nowrap">
+                            Approvisionnements
+                        </span>
+                        <svg x-show="sidebarOpen" :class="open ? 'rotate-180' : ''"
+                            class="w-4 h-4 transition-transform flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open && sidebarOpen" x-transition class="ml-8 mt-1 space-y-1">
+                        <a href="{{ route('direction.appro.index') }}"
+                            class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                          hover:bg-white/[0.06] rounded-lg transition-all">
+                            Demandes en attente
+                        </a>
+                        <a href="{{ route('direction.appro.historique') }}"
+                            class="block px-3 py-2 text-sm text-white/45 hover:text-white
+                          hover:bg-white/[0.06] rounded-lg transition-all">
+                            Historique
+                        </a>
+                    </div>
                 </div>
-            </div>
+            @endcan
 
-            <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
-                <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">05 — Suivi</p>
-            </div>
+            @if (auth()->user()->can('permission', 'gerer_depenses') || auth()->user()->can('permission', 'voir_rapports'))
+                <div x-show="sidebarOpen" x-transition class="px-4 pt-4 pb-1.5">
+                    <p class="font-mono-tag text-[9px] tracking-[0.15em] text-white/30 uppercase">05 — Suivi</p>
+                </div>
+            @endif
 
             {{-- Dépenses --}}
-            <a href="{{ route('direction.depenses.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
-          transition-all
-          {{ request()->routeIs('direction.depenses*')
-              ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
-              : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                <svg class="w-5 h-5 flex-shrink-0
+            @can('permission', 'gerer_depenses')
+                <a href="{{ route('direction.depenses.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+              transition-all
+              {{ request()->routeIs('direction.depenses*')
+                  ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
+                  : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0
                 {{ request()->routeIs('direction.depenses*') ? 'text-[#1C9F93]' : '' }}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2
-                 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0
-                 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
-                    Dépenses
-                </span>
-            </a>
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2
+                             4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0
+                             002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                        Dépenses
+                    </span>
+                </a>
+            @endcan
 
             {{-- Rapports --}}
-            <a href="{{ route('direction.rapports.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
+            @can('permission', 'voir_rapports')
+                <a href="{{ route('direction.rapports.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg
               transition-all
               {{ request()->routeIs('direction.rapports*')
                   ? 'bg-gradient-to-r from-[#1C9F93]/25 via-[#1C9F93]/10 to-transparent text-white border-l-2 border-[#1C9F93]'
                   : 'text-white/45 hover:bg-white/[0.06] hover:text-white' }}">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
-                     1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
-                    Rapports
-                </span>
-            </a>
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
+                                 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span x-show="sidebarOpen" x-transition class="whitespace-nowrap">
+                        Rapports
+                    </span>
+                </a>
+            @endcan
 
         </nav>
 
@@ -463,36 +497,48 @@
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
                 Dashboard
             </a>
-            <a href="{{ route('direction.chantiers.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+            @can('permission', 'gerer_chantiers')
+                <a href="{{ route('direction.chantiers.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
-                Suivi des Chantiers
-            </a>
-            <a href="{{ route('direction.users.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                    Suivi des Chantiers
+                </a>
+            @endcan
+            @can('permission', 'gerer_utilisateurs')
+                <a href="{{ route('direction.users.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
-                Utilisateurs
-            </a>
-            <a href="{{ route('direction.personnel.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                    Utilisateurs
+                </a>
+            @endcan
+            @can('permission', 'gerer_ouvriers')
+                <a href="{{ route('direction.personnel.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
-                Collaborateurs
-            </a>
-            <a href="{{ route('direction.salaires.recaps') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                    Collaborateurs
+                </a>
+            @endcan
+            @can('permission', 'gerer_salaires')
+                <a href="{{ route('direction.salaires.recaps') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
-                Salaires
-            </a>
-            <a href="{{ route('direction.appro.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                    Salaires
+                </a>
+            @endcan
+            @can('permission', 'gerer_approvisionnements')
+                <a href="{{ route('direction.appro.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
-                Approvisionnements
-            </a>
-            <a href="{{ route('direction.rapports.index') }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                    Approvisionnements
+                </a>
+            @endcan
+            @can('permission', 'voir_rapports')
+                <a href="{{ route('direction.rapports.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium
                   text-white/45 hover:bg-white/[0.06] hover:text-white rounded-lg">
-                Rapports
-            </a>
+                    Rapports
+                </a>
+            @endcan
         </nav>
         <div class="px-4 py-4 border-t border-white/10">
             <p class="font-mono-tag text-[9px] text-white/40 text-center uppercase tracking-wider">
@@ -512,7 +558,6 @@
             class="h-[76px] flex-shrink-0 bg-white border-b border-slate-200 px-6
            flex items-center justify-between shadow-sm sticky top-0 z-10">
 
-            {{-- Gauche : burger mobile + titre --}}
             <div class="flex items-center gap-4">
                 <button @click="sidebarMobile = true"
                     class="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg
@@ -535,82 +580,8 @@
                 </div>
             </div>
 
-            {{-- Droite : notifications | séparateur | profil --}}
             <div class="flex items-center gap-4">
 
-                {{-- Cloche notifications --}}
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open"
-                        class="relative flex items-center justify-center w-9 h-9 rounded-lg
-                               border border-slate-200 text-slate-500 hover:text-[#1C9F93]
-                               hover:border-[#1C9F93]/40 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118
-                                 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2
-                                 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0
-                                 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3
-                                 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        @php
-                            $notifCount = auth()->user()->notifications()->where('lu', false)->count();
-                        @endphp
-                        @if ($notifCount > 0)
-                            <span
-                                class="absolute top-1 right-1 w-4 h-4 bg-red-500
-                                     text-white text-[10px] rounded-full
-                                     flex items-center justify-center font-bold">
-                                {{ $notifCount }}
-                            </span>
-                        @endif
-                    </button>
-
-                    {{-- Dropdown notifications --}}
-                    <div x-show="open" @click.outside="open = false" x-transition
-                        class="tick-card absolute right-0 mt-2 w-80 bg-white rounded-xl
-                            shadow-lg border border-slate-200 z-50">
-                        <span class="tick tick-tl"></span>
-                        <span class="tick tick-br"></span>
-                        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                            <h3 class="font-display font-semibold text-sm text-[#0F172A]">
-                                Notifications
-                            </h3>
-                            <span class="font-mono-tag text-[9px] uppercase tracking-wider text-slate-400">
-                                {{ $notifCount }} nouvelle{{ $notifCount > 1 ? 's' : '' }}
-                            </span>
-                        </div>
-                        <div class="max-h-64 overflow-y-auto divide-y divide-slate-50">
-                            @forelse(auth()->user()->notifications()->latest()->take(5)->get() as $notif)
-                                <div
-                                    class="px-4 py-3 hover:bg-slate-50 transition-colors
-                                        {{ !$notif->lu ? 'bg-[#1C9F93]/5' : '' }}">
-                                    <p class="text-sm font-medium text-[#0F172A]">
-                                        {{ $notif->titre }}
-                                    </p>
-                                    <p class="text-xs text-slate-500 mt-0.5">
-                                        {{ $notif->message }}
-                                    </p>
-                                    <p class="font-mono-tag text-[10px] text-slate-400 mt-1">
-                                        {{ $notif->created_at->diffForHumans() }}
-                                    </p>
-                                </div>
-                            @empty
-                                <div class="px-4 py-8 text-center text-slate-400 text-sm">
-                                    Aucune notification
-                                </div>
-                            @endforelse
-                        </div>
-                        <div class="px-4 py-3 border-t border-slate-100">
-                            <a href="#" class="text-xs text-[#1C9F93] font-semibold hover:underline">
-                                Voir toutes les notifications
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Séparateur --}}
-                <div class="dim-rule-v h-8 w-px bg-slate-200"></div>
-
-                {{-- Profil --}}
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         class="flex items-center gap-3 hover:bg-slate-50 border border-transparent
@@ -622,7 +593,7 @@
                             <p
                                 class="font-mono-tag text-[10px] font-medium text-[#1C9F93]
                                   uppercase tracking-wider">
-                                Administrateur
+                                Direction
                             </p>
                         </div>
                         <div
@@ -639,7 +610,6 @@
                         </svg>
                     </button>
 
-                    {{-- Dropdown profil --}}
                     <div x-show="open" @click.outside="open = false" x-transition
                         class="tick-card absolute right-0 mt-2 w-52 bg-white rounded-lg
                             shadow-lg border border-slate-200 z-50 py-1">
@@ -658,8 +628,8 @@
                               text-slate-600 hover:bg-slate-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743
-                                     5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1
-                                     1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                     5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1
+                     1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                             </svg>
                             Changer mot de passe
                         </a>
@@ -672,8 +642,8 @@
                                            transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3
-                                             0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3
-                                             3 0 013 3v1" />
+                             0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3
+                             3 0 013 3v1" />
                                     </svg>
                                     Se déconnecter
                                 </button>
@@ -688,7 +658,6 @@
         {{-- CONTENU --}}
         <main class="flex-1 p-6 overflow-y-auto space-y-6">
 
-            {{-- Flash success --}}
             @if (session('success'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-transition
                     class="flex items-center gap-3 bg-emerald-50 border border-emerald-200
@@ -701,14 +670,13 @@
                 </div>
             @endif
 
-            {{-- Flash error --}}
             @if (session('error'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-transition
                     class="flex items-center gap-3 bg-red-50 border border-red-200
                         text-red-600 rounded-xl px-4 py-3 text-sm">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0
-                             11-18 0 9 9 0 0118 0z" />
+             11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {{ session('error') }}
                 </div>

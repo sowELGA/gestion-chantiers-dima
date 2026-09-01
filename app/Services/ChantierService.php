@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Chantier;
 use App\Models\DepensesChantier;
+use App\Models\UserChantier;
+use Illuminate\Support\Facades\DB;
 
 class ChantierService
 {
@@ -48,16 +50,42 @@ class ChantierService
     // CHANTIER — AFFECTATIONS
     // ══════════════════════════════════════════════════════════
 
-    public function affecterChefProjet(Chantier $chantier, ?int $chefProjetId): Chantier
+    public function affecterChefProjet(Chantier $chantier, ?int $chefProjetId): void
     {
-        $chantier->update(['chef_projet_id' => $chefProjetId]);
-        return $chantier->fresh();
+        DB::transaction(function () use ($chantier, $chefProjetId) {
+            $this->cloturerAffectationEnCours($chantier, 'chef_projet');
+
+            if ($chefProjetId) {
+                UserChantier::create([
+                    'chantier_id'       => $chantier->id,
+                    'user_id'           => $chefProjetId,
+                    'debut_affectation' => now(),
+                    'fin_affectation'   => null,
+                ]);
+            }
+
+            $chantier->update(['chef_projet_id' => $chefProjetId]);
+            return $chantier->fresh();
+        });
     }
 
-    public function affecterPointeur(Chantier $chantier, ?int $pointeurId): Chantier
+    public function affecterPointeur(Chantier $chantier, ?int $pointeurId): void
     {
-        $chantier->update(['pointeur_id' => $pointeurId]);
-        return $chantier->fresh();
+        DB::transaction(function () use ($chantier, $pointeurId) {
+            $this->cloturerAffectationEnCours($chantier, 'pointeur');
+
+            if ($pointeurId) {
+                UserChantier::create([
+                    'chantier_id'       => $chantier->id,
+                    'user_id'           => $pointeurId,
+                    'debut_affectation' => now(),
+                    'fin_affectation'   => null,
+                ]);
+            }
+
+            $chantier->update(['pointeur_id' => $pointeurId]);
+            return $chantier->fresh();
+        });
     }
 
     // ══════════════════════════════════════════════════════════
@@ -158,5 +186,17 @@ class ChantierService
             'description'  => $data['description'],
             'date_depense' => $data['date_depense'],
         ]);
+    }
+
+    /**
+     * Clôture l'affectation en cours du rôle donné pour ce chantier
+     * (fin_affectation = aujourd'hui) avant d'en créer une nouvelle.
+     */
+    private function cloturerAffectationEnCours(Chantier $chantier, string $role): void
+    {
+        $chantier->affectations()
+            ->whereHas('user', fn($q) => $q->where('role', $role))
+            ->whereNull('fin_affectation')
+            ->update(['fin_affectation' => now()]);
     }
 }

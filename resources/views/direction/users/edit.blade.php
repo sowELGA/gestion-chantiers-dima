@@ -7,7 +7,7 @@
 @section('content')
 
     <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" x-data="{ role: '{{ old('role', $user->role) }}' }">
 
             <div class="px-6 py-5 border-b border-slate-100">
                 <div class="flex items-center gap-3">
@@ -97,7 +97,7 @@
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                         Rôle <span class="text-red-500">*</span>
                     </label>
-                    <select name="role"
+                    <select name="role" x-model="role"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm
                                focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                focus:border-[#1C9F93] bg-white transition-colors
@@ -115,6 +115,41 @@
                     @error('role')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
+                </div>
+
+                {{-- Permissions (uniquement si rôle = direction) --}}
+                <div x-show="role === 'direction'" x-transition x-cloak
+                    class="border border-slate-200 rounded-lg p-4 bg-slate-50/60">
+                    <p class="text-sm font-medium text-[#0F172A] mb-1">
+                        Permissions
+                    </p>
+                    <p class="text-xs text-slate-500 mb-3">
+                        Cochez les actions autorisées pour ce compte Direction.
+                    </p>
+
+                    @error('permissions')
+                        <p class="text-red-500 text-xs mb-2">{{ $message }}</p>
+                    @enderror
+
+                    @php
+                        $permissionsUtilisateur = old('permissions', $user->permissions->pluck('id')->toArray());
+                    @endphp
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        @foreach ($permissions as $permission)
+                            <label
+                                class="flex items-center gap-2.5 px-3 py-2.5 bg-white border rounded-lg text-sm
+                                       cursor-pointer transition-colors
+                                       has-[:checked]:border-[#1C9F93] has-[:checked]:bg-[#1C9F93]/5
+                                       border-slate-200 hover:border-slate-300">
+                                <input type="checkbox" name="permissions[]" value="{{ $permission->id }}"
+                                    {{ in_array($permission->id, $permissionsUtilisateur) ? 'checked' : '' }}
+                                    class="w-4 h-4 rounded border-slate-300 text-[#1C9F93]
+                                           focus:ring-[#1C9F93]/30 focus:ring-2">
+                                <span class="text-[#0F172A]">{{ $permission->libelle }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
 
                 {{-- Boutons --}}

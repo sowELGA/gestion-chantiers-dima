@@ -27,6 +27,7 @@ return new class extends Migration
                 'chef_projet',
                 'pointeur'
             ]);
+            $table->boolean('est_super_admin')->default(false);
             $table->timestamps();
         });
 

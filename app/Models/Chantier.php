@@ -123,7 +123,7 @@ class Chantier extends Model
 
     public function rapportsEntrees()
     {
-        return $this->hasMany(RapportsEntree::class, 'chantier_id');
+        return $this->hasMany(RapportEntree::class, 'chantier_id');
     }
 
     public function depenses()
@@ -136,8 +136,24 @@ class Chantier extends Model
         return $this->hasMany(RapportChantier::class, 'chantier_id');
     }
 
-    public function notifications()
+    public function affectations()
     {
-        return $this->hasMany(Notification::class, 'chantier_id');
+        return $this->hasMany(UserChantier::class);
+    }
+
+    public function historiqueChefsProjets()
+    {
+        return $this->affectations()
+            ->whereHas('user', fn($q) => $q->where('role', 'chef_projet'))
+            ->with('user')
+            ->orderByDesc('debut_affectation');
+    }
+
+    public function historiquePointeurs()
+    {
+        return $this->affectations()
+            ->whereHas('user', fn($q) => $q->where('role', 'pointeur'))
+            ->with('user')
+            ->orderByDesc('debut_affectation');
     }
 }

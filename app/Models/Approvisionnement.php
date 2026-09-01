@@ -35,6 +35,11 @@ class Approvisionnement extends Model
         return max(0, $this->quantite_demandee - $totalRecu);
     }
 
+    public function getStatutAttribute()
+    {
+        return $this->attributes['statutAppro'];
+    }
+
     // Relations
     public function chantier()
     {

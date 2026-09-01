@@ -22,6 +22,8 @@ class UserRequest extends FormRequest
             'email'      => 'required|email|unique:users,email,' . $id . ',id',
             'telUser' => 'required|string|max:20',
             'role'       => 'required|in:direction,chef_projet,pointeur',
+            'permissions'   => ['nullable', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
         ];
     }
 

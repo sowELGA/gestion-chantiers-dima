@@ -13,18 +13,22 @@ class UserService
         $motDepasseTemp = 'Dima@' . rand(1000, 9999);
 
         $user = User::create([
-            'nomUser'           => $data['nomUser'],
-            'prenomUser'        => $data['prenomUser'],
-            'email'             => $data['email'],
-            'telUser'             => $data['telUser'],
-            'password'          => Hash::make($motDepasseTemp),
-            'role'              => $data['role'],
-            'premiere_connexion' => true
+            'nomUser'            => $data['nomUser'],
+            'prenomUser'         => $data['prenomUser'],
+            'email'              => $data['email'],
+            'telUser'            => $data['telUser'],
+            'password'           => Hash::make($motDepasseTemp),
+            'role'               => $data['role'],
+            'premiere_connexion' => true,
         ]);
 
+        if ($data['role'] === 'direction') {
+            $user->permissions()->sync($data['permissions'] ?? []);
+        }
+
         return [
-            'user'             => $user,
-            'motDePasseTemp'   => $motDepasseTemp
+            'user'           => $user,
+            'motDePasseTemp' => $motDepasseTemp,
         ];
     }
 
@@ -32,16 +36,20 @@ class UserService
     public function modifier(User $user, array $data): array
     {
         $user->update([
-            'nomUser'           => $data['nomUser'],
-            'prenomUser'        => $data['prenomUser'],
-            'email'             => $data['email'],
-            'telUser'             => $data['telUser'],
-            'role'              => $data['role']
+            'nomUser'    => $data['nomUser'],
+            'prenomUser' => $data['prenomUser'],
+            'email'      => $data['email'],
+            'telUser'    => $data['telUser'],
+            'role'       => $data['role'],
         ]);
 
-        return [
-            'user'             => $user,
-        ];
+        if ($data['role'] === 'direction') {
+            $user->permissions()->sync($data['permissions'] ?? []);
+        } else {
+            $user->permissions()->sync([]);
+        }
+
+        return ['user' => $user];
     }
 
     // Activer / Désactiver un compte

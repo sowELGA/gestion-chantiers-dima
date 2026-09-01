@@ -15,30 +15,34 @@
             <p class="text-3xl font-extrabold text-[#0F172A] mt-2">
                 {{ $kpi['chantiers_actifs'] }}
             </p>
-            <a href="{{ route('direction.chantiers.index') }}"
-                class="text-xs text-[#1C9F93] hover:underline mt-1 inline-block">
-                Voir les chantiers →
-            </a>
+            @can('permission', 'gerer_chantiers')
+                <a href="{{ route('direction.chantiers.index') }}"
+                    class="text-xs text-[#1C9F93] hover:underline mt-1 inline-block">
+                    Voir les chantiers →
+                </a>
+            @endcan
         </div>
 
-        <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-[#D4AF37]">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Budget total (en cours)
-            </p>
-            <p class="text-2xl font-extrabold text-[#0F172A] mt-2">
-                {{ number_format($kpi['budget_total'], 0, ',', ' ') }}
-                <span class="text-sm font-normal text-slate-400">FCFA</span>
-            </p>
-            @php
-                $pctGlobal =
-                    $kpi['budget_total'] > 0 ? round(($kpi['budget_consomme'] / $kpi['budget_total']) * 100) : 0;
-            @endphp
-            <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
-                <div class="h-1.5 rounded-full {{ $pctGlobal > 90 ? 'bg-red-500' : 'bg-[#D4AF37]' }}"
-                    style="width: {{ $pctGlobal }}%"></div>
+        @if (auth()->user()->est_super_admin || auth()->user()->can('permission', 'gerer_utilisateurs'))
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-[#D4AF37]
+            hover:shadow-md transition-all cursor-pointer"
+                onclick="window.location='{{ route('direction.users.index') }}'">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Utilisateurs
+                </p>
+                <p class="text-3xl font-extrabold text-[#0F172A] mt-2">
+                    {{ $kpi['utilisateurs_total'] }}
+                </p>
+                @if ($kpi['demandes_reset'] > 0)
+                    <p class="text-xs text-amber-600 font-medium mt-1">
+                        {{ $kpi['demandes_reset'] }} demande{{ $kpi['demandes_reset'] > 1 ? 's' : '' }}
+                        de réinitialisation en attente
+                    </p>
+                @else
+                    <p class="text-xs text-slate-400 mt-1">Aucune demande en attente</p>
+                @endif
             </div>
-            <p class="text-xs text-slate-400 mt-1">{{ $pctGlobal }}% consommé</p>
-        </div>
+        @endif
 
         <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-slate-400">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -47,46 +51,83 @@
             <p class="text-3xl font-extrabold text-[#0F172A] mt-2">
                 {{ $kpi['personnel_actif'] }}
             </p>
-            <a href="{{ route('direction.personnel.index') }}"
-                class="text-xs text-[#1C9F93] hover:underline mt-1 inline-block">
-                Gérer le personnel →
-            </a>
+            @can('permission', 'gerer_ouvriers')
+                <a href="{{ route('direction.personnel.index') }}"
+                    class="text-xs text-[#1C9F93] hover:underline mt-1 inline-block">
+                    Gérer le personnel →
+                </a>
+            @endcan
         </div>
 
-        <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-amber-400
-                hover:shadow-md transition-all cursor-pointer"
-            onclick="window.location='{{ route('direction.appro.index') }}'">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Demandes en attente
-            </p>
-            <p class="text-3xl font-extrabold text-amber-500 mt-2">
-                {{ $kpi['demandes_attente'] }}
-            </p>
-            <p class="text-xs text-slate-400 mt-1">À traiter</p>
-        </div>
+        @can('permission', 'gerer_approvisionnements')
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-amber-400
+                    hover:shadow-md transition-all cursor-pointer"
+                onclick="window.location='{{ route('direction.appro.index') }}'">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Demandes en attente
+                </p>
+                <p class="text-3xl font-extrabold text-amber-500 mt-2">
+                    {{ $kpi['demandes_attente'] }}
+                </p>
+                <p class="text-xs text-slate-400 mt-1">À traiter</p>
+            </div>
+        @else
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-amber-400">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Demandes en attente
+                </p>
+                <p class="text-3xl font-extrabold text-amber-500 mt-2">
+                    {{ $kpi['demandes_attente'] }}
+                </p>
+                <p class="text-xs text-slate-400 mt-1">À traiter</p>
+            </div>
+        @endcan
 
-        <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-blue-400
-                hover:shadow-md transition-all cursor-pointer"
-            onclick="window.location='{{ route('direction.salaires.recaps') }}'">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Fiches de paie disponible
-            </p>
-            <p class="text-3xl font-extrabold text-blue-500 mt-2">
-                {{ $kpi['fiches_a_calculer'] }}
-            </p>
-            <p class="text-xs text-slate-400 mt-1">Fiches validées CP</p>
-        </div>
+        @can('permission', 'gerer_salaires')
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-blue-400
+                    hover:shadow-md transition-all cursor-pointer"
+                onclick="window.location='{{ route('direction.salaires.recaps') }}'">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Fiches de paie disponible
+                </p>
+                <p class="text-3xl font-extrabold text-blue-500 mt-2">
+                    {{ $kpi['fiches_a_calculer'] }}
+                </p>
+                <p class="text-xs text-slate-400 mt-1">Fiches validées CP</p>
+            </div>
+        @else
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-blue-400">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Fiches de paie disponible
+                </p>
+                <p class="text-3xl font-extrabold text-blue-500 mt-2">
+                    {{ $kpi['fiches_a_calculer'] }}
+                </p>
+                <p class="text-xs text-slate-400 mt-1">Fiches validées CP</p>
+            </div>
+        @endcan
 
-        <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-purple-400
-                hover:shadow-md transition-all cursor-pointer"
-            onclick="window.location='{{ route('direction.rapports.index') }}'">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Rapports de ls semaine
-            </p>
-            <p class="text-3xl font-extrabold text-purple-500 mt-2">
-                {{ $fichesSoumises }}
-            </p>
-        </div>
+        @can('permission', 'voir_rapports')
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-purple-400
+                    hover:shadow-md transition-all cursor-pointer"
+                onclick="window.location='{{ route('direction.rapports.index') }}'">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Rapports de la semaine
+                </p>
+                <p class="text-3xl font-extrabold text-purple-500 mt-2">
+                    {{ $fichesSoumises }}
+                </p>
+            </div>
+        @else
+            <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-purple-400">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Rapports de la semaine
+                </p>
+                <p class="text-3xl font-extrabold text-purple-500 mt-2">
+                    {{ $fichesSoumises }}
+                </p>
+            </div>
+        @endcan
 
     </div>
 
@@ -96,9 +137,11 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="font-semibold text-[#0F172A]">Chantiers en cours</h3>
-                <a href="{{ route('direction.chantiers.index') }}" class="text-xs text-[#1C9F93] hover:underline">
-                    Tout voir →
-                </a>
+                @can('permission', 'gerer_chantiers')
+                    <a href="{{ route('direction.chantiers.index') }}" class="text-xs text-[#1C9F93] hover:underline">
+                        Tout voir →
+                    </a>
+                @endcan
             </div>
             @if ($chantiers->isEmpty())
                 <div class="p-8 text-center">
@@ -107,31 +150,57 @@
             @else
                 <div class="divide-y divide-slate-50">
                     @foreach ($chantiers as $item)
-                        <a href="{{ route('direction.chantiers.show', $item['chantier']->id) }}"
-                            class="flex items-center justify-between px-6 py-4
-                              hover:bg-slate-50 transition-colors block">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-sm font-semibold text-[#0F172A] truncate">
-                                    {{ $item['chantier']->nomChantier }}
-                                </p>
-                                <p class="text-xs text-slate-400 mt-0.5">
-                                    {{ $item['chantier']->chefProjet?->nomComplet ?? '—' }}
-                                    · Budget :
-                                    {{ $item['pctBudget'] }}% consommé
-                                </p>
-                                <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full bg-[#1C9F93] transition-all"
-                                        style="width: {{ $item['avancement'] }}%">
+                        @can('permission', 'gerer_chantiers')
+                            <a href="{{ route('direction.chantiers.show', $item['chantier']->id) }}"
+                                class="flex items-center justify-between px-6 py-4
+                                  hover:bg-slate-50 transition-colors block">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-[#0F172A] truncate">
+                                        {{ $item['chantier']->nomChantier }}
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-0.5">
+                                        {{ $item['chantier']->chefProjet?->nomComplet ?? '—' }}
+                                        · Budget :
+                                        {{ $item['pctBudget'] }}% consommé
+                                    </p>
+                                    <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
+                                        <div class="h-1.5 rounded-full bg-[#1C9F93] transition-all"
+                                            style="width: {{ $item['avancement'] }}%">
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="ml-4 text-right flex-shrink-0">
+                                    <p class="text-lg font-bold text-[#0F172A]">
+                                        {{ $item['avancement'] }}%
+                                    </p>
+                                    <p class="text-xs text-slate-400">avancement</p>
+                                </div>
+                            </a>
+                        @else
+                            <div class="flex items-center justify-between px-6 py-4">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-[#0F172A] truncate">
+                                        {{ $item['chantier']->nomChantier }}
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-0.5">
+                                        {{ $item['chantier']->chefProjet?->nomComplet ?? '—' }}
+                                        · Budget :
+                                        {{ $item['pctBudget'] }}% consommé
+                                    </p>
+                                    <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
+                                        <div class="h-1.5 rounded-full bg-[#1C9F93] transition-all"
+                                            style="width: {{ $item['avancement'] }}%">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4 text-right flex-shrink-0">
+                                    <p class="text-lg font-bold text-[#0F172A]">
+                                        {{ $item['avancement'] }}%
+                                    </p>
+                                    <p class="text-xs text-slate-400">avancement</p>
+                                </div>
                             </div>
-                            <div class="ml-4 text-right flex-shrink-0">
-                                <p class="text-lg font-bold text-[#0F172A]">
-                                    {{ $item['avancement'] }}%
-                                </p>
-                                <p class="text-xs text-slate-400">avancement</p>
-                            </div>
-                        </a>
+                        @endcan
                     @endforeach
                 </div>
             @endif
@@ -150,9 +219,11 @@
                         </span>
                     @endif
                 </h3>
-                <a href="{{ route('direction.appro.index') }}" class="text-xs text-[#1C9F93] hover:underline">
-                    Tout voir →
-                </a>
+                @can('permission', 'gerer_approvisionnements')
+                    <a href="{{ route('direction.appro.index') }}" class="text-xs text-[#1C9F93] hover:underline">
+                        Tout voir →
+                    </a>
+                @endcan
             </div>
             @if ($approsUrgentes->isEmpty())
                 <div class="p-8 text-center">
@@ -176,18 +247,19 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0 ml-3">
-                                <form method="POST"
-                                    action="{{ route('direction.appro.valider', $demande->id) }}">
-                                    @csrf @method('PATCH')
-                                    <button type="submit"
-                                        class="px-3 py-1 text-xs font-medium bg-[#1C9F93]
-                                               text-white rounded-lg hover:bg-[#178a7f]
-                                               transition-colors">
-                                        Valider
-                                    </button>
-                                </form>
-                            </div>
+                            @can('permission', 'gerer_approvisionnements')
+                                <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+                                    <form method="POST" action="{{ route('direction.appro.valider', $demande->id) }}">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="px-3 py-1 text-xs font-medium bg-[#1C9F93]
+                                                   text-white rounded-lg hover:bg-[#178a7f]
+                                                   transition-colors">
+                                            Valider
+                                        </button>
+                                    </form>
+                                </div>
+                            @endcan
                         </div>
                     @endforeach
                 </div>
@@ -200,9 +272,11 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 class="font-semibold text-[#0F172A]">Dernières dépenses</h3>
-            <a href="{{ route('direction.depenses.index') }}" class="text-xs text-[#1C9F93] hover:underline">
-                Tout voir →
-            </a>
+            @can('permission', 'gerer_depenses')
+                <a href="{{ route('direction.depenses.index') }}" class="text-xs text-[#1C9F93] hover:underline">
+                    Tout voir →
+                </a>
+            @endcan
         </div>
         @if ($dernieresDepenses->isEmpty())
             <div class="p-8 text-center">

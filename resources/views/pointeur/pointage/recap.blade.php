@@ -56,6 +56,8 @@
                       'Confirmer la soumission au chef de projet ?\n' +
                       'Les pointages seront verrouillés.')">
                     @csrf
+                    <input type="hidden" name="semaine" value="{{ $semaine }}">
+                    <input type="hidden" name="annee" value="{{ $annee }}">
                     <button type="submit"
                         class="px-5 py-2 bg-[#0F172A] text-white text-sm font-medium
                                rounded-lg hover:bg-[#1e293b] transition-colors">
@@ -65,6 +67,43 @@
             @endif
         </div>
     </div>
+
+    {{-- Sélecteur de semaine (5 dernières semaines) --}}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <form method="GET" action="{{ route('pointeur.pointage.recap') }}" id="semaineForm"
+            class="flex items-end gap-4 flex-wrap">
+            <div>
+                <label class="block text-xs font-medium text-[#0F172A] mb-1.5">
+                    Semaine
+                </label>
+                <select name="semaine" id="semaineSelect"
+                    class="px-4 py-2.5 border border-slate-300 rounded-lg text-sm
+                           focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
+                           focus:border-[#1C9F93] bg-white min-w-80">
+                    @foreach ($semaines as $s)
+                        <option value="{{ $s['semaine'] }}" data-annee="{{ $s['annee'] }}"
+                            {{ (int) $s['semaine'] === (int) $semaine && (int) $s['annee'] === (int) $annee ? 'selected' : '' }}>
+                            {{ $s['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+                <input type="hidden" name="annee" id="anneeInput" value="{{ $annee }}">
+            </div>
+            <button type="submit"
+                class="px-4 py-2.5 bg-[#1C9F93] text-white text-sm font-medium
+                       rounded-lg hover:bg-[#178a7f] transition-colors">
+                Afficher
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('semaineSelect').addEventListener('change', function() {
+            document.getElementById('anneeInput').value =
+                this.options[this.selectedIndex].dataset.annee;
+            this.closest('form').submit();
+        });
+    </script>
 
     @if ($lignes->isEmpty())
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-10 text-center">
@@ -240,7 +279,7 @@
                     </table>
                 </div>
 
-                <x-pagination-simple :pagination="$pagination" page-param="page" />
+                <x-pagination-simple :pagination="$pagination" :params="['semaine' => $semaine, 'annee' => $annee]" page-param="page" />
 
             </div>
         @endif

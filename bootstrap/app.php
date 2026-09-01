@@ -12,8 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'role'               => \App\Http\Middleware\CheckRole::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'premiere_connexion' => \App\Http\Middleware\CheckPremiereConnexion::class,
+            'role'               => \App\Http\Middleware\CheckRole::class,
+            'permission' => \App\Http\Middleware\VerifierPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

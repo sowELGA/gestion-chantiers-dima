@@ -49,7 +49,7 @@
             {{-- BARRE SUPERIEURE : RESUMÉ & ACTIONS --}}
             <div
                 class="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-                {{-- Badges compteurs --}}
+                {{-- Badges compteurs globaux --}}
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -112,7 +112,7 @@
                         <div @click="open = !open"
                             class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-100/80 transition-colors select-none">
 
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-2.5 flex-wrap">
                                 <svg class="w-4 h-4 text-slate-500 transition-transform duration-200"
                                     :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -122,9 +122,22 @@
 
                                 <h3 class="font-bold text-slate-800 text-sm">{{ $posteLibelle }}</h3>
 
-                                <span class="px-2 py-0.5 bg-slate-200/70 text-slate-600 rounded-full text-xs font-semibold">
-                                    {{ $ouvriersGroupe->count() }}
-                                </span>
+                                {{-- Badges Présents / Absents / Total du groupe --}}
+                                <div class="flex items-center gap-1.5 ml-1">
+                                    <span class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md text-[11px] font-bold"
+                                        title="Effectif total de ce métier">
+                                        Total : {{ count($ids) }}
+                                    </span>
+                                    <span
+                                        class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[11px] font-semibold"
+                                        title="Présents dans ce métier">
+                                        <span x-text="compterGroupe({{ json_encode($ids) }}, 'present')">0</span> P
+                                    </span>
+                                    <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded-md text-[11px] font-semibold"
+                                        title="Absents dans ce métier">
+                                        <span x-text="compterGroupe({{ json_encode($ids) }}, 'absent')">0</span> A
+                                    </span>
+                                </div>
                             </div>
 
                             @if ($modifiable)
@@ -215,7 +228,8 @@
             </div>
 
             {{-- Formulaire caché envoyé au Controller --}}
-            <form id="fiche-form" method="POST" action="{{ route('pointeur.pointage.enregistrer-fiche') }}" class="hidden">
+            <form id="fiche-form" method="POST" action="{{ route('pointeur.pointage.enregistrer-fiche') }}"
+                class="hidden">
                 @csrf
             </form>
 
@@ -228,14 +242,12 @@
                     lignes: donneesInitiales,
                     recherche: '',
 
-                    // Vérifie si un ouvrier correspond à la recherche par nom
                     estOuvrierVisible(id) {
                         if (!this.recherche.trim()) return true;
                         const nom = this.lignes[id]?.nom?.toLowerCase() || '';
                         return nom.includes(this.recherche.toLowerCase().trim());
                     },
 
-                    // Vérifie si au moins un ouvrier du groupe correspond à la recherche
                     estGroupeVisible(ids) {
                         if (!this.recherche.trim()) return true;
                         return ids.some(id => this.estOuvrierVisible(id));
@@ -279,6 +291,10 @@
 
                     compter(statut) {
                         return Object.values(this.lignes).filter(l => l.statut === statut).length;
+                    },
+
+                    compterGroupe(ids, statut) {
+                        return ids.filter(id => this.lignes[id] && this.lignes[id].statut === statut).length;
                     },
 
                     soumettre() {

@@ -19,6 +19,7 @@ class User extends Authenticatable
         'role',
         'premiere_connexion',
         'actif',
+        'est_super_admin'
     ];
 
     protected $hidden = [
@@ -30,6 +31,7 @@ class User extends Authenticatable
         'premiere_connexion' => 'boolean',
         'actif' => 'boolean',
         'password'           => 'hashed',
+        'est_super_admin' => 'boolean'
     ];
 
     // Accesseur nom complet
@@ -51,7 +53,7 @@ class User extends Authenticatable
     {
         return $query->where('actif', false);
     }
-    
+
     public function scopeDirection($query)
     {
         return $query->where('role', 'direction');
@@ -78,8 +80,23 @@ class User extends Authenticatable
         return $this->hasMany(Chantier::class, 'pointeur_id');
     }
 
-    public function notifications()
+    public function permissions()
     {
-        return $this->hasMany(Notification::class, 'user_id');
+        return $this->belongsToMany(Permission::class);
+    }
+
+    public function aLaPermission(string $code): bool
+    {
+        if ($this->est_super_admin) {
+            return true;
+        }
+
+        if ($this->role !== 'direction') {
+            return false;
+        }
+
+        return $this->relationLoaded('permissions')
+            ? $this->permissions->contains('code', $code)
+            : $this->permissions()->where('code', $code)->exists();
     }
 }

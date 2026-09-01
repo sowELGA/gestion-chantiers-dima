@@ -35,6 +35,21 @@ return new class extends Migration
                 ->onDelete('set null');
             $table->timestamps();
         });
+
+        Schema::create('user_chantier', function (Blueprint $table) {
+            $table->id();
+            $table->date('debut_affectation');
+            $table->date('fin_affectation')->nullable();
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+            $table->foreignId('chantier_id')
+                ->constrained('chantiers')
+                ->onDelete('cascade');
+            $table->timestamps();
+
+            $table->index(['chantier_id', 'user_id']);
+        });
     }
 
     /**
@@ -43,5 +58,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('chantiers');
+        Schema::dropIfExists('user_chantier');
     }
 };
