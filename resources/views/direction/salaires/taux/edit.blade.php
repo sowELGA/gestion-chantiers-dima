@@ -97,12 +97,34 @@
 
                                         {{-- Taux Journalier --}}
                                         <td class="px-4 py-3">
-                                            <div class="relative rounded-lg shadow-sm">
-                                                <input type="number" step="100" min="0"
+                                            @php
+                                                $valeurInitialeTauxJ = old(
+                                                    'taux.' . $ligne['poste']->id . '.taux_journalier',
+                                                    $ligne['taux_journalier'],
+                                                );
+                                                $valeurFormateeTauxJ = $valeurInitialeTauxJ
+                                                    ? number_format((float) $valeurInitialeTauxJ, 0, '', ' ')
+                                                    : '';
+                                            @endphp
+                                            <div class="relative rounded-lg shadow-sm" x-data="{
+                                                display: '{{ $valeurFormateeTauxJ }}',
+                                                value: '{{ $valeurInitialeTauxJ }}',
+                                                format(val) {
+                                                    let num = val.replace(/\D/g, '');
+                                                    this.value = num;
+                                                    this.display = num ? new Intl.NumberFormat('fr-FR').format(num) : '';
+                                                }
+                                            }">
+                                                {{-- Champ caché envoyé au serveur avec la valeur numérique brute --}}
+                                                <input type="hidden"
                                                     name="taux[{{ $ligne['poste']->id }}][taux_journalier]"
-                                                    value="{{ old('taux.' . $ligne['poste']->id . '.taux_journalier', $ligne['taux_journalier']) }}"
-                                                    placeholder="0"
-                                                    class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg text-sm text-right font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/20 focus:border-[#1C9F93] transition-all placeholder:text-slate-300">
+                                                    :value="value">
+
+                                                {{-- Champ texte affiché avec séparateur de milliers --}}
+                                                <input type="text" inputmode="numeric" x-model="display"
+                                                    @input="format($event.target.value)" placeholder="0"
+                                                    class="w-full pl-3 pr-14 py-2 border border-slate-300 rounded-lg text-sm text-right font-semibold text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/20 focus:border-[#1C9F93] transition-all placeholder:text-slate-300">
+
                                                 <div
                                                     class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                                     <span class="text-xs font-semibold text-slate-400">FCFA</span>
@@ -112,12 +134,34 @@
 
                                         {{-- Taux Heure Sup --}}
                                         <td class="px-4 py-3">
-                                            <div class="relative rounded-lg shadow-sm">
-                                                <input type="number" step="50" min="0"
+                                            @php
+                                                $valeurInitialeTauxHS = old(
+                                                    'taux.' . $ligne['poste']->id . '.taux_heure_sup',
+                                                    $ligne['taux_heure_sup'],
+                                                );
+                                                $valeurFormateeTauxHS = $valeurInitialeTauxHS
+                                                    ? number_format((float) $valeurInitialeTauxHS, 0, '', ' ')
+                                                    : '';
+                                            @endphp
+                                            <div class="relative rounded-lg shadow-sm" x-data="{
+                                                display: '{{ $valeurFormateeTauxHS }}',
+                                                value: '{{ $valeurInitialeTauxHS }}',
+                                                format(val) {
+                                                    let num = val.replace(/\D/g, '');
+                                                    this.value = num;
+                                                    this.display = num ? new Intl.NumberFormat('fr-FR').format(num) : '';
+                                                }
+                                            }">
+                                                {{-- Champ caché envoyé au serveur avec la valeur numérique brute --}}
+                                                <input type="hidden"
                                                     name="taux[{{ $ligne['poste']->id }}][taux_heure_sup]"
-                                                    value="{{ old('taux.' . $ligne['poste']->id . '.taux_heure_sup', $ligne['taux_heure_sup']) }}"
-                                                    placeholder="0"
-                                                    class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg text-sm text-right font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/20 focus:border-[#1C9F93] transition-all placeholder:text-slate-300">
+                                                    :value="value">
+
+                                                {{-- Champ texte affiché avec séparateur de milliers --}}
+                                                <input type="text" inputmode="numeric" x-model="display"
+                                                    @input="format($event.target.value)" placeholder="0"
+                                                    class="w-full pl-3 pr-14 py-2 border border-slate-300 rounded-lg text-sm text-right font-semibold text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/20 focus:border-[#1C9F93] transition-all placeholder:text-slate-300">
+
                                                 <div
                                                     class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                                     <span class="text-xs font-semibold text-slate-400">FCFA</span>

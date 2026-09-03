@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Bon d'entrée N°{{ $rapport->id }}</title>
+    <title>Bon de récéption N°{{ $rapport->id }}</title>
     <style>
         * {
             margin: 0;
@@ -199,8 +199,8 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="doc-title">BON D'ENTRÉE</div>
-            <div class="doc-num">N° BE-{{ str_pad($rapport->id, 4, '0', STR_PAD_LEFT) }}</div>
+            <div class="doc-title">BON DE RECEPTION</div>
+            <div class="doc-num">N° BR-{{ str_pad($rapport->id, 4, '0', STR_PAD_LEFT) }}</div>
         </div>
     </div>
 
