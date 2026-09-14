@@ -181,9 +181,11 @@
                                     title="{{ $ligne['ouvrier']->nomComplet }}">
                                     {{ $ligne['ouvrier']->nomComplet }}
                                 </td>
+                                {{-- Poste ENREGISTRÉ LORS DU POINTAGE (jamais le poste
+                                     actuel de l'ouvrier, qui a pu changer depuis). --}}
                                 <td class="px-3 py-2 text-slate-400 truncate max-w-24"
-                                    title="{{ $ligne['ouvrier']->poste->libelle }}">
-                                    {{ Str::limit($ligne['ouvrier']->poste->libelle, 14) }}
+                                    title="{{ $ligne['poste']?->libelle ?? '—' }}">
+                                    {{ Str::limit($ligne['poste']?->libelle ?? '—', 14) }}
                                 </td>
                                 @foreach ($ligne['jours'] as $jourData)
                                     @php

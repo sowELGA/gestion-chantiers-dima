@@ -35,15 +35,21 @@ class ChefApproController extends Controller
 
     public function index()
     {
-        $dateDebut = request('date_debut', now()->startOfMonth()->toDateString());
-        $dateFin   = request('date_fin', now()->toDateString());
-        $statut    = request('statut', 'tous');
+        // Validées explicitement plutôt que passées brutes à
+        // whereBetween() : une valeur malformée dans l'URL (favori,
+        // partage de lien) provoquerait sinon une erreur SQL opaque.
+        $filtres = request()->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin'   => 'nullable|date|after_or_equal:date_debut',
+            'statut'     => 'nullable|string',
+        ]);
+
+        $dateDebut = $filtres['date_debut'] ?? now()->startOfMonth()->toDateString();
+        $dateFin   = $filtres['date_fin'] ?? now()->toDateString();
+        $statut    = $filtres['statut'] ?? 'tous';
 
         $demandes = Approvisionnement::with(['chantier'])
-            ->whereHas(
-                'chantier',
-                fn($q) => $q->where('chef_projet_id', auth()->id())
-            )
+            ->whereHas('chantier', fn($q) => $q->where('chef_projet_id', auth()->id()))
             ->whereBetween('created_at', [
                 $dateDebut . ' 00:00:00',
                 $dateFin   . ' 23:59:59',
@@ -51,13 +57,25 @@ class ChefApproController extends Controller
             ->when($statut !== 'tous', fn($q) => $q->where('statutAppro', $statut))
             ->orderByRaw("FIELD(priorite, 'urgent', 'normal')")
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
+
+        // Une seule requête agrégée au lieu de 4 requêtes whereHas
+        // séparées portant chacune la même sous-clause de propriétaire.
+        $brut = Approvisionnement::whereHas('chantier', fn($q) => $q->where('chef_projet_id', auth()->id()))
+            ->selectRaw("
+                SUM(CASE WHEN statutAppro = 'en_attente' THEN 1 ELSE 0 END) as en_attente,
+                SUM(CASE WHEN statutAppro IN ('validee','en_cours_livraison','partiellement_recue') THEN 1 ELSE 0 END) as en_cours_livraison,
+                SUM(CASE WHEN statutAppro = 'cloturee' THEN 1 ELSE 0 END) as cloturee,
+                SUM(CASE WHEN statutAppro = 'rejetee' THEN 1 ELSE 0 END) as rejetee
+            ")
+            ->first();
 
         $stats = [
-            'en_attente'         => Approvisionnement::whereHas('chantier', fn($q) => $q->where('chef_projet_id', auth()->id()))->where('statutAppro', 'en_attente')->count(),
-            'en_cours_livraison' => Approvisionnement::whereHas('chantier', fn($q) => $q->where('chef_projet_id', auth()->id()))->whereIn('statutAppro', ['validee', 'en_cours_livraison', 'partiellement_recue'])->count(),
-            'cloturee'           => Approvisionnement::whereHas('chantier', fn($q) => $q->where('chef_projet_id', auth()->id()))->where('statutAppro', 'cloturee')->count(),
-            'rejetee'            => Approvisionnement::whereHas('chantier', fn($q) => $q->where('chef_projet_id', auth()->id()))->where('statutAppro', 'rejetee')->count(),
+            'en_attente'         => (int) $brut->en_attente,
+            'en_cours_livraison' => (int) $brut->en_cours_livraison,
+            'cloturee'           => (int) $brut->cloturee,
+            'rejetee'            => (int) $brut->rejetee,
         ];
 
         return view(

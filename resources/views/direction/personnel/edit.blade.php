@@ -1,7 +1,7 @@
 @extends('layouts.direction')
-@section('title', 'Modifier ' . $personnel->nomComplet)
+@section('title', 'Modifier ' . $ouvrier->nomComplet)
 @section('page_title', 'Modifier un ouvrier')
-@section('page_subtitle', $personnel->nomComplet)
+@section('page_subtitle', $ouvrier->nomComplet)
 
 @section('content')
     <div class="max-w-2xl mx-auto">
@@ -11,7 +11,7 @@
                 <h3 class="font-semibold text-[#0F172A]">Informations de l'ouvrier</h3>
             </div>
 
-            <form method="POST" action="{{ route('direction.personnel.update', $personnel->id) }}" class="p-6 space-y-5">
+            <form method="POST" action="{{ route('direction.personnel.update', $ouvrier->id) }}" class="p-6 space-y-5">
                 @csrf @method('PUT')
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -19,7 +19,7 @@
                         <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                             Nom <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="nomOuvrier" value="{{ old('nomOuvrier', $personnel->nomOuvrier) }}"
+                        <input type="text" name="nomOuvrier" value="{{ old('nomOuvrier', $ouvrier->nomOuvrier) }}"
                             class="w-full px-4 py-2.5 border rounded-lg text-sm
                                   focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                   focus:border-[#1C9F93] transition-colors
@@ -33,7 +33,7 @@
                             Prénom <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="prenomOuvrier"
-                            value="{{ old('prenomOuvrier', $personnel->prenomOuvrier) }}"
+                            value="{{ old('prenomOuvrier', $ouvrier->prenomOuvrier) }}"
                             class="w-full px-4 py-2.5 border rounded-lg text-sm
                                   focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                                   focus:border-[#1C9F93] transition-colors
@@ -48,7 +48,7 @@
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                         Téléphone
                     </label>
-                    <input type="tel" name="telOuvrier" value="{{ old('telOuvrier', $personnel->telOuvrier) }}"
+                    <input type="tel" name="telOuvrier" value="{{ old('telOuvrier', $ouvrier->telOuvrier) }}"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm
                               focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                               focus:border-[#1C9F93] transition-colors
@@ -85,7 +85,7 @@
                                focus:ring-[#1C9F93]/30 focus:border-[#1C9F93] bg-white">
                         @foreach ($chantiers as $chantier)
                             <option value="{{ $chantier->id }}"
-                                {{ old('chantier_id', $personnel->chantier_id) == $chantier->id ? 'selected' : '' }}>
+                                {{ old('chantier_id', $ouvrier->chantier_id) == $chantier->id ? 'selected' : '' }}>
                                 {{ $chantier->nomChantier }}
                             </option>
                         @endforeach

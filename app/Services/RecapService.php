@@ -9,24 +9,20 @@ use Carbon\Carbon;
 
 class RecapService
 {
+    /**
+     * S'assure qu'un récap (ligne de workflow) existe pour chaque ouvrier
+     * actif du chantier, pour la semaine donnée. Ne calcule et n'écrit
+     * plus aucune donnée chiffrée (jours présents, heures sup, salaire) :
+     * ces valeurs n'existent plus en base et sont toujours recalculées à
+     * la volée depuis les pointages (voir PointageHelper::construireLigneOuvrier
+     * / calculerSalaireDepuisPointages).
+     */
     public function recalculerRecap(int $chantierId, int $semaine, int $annee): void
     {
         $personnel = PointageHelper::personnelActif($chantierId);
 
         foreach ($personnel as $ouvrier) {
-            $recap = RecapHebdomadaire::where('ouvrier_id', $ouvrier->id)
-                ->where('chantier_id', $chantierId)
-                ->where('semaine', $semaine)
-                ->where('annee', $annee)
-                ->first();
-
-            if ($recap && !in_array($recap->statutRecap, ['en_attente', 'rejetee'])) {
-                continue;
-            }
-
-            $donnees = PointageHelper::calculerSalaireOuvrier($ouvrier, $chantierId, $semaine, $annee);
-
-            RecapHebdomadaire::updateOrCreate(
+            RecapHebdomadaire::firstOrCreate(
                 [
                     'ouvrier_id'  => $ouvrier->id,
                     'chantier_id' => $chantierId,
@@ -34,12 +30,7 @@ class RecapService
                     'annee'       => $annee,
                 ],
                 [
-                    // Seuls les champs qui existent réellement en base sont
-                    // persistés. Le salaire n'est jamais stocké : il est
-                    // recalculé à la volée à chaque affichage.
-                    'jours_presents'   => $donnees['jours_presents'],
-                    'total_heures_sup' => $donnees['total_heures_sup'],
-                    'statutRecap'      => $recap?->statutRecap ?? 'en_attente',
+                    'statutRecap' => 'en_attente',
                 ]
             );
         }
@@ -147,23 +138,19 @@ class RecapService
             ]);
     }
 
+    /**
+     * Marque la semaine comme envoyée à la direction. Aucune donnée
+     * chiffrée n'est écrite ici : elle n'existe plus en base et est
+     * toujours recalculée à la volée (voir getLignesRecap / getTotauxSemaine).
+     */
     public function calculerSalaires(int $chantierId, int $semaine, int $annee): void
     {
-        $personnel = PointageHelper::personnelActif($chantierId);
-
-        foreach ($personnel as $ouvrier) {
-            $donnees = PointageHelper::calculerSalaireOuvrier($ouvrier, $chantierId, $semaine, $annee);
-
-            RecapHebdomadaire::where('ouvrier_id', $ouvrier->id)
-                ->where('chantier_id', $chantierId)
-                ->where('semaine', $semaine)
-                ->where('annee', $annee)
-                ->update([
-                    'jours_presents'   => $donnees['jours_presents'],
-                    'total_heures_sup' => $donnees['total_heures_sup'],
-                    'statutRecap'      => 'envoyee_direction',
-                ]);
-        }
+        RecapHebdomadaire::where('chantier_id', $chantierId)
+            ->where('semaine', $semaine)
+            ->where('annee', $annee)
+            ->update([
+                'statutRecap' => 'envoyee_direction',
+            ]);
     }
 
     public function getSemainesDisponibles(int $nbSemaines = 12): \Illuminate\Support\Collection

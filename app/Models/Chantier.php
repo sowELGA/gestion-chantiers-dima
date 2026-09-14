@@ -45,30 +45,87 @@ class Chantier extends Model
         return (float) $this->depenses()->sum('montant');
     }
 
-    public function getBudgetRestantAttribute(): float
+    /**
+     * Le budget prévu est désormais optionnel : si aucun budget n'a été
+     * défini, "il reste combien" n'a pas de sens — on renvoie null plutôt
+     * qu'un nombre négatif trompeur (0 - dépenses).
+     */
+    public function getBudgetRestantAttribute(): ?float
     {
-        return $this->budget_prevu - $this->budget_consomme;
+        if ($this->budget_prevu === null) {
+            return null;
+        }
+
+        return (float) $this->budget_prevu - $this->budget_consomme;
     }
 
-    public function getPourcentageBudgetAttribute(): float
+    /**
+     * Idem : sans budget défini, un pourcentage n'a pas de sens (ni 0%,
+     * qui laisserait croire que le budget est tenu, ni une division par
+     * zéro). On renvoie null, à charge des vues d'afficher "—" ou
+     * "Non défini" dans ce cas.
+     */
+    public function getPourcentageBudgetAttribute(): ?float
     {
-        if ($this->budget_prevu == 0) return 0;
+        if ($this->budget_prevu === null || (float) $this->budget_prevu == 0) {
+            return null;
+        }
+
         return round(($this->budget_consomme / $this->budget_prevu) * 100, 2);
     }
 
-    // Avancement global du chantier = moyenne de l'avancement de toutes
-    // ses tâches. Réutilise la collection "taches" si elle est déjà
-    // chargée, pour rester performant sur la liste des chantiers.
+    /**
+     * Avancement global du chantier = moyenne de l'avancement de toutes
+     * ses tâches. Réutilise la collection "taches" si elle est déjà
+     * chargée (comme pour budget_consomme) ; sinon, calcule la moyenne
+     * directement en base plutôt que de rapatrier toutes les lignes pour
+     * les moyenner en PHP.
+     */
     public function getAvancementGlobalAttribute(): float
     {
-        $taches = $this->taches;
-        if ($taches->isEmpty()) return 0;
-        return round($taches->avg('avancement'), 2);
+        if ($this->relationLoaded('taches')) {
+            $taches = $this->taches;
+            return $taches->isEmpty() ? 0 : round($taches->avg('avancement'), 2);
+        }
+
+        $moyenne = $this->taches()->avg('avancement');
+
+        return $moyenne !== null ? round((float) $moyenne, 2) : 0;
     }
 
+    /**
+     * Un chantier n'est considéré en retard qu'à partir du lendemain de
+     * sa date de fin prévue. date_fin_prevue est castée en date pure
+     * (minuit) : la comparer directement à now() (l'instant précis) le
+     * ferait apparaître "en retard" dès 00h00 le jour même de l'échéance,
+     * alors que la journée n'est pas encore terminée.
+     */
     public function getEstEnRetardAttribute(): bool
     {
-        return $this->date_fin_prevue < now() && $this->statut !== 'livre';
+        return $this->date_fin_prevue->lt(today()) && $this->statut !== 'livre';
+    }
+
+    /**
+     * Source unique de vérité pour les transitions de statut autorisées,
+     * utilisée à la fois par ChantierService::verifierTransitionAutorisee()
+     * (contrôle serveur) et par la vue show.blade.php (menu "Changer le
+     * statut") — pour éviter que les deux se désynchronisent si la règle
+     * métier évolue un jour.
+     */
+    public const TRANSITIONS = [
+        'en_attente' => ['en_cours' => 'Démarrer le chantier'],
+        'en_cours'   => ['suspendu' => 'Suspendre', 'livre' => 'Marquer comme livré'],
+        'suspendu'   => ['en_cours' => 'Reprendre le chantier'],
+        'livre'      => [],
+    ];
+
+    /**
+     * Transitions possibles depuis le statut actuel de CE chantier, sous
+     * forme [nouveau_statut => libellé affichable].
+     */
+    public function transitionsDisponibles(): array
+    {
+        return self::TRANSITIONS[$this->statut] ?? [];
     }
 
     // ══════════════════════════════════════════════════════════

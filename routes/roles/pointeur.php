@@ -27,7 +27,7 @@ Route::middleware(['auth', 'premiere_connexion', 'role:pointeur'])
                 Route::post('/modifier', [PointageController::class, 'enregistrerModificationJour'])->name('enregistrer-modification');
             });
 
-        // Réceptions Matériaux / Livraisons
+        // Réceptions Livraisons
         Route::prefix('receptions')->name('appro.')->group(function () {
             Route::get('/livraisons', [ReceptionController::class, 'livraisons'])->name('livraisons');
             Route::get('/historique', [ReceptionController::class, 'historiqueLivraisons'])->name('historique');

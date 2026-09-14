@@ -10,7 +10,8 @@
                 <h3 class="font-semibold text-[#0F172A]">Modifier la tâche</h3>
                 <p class="text-xs text-slate-400 mt-0.5">{{ $tache->nomTache }}</p>
             </div>
-            <form method="POST" action="{{ route('chef_projet.phases.taches.update', [$chantier->id, $phase->id, $tache->id]) }}"
+            <form method="POST"
+                action="{{ route('chef_projet.phases.taches.update', [$chantier->id, $phase->id, $tache->id]) }}"
                 class="p-6 space-y-5">
                 @csrf
                 @method('PATCH')
@@ -21,8 +22,8 @@
                 flex items-start gap-3 text-sm text-red-600">
                         <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
-                             1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
-                             0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                     1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
+                                     0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
                             @foreach ($errors->all() as $error)
@@ -49,8 +50,8 @@
                     </div>
                     <svg class="w-4 h-4 text-[#1C9F93] ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955
-                         11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824
-                         10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824
+                                 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                 </div>
 
@@ -91,8 +92,8 @@
                         <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
                             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2
-                                             0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1
-                                             1 0 00-1-1z" clip-rule="evenodd" />
+                                                             0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1
+                                                             1 0 00-1-1z" clip-rule="evenodd" />
                             </svg>
                             {{ $message }}
                         </p>
@@ -169,7 +170,11 @@
                    focus:border-[#1C9F93] bg-white transition-colors">
                         <option value="">— Aucune dépendance</option>
                         @foreach ($tachesDisponibles as $t)
-                            <option value="{{ $t->idTache }}"
+                            {{-- $t->idTache n'existe pas : la clé primaire de Tache
+                                 est "id" (confirmé par la migration). Avec l'ancien
+                                 code, la valeur soumise était toujours vide et la
+                                 dépendance ne pouvait jamais être modifiée. --}}
+                            <option value="{{ $t->id }}"
                                 {{ old('tache_precedente_id', $tache->tache_precedente_id ?? '') == $t->id ? 'selected' : '' }}>
                                 {{ $t->nomTache }}
                                 ({{ $t->date_debut_prevue?->format('d/m/Y') ?? '—' }})

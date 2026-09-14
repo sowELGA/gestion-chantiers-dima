@@ -39,26 +39,71 @@ class DirectionApproController extends Controller
 
     public function valider(Approvisionnement $demande)
     {
-        $this->approService->valider($demande);
-        return back()->with('success', 'Demande validée avec succès.');
+        try {
+            $this->approService->valider($demande);
+            return back()->with('success', 'Demande validée avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function rejeter(Approvisionnement $demande)
     {
-        $this->approService->rejeter($demande);
-        return back()->with('success', 'Demande rejetée.');
+        try {
+            $this->approService->rejeter($demande);
+            return back()->with('success', 'Demande rejetée.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
+    /**
+     * La date de livraison prévue est optionnelle ici : le pop-up permet
+     * de la saisir tout de suite, mais on peut valider sans elle et la
+     * renseigner plus tard via definirDateLivraison().
+     */
     public function passerCommande(Approvisionnement $demande)
     {
-        $this->approService->commander($demande);
-        return back()->with('success', 'Commande passée — en cours de livraison.');
+        $data = request()->validate([
+            'date_livraison_prevue' => 'nullable|date|after_or_equal:today',
+        ]);
+
+        try {
+            $this->approService->commander($demande, $data['date_livraison_prevue'] ?? null);
+            return back()->with('success', 'Commande passée — en cours de livraison.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Permet de définir ou corriger la date de livraison prévue à tout
+     * moment tant que la commande n'est pas clôturée — y compris après
+     * l'avoir passée sans date, ou pour corriger une date déjà saisie.
+     */
+    public function definirDateLivraison(Approvisionnement $demande)
+    {
+        $data = request()->validate([
+            'date_livraison_prevue' => 'nullable|date',
+        ]);
+
+        try {
+            $this->approService->definirDateLivraisonPrevue($demande, $data['date_livraison_prevue'] ?? null);
+            return back()->with('success', 'Date de livraison prévue mise à jour.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function historique()
     {
-        $dateDebut = request('date_debut', now()->startOfMonth()->toDateString());
-        $dateFin   = request('date_fin', now()->toDateString());
+        $filtres = request()->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin'   => 'nullable|date|after_or_equal:date_debut',
+        ]);
+
+        $dateDebut = $filtres['date_debut'] ?? now()->startOfMonth()->toDateString();
+        $dateFin   = $filtres['date_fin'] ?? now()->toDateString();
 
         $demandes = Approvisionnement::with(['chantier', 'demandeur', 'rapportsEntrees'])
             ->whereIn('statutAppro', ['cloturee', 'rejetee'])

@@ -42,25 +42,29 @@
                     <div class="text-center">
                         <p class="text-xs text-slate-400">Budget</p>
                         <p class="text-xs font-medium text-[#0F172A] mt-0.5">
-                            {{ number_format($chantier->budget_prevu, 0, ',', ' ') }} F
+                            {{ $chantier->budget_prevu !== null ? number_format($chantier->budget_prevu, 0, ',', ' ') . ' F' : 'Non défini' }}
                         </p>
                     </div>
                     {{-- Avancement budget --}}
                     <div class="w-24">
                         <p class="text-xs text-slate-400 mb-1">Consommé</p>
-                        <div class="w-full bg-slate-100 rounded-full h-1.5">
-                            <div class="h-1.5 rounded-full transition-all
+                        @if ($chantier->pourcentage_budget === null)
+                            <p class="text-xs text-slate-400 italic">Budget non défini</p>
+                        @else
+                            <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                <div class="h-1.5 rounded-full transition-all
                                         {{ $chantier->pourcentage_budget > 90
                                             ? 'bg-red-500'
                                             : ($chantier->pourcentage_budget > 70
                                                 ? 'bg-amber-500'
                                                 : 'bg-[#1C9F93]') }}"
-                                style="width: {{ min(100, $chantier->pourcentage_budget) }}%">
+                                    style="width: {{ min(100, $chantier->pourcentage_budget) }}%">
+                                </div>
                             </div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-0.5 text-right">
-                            {{ $chantier->pourcentage_budget }}%
-                        </p>
+                            <p class="text-xs text-slate-500 mt-0.5 text-right">
+                                {{ $chantier->pourcentage_budget }}%
+                            </p>
+                        @endif
                     </div>
                     {{-- Avancement global --}}
                     <div class="w-24">

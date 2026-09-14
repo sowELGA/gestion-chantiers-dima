@@ -54,7 +54,7 @@ class Tache extends Model
     {
         return $this->statutTache !== 'terminee'
             && $this->date_fin_prevue
-            && $this->date_fin_prevue->isPast();
+            && $this->date_fin_prevue->lt(today());
     }
 
     public function getDureePrevisionnelleAttribute(): int

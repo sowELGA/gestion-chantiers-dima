@@ -19,8 +19,8 @@
                 flex items-start gap-3 text-sm text-red-600">
                         <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
-                             1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
-                             0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
+                                 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
                             @foreach ($errors->all() as $error)
@@ -45,8 +45,8 @@
                         <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2
-                                                     0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1
-                                                     1 0 00-1-1z" clip-rule="evenodd" />
+                                                             0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1
+                                                             1 0 00-1-1z" clip-rule="evenodd" />
                             </svg>
                             {{ $message }}
                         </p>
@@ -84,7 +84,11 @@
             'finitions' => 'Finitions',
             'autre' => 'Autre',
         ] as $val => $label)
-                                <option value="{{ $val }}" {{ old('typePhase') }}>
+                                {{-- Comparaison à $val (pas juste old() brut en
+                                     attribut, qui rendait "selected" totalement
+                                     inopérant : <option gros_oeuvre> n'est pas
+                                     du HTML valide pour présélectionner). --}}
+                                <option value="{{ $val }}" {{ old('typePhase') === $val ? 'selected' : '' }}>
                                     {{ $label }}
                                 </option>
                             @endforeach
@@ -119,8 +123,12 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs text-slate-500 mb-1.5">Date de début</label>
+                            {{-- Bornée aux dates du chantier (min ET max), cohérent
+                                 avec PhaseRequest et avec la façon dont les dates de
+                                 tâche sont bornées à leur phase parente. --}}
                             <input type="date" name="date_debut" value="{{ old('date_debut') }}"
-                                min="{{ $chantier->date_debut?->format('Y-m-d') }}"
+                                @if ($chantier->date_debut) min="{{ $chantier->date_debut->format('Y-m-d') }}" @endif
+                                @if ($chantier->date_fin_prevue) max="{{ $chantier->date_fin_prevue->format('Y-m-d') }}" @endif
                                 class="w-full px-4 py-2.5 border rounded-lg text-sm
                           focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                           focus:border-[#1C9F93] transition-colors
@@ -132,6 +140,8 @@
                         <div>
                             <label class="block text-xs text-slate-500 mb-1.5">Date de fin prévue</label>
                             <input type="date" name="date_fin_prevue" value="{{ old('date_fin_prevue') }}"
+                                @if ($chantier->date_debut) min="{{ $chantier->date_debut->format('Y-m-d') }}" @endif
+                                @if ($chantier->date_fin_prevue) max="{{ $chantier->date_fin_prevue->format('Y-m-d') }}" @endif
                                 class="w-full px-4 py-2.5 border rounded-lg text-sm
                           focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                           focus:border-[#1C9F93] transition-colors
@@ -141,10 +151,11 @@
                             @enderror
                         </div>
                     </div>
-                    @if ($chantier->date_debut)
+                    @if ($chantier->date_debut && $chantier->date_fin_prevue)
                         <p class="text-xs text-slate-400 mt-2">
-                            Le chantier débute le
-                            {{ $chantier->date_debut->locale('fr')->isoFormat('D MMMM YYYY') }}.
+                            Le chantier se déroule du
+                            {{ $chantier->date_debut->locale('fr')->isoFormat('D MMMM YYYY') }}
+                            au {{ $chantier->date_fin_prevue->locale('fr')->isoFormat('D MMMM YYYY') }}.
                         </p>
                     @endif
                 </div>

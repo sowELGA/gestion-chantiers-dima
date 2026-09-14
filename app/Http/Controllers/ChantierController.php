@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chantier\AffectationRequest;
 use App\Http\Requests\Chantier\ChantierRequest;
-use App\Http\Requests\Chantier\DepenseRequest;
 use App\Models\Chantier;
-use App\Models\DepensesChantier;
 use App\Models\User;
 use App\Services\ChantierService;
 use Illuminate\Http\Request;
@@ -22,7 +20,11 @@ class ChantierController extends Controller
 
     public function index(Request $request)
     {
-        $query = Chantier::with(['chefProjet', 'pointeur', 'depenses'])
+        // "taches" est ajouté à l'eager loading : _section.blade.php
+        // affiche $chantier->avancement_global pour chaque chantier de la
+        // liste, et cet accesseur lit la relation "taches" — sans ce
+        // preload, c'est une requête taches PAR chantier affiché (N+1).
+        $query = Chantier::with(['chefProjet', 'pointeur', 'depenses', 'taches'])
             ->where('statut', '!=', 'livre');
 
         // Filtre par statut (en_cours, en_attente, suspendu, livre)
@@ -165,23 +167,7 @@ class ChantierController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
-
-    // Ajouter une dépense
-    public function ajouterDepense(DepenseRequest $request, Chantier $chantier)
-    {
-        $this->chantierService->ajouterDepense($chantier, $request->validated());
-
-        return back()->with('success', 'Dépense ajoutée avec succès.');
-    }
-
-    // Supprimer une dépense
-    public function supprimerDepense(Chantier $chantier, DepensesChantier $depense)
-    {
-        $this->chantierService->supprimerDepense($depense);
-
-        return back()->with('success', 'Dépense supprimée avec succès.');
-    }
-
+    
     // ── CHEF DE PROJET ────────────────────────────────────────
 
     public function indexChefProjet()

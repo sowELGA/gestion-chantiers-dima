@@ -108,10 +108,11 @@
                             <tbody class="divide-y divide-slate-100">
                                 @foreach ($lignes as $recap)
                                     @php
-                                        $isChef = str_starts_with(
-                                            strtolower($recap->ouvrier->poste->libelle ?? ''),
-                                            'chef',
-                                        );
+                                        // Poste ENREGISTRÉ LORS DU POINTAGE (jamais le
+                                        // poste actuel de l'ouvrier, qui a pu changer
+// depuis). Attaché dynamiquement dans
+// SalaireController::apercu().
+$isChef = str_starts_with(strtolower($recap->poste->libelle ?? ''), 'chef');
 
                                         // Détail jour par jour préparé côté contrôleur
                                         // (SalaireController::apercu) — pas de requête
@@ -130,12 +131,12 @@
                                             </p>
                                         </td>
 
-                                        {{-- Poste --}}
+                                        {{-- Poste (enregistré au pointage) --}}
                                         <td class="px-3 py-3 text-slate-500">
                                             <span
                                                 class="inline-block truncate max-w-[120px] {{ $isChef ? 'text-[#1C9F93] font-medium' : '' }}"
-                                                title="{{ $recap->ouvrier->poste->libelle }}">
-                                                {{ Str::limit($recap->ouvrier->poste->libelle, 16) }}
+                                                title="{{ $recap->poste?->libelle ?? '—' }}">
+                                                {{ Str::limit($recap->poste?->libelle ?? '—', 16) }}
                                             </span>
                                         </td>
 

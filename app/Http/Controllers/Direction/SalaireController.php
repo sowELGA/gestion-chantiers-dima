@@ -57,7 +57,7 @@ class SalaireController extends Controller
             ];
         }
 
-        return view('direction.pointage.recap', compact(
+        return view('direction.salaires.recap', compact(
             'chantiers',
             'chantierId',
             'donneesChantier',
@@ -92,16 +92,16 @@ class SalaireController extends Controller
             ->map(function ($chantier) use ($semaine, $annee) {
                 $recaps = $chantier->recapsHebdomadaires;
 
-                // Le salaire n'est jamais stocké : on le recalcule à la volée
-                // à partir des pointages réels + du taux en vigueur.
-                $totalSalaires = $recaps->sum(
-                    fn($recap) => PointageHelper::calculerSalaireOuvrier(
-                        $recap->ouvrier,
-                        $chantier->id,
-                        $semaine,
-                        $annee
-                    )['salaire_total']
-                );
+                // Une seule requête pour TOUS les pointages du chantier
+                // cette semaine (au lieu d'une requête par ouvrier) : le
+                // salaire n'est jamais stocké, il est recalculé à la volée
+                // à partir des pointages réels + du taux figé sur chacun.
+                $pointagesSemaine = PointageHelper::pointagesSemaine($chantier->id, $semaine, $annee);
+
+                $totalSalaires = $recaps->sum(function ($recap) use ($pointagesSemaine) {
+                    $pointagesOuvrier = $pointagesSemaine->get($recap->ouvrier_id, collect());
+                    return PointageHelper::calculerSalaireDepuisPointages($pointagesOuvrier)['salaire_total'];
+                });
 
                 return [
                     'chantier'       => $chantier,
@@ -155,25 +155,32 @@ class SalaireController extends Controller
             ->where('annee', $annee)
             ->whereIn('statutRecap', ['validee_cp', 'envoyee_direction'])
             ->get()
-            ->map(function ($recap) use ($chantier, $semaine, $annee, $pointagesSemaine) {
-                // Salaire calculé à la volée et attaché dynamiquement au
-                // modèle (non persisté), pour que la vue puisse continuer
-                // à lire $recap->salaire_total / salaire_base / salaire_heures_sup.
-                $salaire = PointageHelper::calculerSalaireOuvrier(
-                    $recap->ouvrier,
-                    $chantier->id,
-                    $semaine,
-                    $annee
-                );
+            ->map(function ($recap) use ($pointagesSemaine) {
+                // Détail jour par jour de cet ouvrier, prêt à afficher.
+                // Provient de $pointagesSemaine, chargée UNE SEULE FOIS pour
+                // tout le chantier plus haut : aucune requête par ouvrier.
+                $pointagesOuvrier = $pointagesSemaine
+                    ->get($recap->ouvrier_id, collect())
+                    ->keyBy(fn($p) => Carbon::parse($p->date)->toDateString());
 
+                // Tout ce qui est chiffré est calculé à la volée depuis les
+                // pointages (jamais stocké sur le récap) et attaché
+                // dynamiquement au modèle, pour que la vue puisse continuer
+                // à lire $recap->jours_presents / total_heures_sup /
+                // salaire_base / salaire_heures_sup / salaire_total.
+                $salaire = PointageHelper::calculerSalaireDepuisPointages($pointagesOuvrier->values());
+
+                // Poste à afficher : celui enregistré (figé) lors des
+                // pointages de la semaine, jamais le poste actuel de
+                // l'ouvrier — qui a pu changer depuis.
+                $recap->poste = PointageHelper::posteDepuisPointages($recap->ouvrier, $pointagesOuvrier);
+
+                $recap->jours_presents     = $salaire['jours_presents'];
+                $recap->total_heures_sup   = $salaire['total_heures_sup'];
                 $recap->salaire_base       = $salaire['salaire_base'];
                 $recap->salaire_heures_sup = $salaire['salaire_heures_sup'];
                 $recap->salaire_total      = $salaire['salaire_total'];
-
-                // Détail jour par jour de cet ouvrier, prêt à afficher.
-                $recap->pointagesParJour = $pointagesSemaine
-                    ->get($recap->ouvrier_id, collect())
-                    ->keyBy(fn($p) => Carbon::parse($p->date)->toDateString());
+                $recap->pointagesParJour   = $pointagesOuvrier;
 
                 return $recap;
             });
@@ -226,14 +233,18 @@ class SalaireController extends Controller
 
     private function regrouperParCorpsMetier(\Illuminate\Support\Collection $recaps): \Illuminate\Support\Collection
     {
+        // Le regroupement (et le tri chef/membre/aide) se base sur le poste
+        // ENREGISTRÉ LORS DU POINTAGE ($recap->poste, attaché dynamiquement
+        // dans apercu()), jamais sur le poste actuel de l'ouvrier — qui a
+        // pu changer depuis la semaine concernée.
         return $recaps
             ->groupBy(function ($recap) {
-                $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
+                $poste = strtolower($recap->poste->libelle ?? '');
                 $famille = preg_replace('/^(chef|aide|sous[\s-]chef|premier)\s+/i', '', $poste);
                 return ucwords(trim($famille));
             })
             ->map(fn($lignes) => $lignes->sortBy(function ($recap) {
-                $poste = strtolower($recap->ouvrier->poste->libelle ?? '');
+                $poste = strtolower($recap->poste->libelle ?? '');
                 if (str_starts_with($poste, 'chef')) return 0;
                 if (str_starts_with($poste, 'aide')) return 2;
                 return 1;

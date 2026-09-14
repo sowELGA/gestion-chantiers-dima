@@ -14,11 +14,16 @@ class Pointage extends Model
         'heures_sup',
         'ouvrier_id',
         'chantier_id',
+        'poste_id',
+        'taux_journalier',
+        'taux_heure_sup',
     ];
 
     protected $casts = [
-        'date'       => 'date',
-        'heures_sup' => 'decimal:1',
+        'date'             => 'date',
+        'heures_sup'       => 'decimal:1',
+        'taux_journalier'  => 'decimal:2',
+        'taux_heure_sup'   => 'decimal:2',
     ];
 
     public function ouvrier()
@@ -29,5 +34,14 @@ class Pointage extends Model
     public function chantier()
     {
         return $this->belongsTo(Chantier::class, 'chantier_id');
+    }
+
+    /**
+     * Poste occupé par l'ouvrier au moment de CE pointage (snapshot).
+     * Peut différer du poste actuel de l'ouvrier (Ouvrier::poste).
+     */
+    public function poste()
+    {
+        return $this->belongsTo(Poste::class, 'poste_id');
     }
 }

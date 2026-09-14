@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\ApprovisionnementHelper;
 use Illuminate\Database\Eloquent\Model;
 
 class Approvisionnement extends Model
@@ -28,13 +29,22 @@ class Approvisionnement extends Model
         'quantite_demandee'     => 'decimal:2',
     ];
 
-    // Accesseur quantité restante
+    /**
+     * Délègue à ApprovisionnementHelper::quantiteRestante() — c'était
+     * auparavant une seconde implémentation de la même formule, qui en
+     * plus ne réutilisait jamais la relation rapportsEntrees déjà chargée
+     * (une requête à chaque accès, y compris dans des boucles).
+     */
     public function getQuantiteRestanteAttribute(): float
     {
-        $totalRecu = $this->rapportsEntrees()->sum('quantite_recue');
-        return max(0, $this->quantite_demandee - $totalRecu);
+        return ApprovisionnementHelper::quantiteRestante($this);
     }
 
+    // Accesseur "statut" nécessaire pour groupBy('statut') sur une
+    // collection Eloquent (DirectionApproController::historique()) :
+    // Collection::groupBy() résout la clé via un accès propriété, qui
+    // passe par les accesseurs Eloquent — "statutAppro" seul ne suffit
+    // pas car ce n'est pas le nom conventionnel attendu ailleurs.
     public function getStatutAttribute()
     {
         return $this->attributes['statutAppro'];

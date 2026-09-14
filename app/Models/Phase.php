@@ -47,6 +47,6 @@ class Phase extends Model
     {
         return $this->statutPhase !== 'terminee'
             && $this->date_fin_prevue
-            && $this->date_fin_prevue->isPast();
+            && $this->date_fin_prevue->lt(today());
     }
 }

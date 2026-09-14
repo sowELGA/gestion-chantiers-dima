@@ -32,6 +32,13 @@ class ApprovisionnementService
         });
     }
 
+    /**
+     * NB : "chantier_id" est désormais bien pris en compte. Auparavant
+     * ce champ était validé par ApprovisionnementRequest mais jamais
+     * appliqué ici — la vue d'édition propose pourtant un sélecteur de
+     * chantier, donc l'ignorer revenait à un changement silencieusement
+     * sans effet malgré un message "Modifié avec succès".
+     */
     public function modifier(Approvisionnement $appro, array $data): Approvisionnement
     {
         if ($appro->statutAppro !== 'en_attente') {
@@ -44,6 +51,7 @@ class ApprovisionnementService
             'unite'                    => $data['unite'],
             'priorite'                 => ApprovisionnementHelper::calculerPriorite($data['date_livraison_souhaitee']),
             'date_livraison_souhaitee' => $data['date_livraison_souhaitee'],
+            'chantier_id'              => $data['chantier_id'],
         ]);
 
         return $appro->fresh();
@@ -78,13 +86,39 @@ class ApprovisionnementService
         return $appro->fresh();
     }
 
-    public function commander(Approvisionnement $appro): Approvisionnement
+    /**
+     * La date de livraison prévue est désormais optionnelle au moment de
+     * la commande (renseignée ou non via le pop-up), et peut aussi être
+     * laissée null pour être définie/ajustée plus tard via
+     * definirDateLivraisonPrevue().
+     */
+    public function commander(Approvisionnement $appro, ?string $dateLivraisonPrevue = null): Approvisionnement
     {
         $this->verifierStatut($appro, 'validee', 'commander');
         $appro->update([
-            'statutAppro'        => 'en_cours_livraison',
-            'date_commande' => now()->toDateString(),
+            'statutAppro'            => 'en_cours_livraison',
+            'date_commande'          => now()->toDateString(),
+            'date_livraison_prevue'  => $dateLivraisonPrevue,
         ]);
+
+        return $appro->fresh();
+    }
+
+    /**
+     * Permet à la direction de renseigner ou corriger la date de
+     * livraison prévue à tout moment tant que la commande n'est pas
+     * clôturée — y compris après l'avoir passée. $date peut être null
+     * pour effacer une date précédemment saisie.
+     */
+    public function definirDateLivraisonPrevue(Approvisionnement $appro, ?string $date): Approvisionnement
+    {
+        if (!in_array($appro->statutAppro, ['en_cours_livraison', 'partiellement_recue'])) {
+            throw new \Exception(
+                "La date de livraison prévue ne peut être définie que pour une commande en cours de livraison."
+            );
+        }
+
+        $appro->update(['date_livraison_prevue' => $date]);
 
         return $appro->fresh();
     }
@@ -93,6 +127,23 @@ class ApprovisionnementService
     // POINTEUR — ACTIONS
     // ══════════════════════════════════════════════════════════
 
+    /**
+     * Enregistre une réception.
+     *
+     * IMPORTANT — protection contre la sur-livraison : ReceptionRequest
+     * valide déjà la quantité restante, mais ce calcul est fait AVANT le
+     * début de la transaction. Si deux réceptions sont soumises presque
+     * simultanément pour la même demande, les deux peuvent passer cette
+     * validation sur la même quantité restante "vue" au même instant, et
+     * la somme des deux dépasser la quantité demandée une fois les deux
+     * écritures commitées (race condition classique "check-then-act").
+     *
+     * On reverrouille donc la ligne ($lockForUpdate) et on revalide la
+     * quantité restante À L'INTÉRIEUR de la transaction : la seconde
+     * requête concurrente attend que la première commite, puis voit la
+     * quantité restante déjà mise à jour et peut être rejetée
+     * proprement si elle dépasse désormais le reliquat réel.
+     */
     public function receptionner(Approvisionnement $appro, array $data, int $pointeurId): RapportEntree
     {
         if (!in_array($appro->statutAppro, ['en_cours_livraison', 'partiellement_recue'])) {
@@ -100,17 +151,28 @@ class ApprovisionnementService
         }
 
         return DB::transaction(function () use ($appro, $data, $pointeurId) {
+            $appro = Approvisionnement::whereKey($appro->id)->lockForUpdate()->firstOrFail();
+
+            $quantiteRecue    = (float) $data['quantite_recue'];
+            $quantiteRestante = ApprovisionnementHelper::quantiteRestante($appro);
+
+            if ($quantiteRecue > $quantiteRestante) {
+                throw new \Exception(
+                    "La quantité reçue ({$quantiteRecue}) dépasse la quantité restante à livrer ({$quantiteRestante})."
+                );
+            }
+
             $rapport = RapportEntree::create([
                 'demande_id'          => $appro->id,
                 'chantier_id'         => $appro->chantier_id,
                 'receptionnee_par_id' => $pointeurId,
-                'quantite_recue'      => (float) $data['quantite_recue'],
+                'quantite_recue'      => $quantiteRecue,
                 'date_reception'      => now()->toDateString(),
                 'observation'         => $data['observation'] ?? null,
             ]);
 
             $appro->update([
-                'statutAppro' => ApprovisionnementHelper::determinerStatutApresReception($appro),
+                'statutAppro' => ApprovisionnementHelper::determinerStatutApresReception($appro->fresh()),
             ]);
 
             return $rapport;

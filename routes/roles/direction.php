@@ -53,7 +53,7 @@ Route::middleware(['auth', 'premiere_connexion', 'role:direction'])
 
         Route::middleware('permission:gerer_ouvriers')->group(function () {
             Route::resource('personnel', PersonnelController::class)->except(['show']);
-            Route::patch('personnel/{personnel}/toggle', [PersonnelController::class, 'toggleStatut'])->name('personnel.toggle');
+            Route::patch('personnel/{ouvrier}/toggle', [PersonnelController::class, 'toggleStatut'])->name('personnel.toggle');
         });
         // Salaires & Taux
         Route::middleware('permission:gerer_taux_salariaux')->prefix('salaires')->name('salaires.')->group(function () {
@@ -80,11 +80,13 @@ Route::middleware(['auth', 'premiere_connexion', 'role:direction'])
             Route::patch('/{demande}/valider', [DirectionApproController::class, 'valider'])->name('valider');
             Route::patch('/{demande}/rejeter', [DirectionApproController::class, 'rejeter'])->name('rejeter');
             Route::patch('/{demande}/commander', [DirectionApproController::class, 'passerCommande'])->name('commander');
+            Route::patch('/{demande}/date-livraison', [DirectionApproController::class, 'definirDateLivraison'])->name('date-livraison');
         });
 
         // Rapports
         Route::middleware('permission:voir_rapports')->group(function () {
             Route::get('/rapports', [RapportChantierController::class, 'indexDirection'])->name('rapports.index');
             Route::get('/rapports/{rapport}', [RapportChantierController::class, 'showDirection'])->name('rapports.show');
+            Route::get('/rapports/{rapport}/pdf', [RapportChantierController::class, 'telechargerPdf'])->name('rapports.pdf');
         });
     });

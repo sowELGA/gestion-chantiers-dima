@@ -1,7 +1,7 @@
 @extends('layouts.direction')
 @section('title', 'Dépenses — ' . $chantier->nomChantier)
 @section('page_title', 'Dépenses du chantier')
-@section('page_subtitle', $chantier->nomChantier . ' · ' . $chantier->adresse)
+@section('page_subtitle', $chantier->nomChantier . ' · ' . $chantier->localisation)
 
 @section('content')
 
@@ -86,7 +86,7 @@
                           {{ $dateDebut === $r['debut'] && $dateFin === $r['fin']
                               ? 'bg-[#1C9F93] text-white border-[#1C9F93]'
                               : 'border-slate-300 text-slate-500 hover:border-[#1C9F93]
-                                                          hover:text-[#1C9F93]' }}">
+                                                                                    hover:text-[#1C9F93]' }}">
                         {{ $r['label'] }}
                     </a>
                 @endforeach
@@ -119,22 +119,34 @@
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Budget prévu
             </p>
-            <p class="text-2xl font-extrabold text-[#0F172A] mt-2">
-                {{ number_format($chantier->budget_prevu, 0, ',', ' ') }}
-            </p>
-            <p class="text-xs text-slate-400 mt-0.5">FCFA</p>
+            @if ($chantier->budget_prevu !== null)
+                <p class="text-2xl font-extrabold text-[#0F172A] mt-2">
+                    {{ number_format($chantier->budget_prevu, 0, ',', ' ') }}
+                </p>
+                <p class="text-xs text-slate-400 mt-0.5">FCFA</p>
+            @else
+                <p class="text-lg font-semibold text-slate-400 italic mt-2">Non défini</p>
+                <a href="{{ route('direction.chantiers.edit', $chantier->id) }}"
+                    class="text-xs text-[#1C9F93] hover:underline">
+                    Renseigner un budget
+                </a>
+            @endif
         </div>
         <div
             class="bg-white rounded-xl p-5 shadow-sm border-t-4
-                {{ $chantier->pourcentage_budget > 90 ? 'border-red-500' : 'border-slate-400' }}">
+                {{ $chantier->pourcentage_budget !== null && $chantier->pourcentage_budget > 90 ? 'border-red-500' : 'border-slate-400' }}">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Budget consommé (total)
             </p>
-            <p
-                class="text-2xl font-extrabold mt-2
-                  {{ $chantier->pourcentage_budget > 90 ? 'text-red-500' : 'text-[#0F172A]' }}">
-                {{ $chantier->pourcentage_budget }}%
-            </p>
+            @if ($chantier->pourcentage_budget !== null)
+                <p
+                    class="text-2xl font-extrabold mt-2
+                      {{ $chantier->pourcentage_budget > 90 ? 'text-red-500' : 'text-[#0F172A]' }}">
+                    {{ $chantier->pourcentage_budget }}%
+                </p>
+            @else
+                <p class="text-lg font-semibold text-slate-400 italic mt-2">—</p>
+            @endif
             <p class="text-xs text-slate-400 mt-0.5">
                 {{ number_format($stats['total_global'], 0, ',', ' ') }} FCFA au total
             </p>
@@ -270,8 +282,8 @@
                 <svg class="w-10 h-10 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2
-                             0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2
-                             0 11-4 0 2 2 0 014 0z" />
+                                 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2
+                                 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 <p class="text-sm text-slate-400">
                     Aucune dépense sur cette période.
@@ -321,8 +333,7 @@
                                 <span class="text-xs font-normal text-slate-400">F</span>
                             </td>
                             <td class="px-4 py-3 text-center">
-                                <form method="POST"
-                                    action="{{ route('direction.depenses.destroy', [$depense->id]) }}"
+                                <form method="POST" action="{{ route('direction.depenses.destroy', [$depense->id]) }}"
                                     onsubmit="return confirm('Supprimer cette dépense ?')">
                                     @csrf @method('DELETE')
                                     <button type="submit"
@@ -330,8 +341,8 @@
                                                hover:bg-red-50 rounded-lg transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2
-                                                     2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
-                                                     1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                         2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1
+                                                         1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
                                 </form>

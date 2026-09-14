@@ -34,6 +34,10 @@ class ReceptionController extends Controller
 
     public function validerReception(ReceptionRequest $request, Approvisionnement $demande)
     {
+        // La vérification d'appartenance du chantier au pointeur connecté
+        // est faite dans ReceptionRequest::authorize() — un pointeur qui
+        // n'est pas responsable du chantier de cette demande reçoit déjà
+        // un 403 avant d'atteindre cette méthode.
         try {
             $rapport = $this->approService->receptionner(
                 $demande,
@@ -52,6 +56,12 @@ class ReceptionController extends Controller
 
     public function bonEntreePdf(RapportEntree $rapport)
     {
+        // Vérification manquante auparavant : n'importe quel pointeur
+        // authentifié pouvait télécharger le bon d'entrée de n'importe
+        // quel autre chantier, en devinant/énumérant l'ID du rapport.
+        $chantier = Chantier::where('pointeur_id', auth()->id())->first();
+        abort_if(!$chantier || $rapport->chantier_id !== $chantier->id, 403);
+
         return $this->approService->genererBonEntreePdf($rapport);
     }
 
@@ -59,8 +69,13 @@ class ReceptionController extends Controller
     {
         $chantier = Chantier::where('pointeur_id', auth()->id())->firstOrFail();
 
-        $dateDebut = request('date_debut', now()->startOfMonth()->toDateString());
-        $dateFin   = request('date_fin', now()->toDateString());
+        $filtres = request()->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin'   => 'nullable|date|after_or_equal:date_debut',
+        ]);
+
+        $dateDebut = $filtres['date_debut'] ?? now()->startOfMonth()->toDateString();
+        $dateFin   = $filtres['date_fin'] ?? now()->toDateString();
 
         $bonsEntree = RapportEntree::with(['demande.rapportsEntrees', 'receptionneePar'])
             ->where('chantier_id', $chantier->id)

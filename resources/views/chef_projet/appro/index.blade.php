@@ -125,7 +125,7 @@
                           {{ $dateDebut === $r['debut'] && $dateFin === $r['fin']
                               ? 'bg-[#1C9F93] text-white border-[#1C9F93]'
                               : 'border-slate-300 text-slate-500 hover:border-[#1C9F93]
-                                                                                                                                        hover:text-[#1C9F93]' }}">
+                                                                                                                                                                  hover:text-[#1C9F93]' }}">
                         {{ $r['label'] }}
                     </a>
                 @endforeach
@@ -186,6 +186,14 @@
                             'rejetee' => ['Rejetée', 'bg-red-100 text-red-500'],
                             'cloturee' => ['Clôturée', 'bg-slate-100 text-slate-500'],
                         ][$demande->statut] ?? [$demande->statut, ''];
+
+                        // Visible en LECTURE SEULE pour le chef de projet, dès
+                        // que la commande est passée et tant qu'elle n'est
+                        // pas clôturée (seule la direction peut la définir).
+                        $afficherDateLivraison = in_array($demande->statut, [
+                            'en_cours_livraison',
+                            'partiellement_recue',
+                        ]);
                     @endphp
 
                     <div
@@ -228,46 +236,52 @@
                                         {{ $demande->unite }}
                                     </p>
                                 @endif
+                                {{-- Lecture seule : seule la direction peut définir
+                                     cette date (direction.appro.index). --}}
+                                @if ($afficherDateLivraison)
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Livraison prévue :
+                                        @if ($demande->date_livraison_prevue)
+                                            <strong
+                                                class="{{ $demande->date_livraison_prevue->lt(today()) ? 'text-red-500' : 'text-[#0F172A]' }}">
+                                                {{ $demande->date_livraison_prevue->format('d/m/Y') }}
+                                            </strong>
+                                        @else
+                                            <span class="italic text-slate-400">non définie</span>
+                                        @endif
+                                    </p>
+                                @endif
                             </div>
                         </div>
 
-                        {{-- Date livraison prévue --}}
-                        @if ($demande->date_livraison_prevue && $demande->statut == 'en_cours_livraison')
-                            <div class="text-right flex-shrink-0 ml-4 hidden sm:block">
-                                <p class="text-[10px] text-slate-400">Livraison prévue</p>
-                                <p
-                                    class="text-xs font-semibold
-                                      {{ $demande->date_livraison_prevue->isPast() ? 'text-red-500' : 'text-[#0F172A]' }}">
-                                    {{ $demande->date_livraison_prevue->format('d/m/Y') }}
-                                </p>
-                            </div>
-                        @endif
-                        @if ($demande->statut === 'en_attente')
-                            <a href="{{ route('chef_projet.appro.edit', [$demande->chantier_id, $demande->id]) }}"
-                                class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600
-              hover:bg-slate-50 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
-                                 m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </a>
-                        @endif
-                        @if ($demande->statut === 'en_attente' || $demande->statut === 'validee')
-                            <div class="border-t border-slate-100 my-1"></div>
-                            <form method="POST"
-                                action="{{ route('chef_projet.appro.destroy', [$demande->chantier_id, $demande->id]) }}"
-                                onsubmit="return confirm('Supprimer cette demande ?')">
-                                @csrf @method('DELETE')
-                                <button type="submit"
-                                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm
-                       text-red-500 hover:bg-red-50 transition-colors">
+                        {{-- Actions --}}
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            @if ($demande->statut === 'en_attente')
+                                <a href="{{ route('chef_projet.appro.edit', [$demande->chantier_id, $demande->id]) }}"
+                                    class="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-600
+                                          hover:bg-slate-100 rounded-lg transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858
-                                     L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                                         m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
-                                </button>
-                            </form>
-                        @endif
+                                </a>
+                            @endif
+                            @if ($demande->statut === 'en_attente' || $demande->statut === 'validee')
+                                <form method="POST"
+                                    action="{{ route('chef_projet.appro.destroy', [$demande->chantier_id, $demande->id]) }}"
+                                    onsubmit="return confirm('Supprimer cette demande ?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                        class="flex items-center gap-2 px-3 py-2.5 text-sm
+                                              text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858
+                                             L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
             </div>

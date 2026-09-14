@@ -86,6 +86,7 @@ class TacheController extends Controller
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
         abort_if($phase->chantier_id !== $chantier->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
         try {
             $this->tacheService->modifierPhase($phase, $request->validated());
@@ -101,6 +102,7 @@ class TacheController extends Controller
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
         abort_if($phase->chantier_id !== $chantier->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
         try {
             $this->tacheService->supprimerPhase($phase);
@@ -151,9 +153,7 @@ class TacheController extends Controller
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
         abort_if($phase->chantier_id !== $chantier->id, 404);
         $this->verifierChantierModifiable($chantier);
-
-        // Le responsable = chef de projet connecté
-        $data                 = $request->validated();
+        $data                   = $request->validated();
         $data['responsable_id'] = auth()->id();
         $data['phase_id']       = $phase->id;
 
@@ -172,7 +172,7 @@ class TacheController extends Controller
 
         if ($tache->statutTache === 'terminee') {
             return redirect()
-                ->route('chef_projet.taches.index', [$chantier->id, $phase->id])
+                ->route('chef_projet.phases.taches.index', [$chantier->id, $phase->id])
                 ->with('error', 'Impossible de modifier une tâche terminée.');
         }
 
@@ -193,9 +193,11 @@ class TacheController extends Controller
         Tache $tache
     ) {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
         abort_if($tache->phase_id !== $phase->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
-        $data                 = $request->validated();
+        $data                   = $request->validated();
         $data['responsable_id'] = auth()->id();
         $data['phase_id']       = $phase->id;
 
@@ -212,7 +214,9 @@ class TacheController extends Controller
     public function destroyTache(Chantier $chantier, Phase $phase, Tache $tache)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
         abort_if($tache->phase_id !== $phase->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
         try {
             $this->tacheService->supprimerTache($tache);
@@ -227,6 +231,9 @@ class TacheController extends Controller
     public function mettreAJourAvancement(Chantier $chantier, Phase $phase, Tache $tache)
     {
         abort_if($chantier->chef_projet_id !== auth()->id(), 403);
+        abort_if($phase->chantier_id !== $chantier->id, 404);
+        abort_if($tache->phase_id !== $phase->id, 404);
+        $this->verifierChantierModifiable($chantier);
 
         request()->validate(['avancement' => 'required|integer|min:0|max:100']);
 

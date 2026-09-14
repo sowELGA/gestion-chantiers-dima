@@ -290,8 +290,7 @@
 
             {{-- Salaires --}}
             @if (auth()->user()->can('permission', 'gerer_taux_salariaux') ||
-                    auth()->user()->can('permission', 'gerer_salaires') ||
-                    auth()->user()->can('permission', 'gerer_approvisionnements'))
+                    auth()->user()->can('permission', 'gerer_salaires'))
                 <div x-data="{ open: {{ request()->routeIs('direction.salaires*') || request()->routeIs('direction.pointage*') ? 'true' : 'false' }} }">
                     <button @click="open = !open"
                         class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium

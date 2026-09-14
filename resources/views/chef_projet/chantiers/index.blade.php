@@ -42,7 +42,10 @@
                                     'suspendu' => ['label' => 'Suspendu', 'class' => 'bg-red-100 text-red-500'],
                                     'livre' => ['label' => 'Livré', 'class' => 'bg-[#1C9F93]/10 text-[#1C9F93]'],
                                 ];
-                                $config = $statutConfig[$chantier->statut];
+                                $config = $statutConfig[$chantier->statut] ?? [
+                                    'label' => $chantier->statut,
+                                    'class' => 'bg-slate-100 text-slate-500',
+                                ];
                             @endphp
                             <span
                                 class="px-2.5 py-0.5 rounded-full text-xs font-semibold
@@ -57,8 +60,9 @@
                                 </span>
                             @endif
                         </div>
+                        {{-- "adresse" n'existe pas sur Chantier : la colonne réelle est "localisation". --}}
                         <p class="text-xs text-slate-500 mb-4">
-                            📍 {{ $chantier->adresse }}
+                            📍 {{ $chantier->localisation }}
                         </p>
 
                         {{-- Avancement global --}}
@@ -131,8 +135,8 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
             <svg class="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9
-                         0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
-                         1 0 011 1v5m-4 0h4" />
+                             0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
+                             1 0 011 1v5m-4 0h4" />
             </svg>
             <p class="text-slate-400 text-sm">Aucun chantier ne vous est affecté.</p>
         </div>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RapportRequest;
 use App\Models\Chantier;
 use App\Models\RapportChantier;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class RapportChantierController extends Controller
 {
@@ -113,11 +115,18 @@ class RapportChantierController extends Controller
     {
         $chantiers = Chantier::orderBy('nomChantier')->get();
 
-        $chantierId  = request('chantier_id');
-        $type        = request('type', 'tous');
-        $dateDebut   = request('date_debut');
-        $dateFin     = request('date_fin');
-        $recherche   = request('recherche');
+        $chantierId = request('chantier_id');
+        $type       = request('type', 'tous');
+        $recherche  = request('recherche');
+
+        // Validées explicitement : whereDate() sur une valeur malformée
+        // provoquerait sinon une erreur SQL opaque au lieu d'un message clair.
+        $filtresDate = request()->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin'   => 'nullable|date|after_or_equal:date_debut',
+        ]);
+        $dateDebut = $filtresDate['date_debut'] ?? null;
+        $dateFin   = $filtresDate['date_fin'] ?? null;
 
         $query = RapportChantier::with(['auteur', 'chantier'])
             ->orderByDesc('date_rapport');
@@ -149,13 +158,17 @@ class RapportChantierController extends Controller
 
         // Statistiques globales
         $stats = [
-            'total'      => RapportChantier::count(),
-            'ce_mois'    => RapportChantier::whereMonth(
+            'total'     => RapportChantier::count(),
+            'ce_mois'   => RapportChantier::whereMonth(
                 'date_rapport',
                 now()->month
             )->whereYear('date_rapport', now()->year)->count(),
-            'incidents'  => RapportChantier::where('type', 'incident')->count(),
-            'chantiers'  => RapportChantier::distinct('chantier_id')->count(),
+            'incidents' => RapportChantier::where('type', 'incident')->count(),
+            // "distinct('chantier_id')->count()" (sans argument à count())
+            // ne génère pas de façon fiable COUNT(DISTINCT chantier_id) selon
+            // les versions de Laravel/le driver SQL — la forme correcte est
+            // distinct() (sans colonne) suivi de count('chantier_id').
+            'chantiers' => RapportChantier::distinct()->count('chantier_id'),
         ];
 
         return view('direction.rapports.index', compact(
@@ -174,5 +187,20 @@ class RapportChantierController extends Controller
     {
         $rapport->load(['auteur', 'chantier']);
         return view('direction.rapports.show', compact('rapport'));
+    }
+
+    public function telechargerPdf(RapportChantier $rapport)
+    {
+        $rapport->load(['auteur', 'chantier']);
+
+        $pdf = Pdf::loadView('pdf.rapport-chantier', compact('rapport'))
+            ->setPaper('A4', 'portrait');
+
+        $nomFichier = 'rapport-'
+            . Str::slug($rapport->titre ?: 'sans-titre')
+            . '-' . $rapport->id
+            . '.pdf';
+
+        return $pdf->download($nomFichier);
     }
 }

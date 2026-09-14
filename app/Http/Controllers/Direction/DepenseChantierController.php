@@ -30,14 +30,17 @@ class DepenseChantierController extends Controller
     // Page 2 : Dépenses d'un chantier avec filtre dates
     public function show(Chantier $chantier)
     {
-        $dateDebut = request(
-            'date_debut',
-            now()->startOfMonth()->toDateString()
-        );
-        $dateFin   = request(
-            'date_fin',
-            now()->toDateString()
-        );
+        // Les dates viennent de la query string (filtre GET, partageable
+        // en favori) : on les valide explicitement plutôt que de les
+        // passer brutes à whereBetween(), qui lèverait une erreur SQL
+        // opaque sur une valeur malformée au lieu d'un message clair.
+        $filtres = request()->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin'   => 'nullable|date|after_or_equal:date_debut',
+        ]);
+
+        $dateDebut = $filtres['date_debut'] ?? now()->startOfMonth()->toDateString();
+        $dateFin   = $filtres['date_fin'] ?? now()->toDateString();
 
         $depenses = DepensesChantier::where('chantier_id', $chantier->id)
             ->whereBetween('date_depense', [$dateDebut, $dateFin])

@@ -12,8 +12,8 @@
             <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
-                                 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
-                                 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                     1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
+                                     0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div>
                     <p class="font-semibold text-red-700">Fiche rejetée par le chef de projet</p>
@@ -160,8 +160,8 @@
                                   hover:text-white rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2
-                                                 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828
-                                                 L11.828 15H9v-2.828l8.586-8.586z" />
+                                                     0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828
+                                                     L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                                 Modifier
                             </a>
@@ -183,7 +183,7 @@
                             flex items-center gap-2 text-xs text-amber-700">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0
-                                         00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                             00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         Fiche verrouillée — en attente de validation du chef de projet.
                     </div>
@@ -229,9 +229,11 @@
                                         title="{{ $ligne['ouvrier']->nomComplet }}">
                                         {{ $ligne['ouvrier']->nomComplet }}
                                     </td>
+                                    {{-- Poste ENREGISTRÉ LORS DU POINTAGE (jamais le poste
+                                         actuel de l'ouvrier, qui a pu changer depuis). --}}
                                     <td class="px-3 py-2.5 text-slate-400 truncate max-w-24"
-                                        title="{{ $ligne['ouvrier']->poste->libelle }}">
-                                        {{ Str::limit($ligne['ouvrier']->poste->libelle, 14) }}
+                                        title="{{ $ligne['poste']?->libelle ?? '—' }}">
+                                        {{ Str::limit($ligne['poste']?->libelle ?? '—', 14) }}
                                     </td>
                                     @foreach ($ligne['jours'] as $jourData)
                                         @php

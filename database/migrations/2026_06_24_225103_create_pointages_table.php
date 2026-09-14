@@ -19,6 +19,12 @@ return new class extends Migration
                 'absent',
             ]);
             $table->integer('heures_sup')->default(0);
+            $table->decimal('taux_journalier', 10, 2)->nullable();
+            $table->decimal('taux_heure_sup', 10, 2)->nullable();
+            $table->foreignId('poste_id')
+                ->nullable()
+                ->constrained('postes', 'id')
+                ->onDelete('set null');
             $table->foreignId('ouvrier_id')
                 ->constrained('ouvriers', 'id')
                 ->onDelete('restrict');

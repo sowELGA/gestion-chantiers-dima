@@ -10,7 +10,7 @@
             <div class="px-6 py-5 border-b border-slate-100">
                 <h3 class="font-semibold text-[#0F172A]">Informations du chantier</h3>
                 <p class="text-xs text-slate-500 mt-0.5">
-                    Le chef de projet peut être affecté maintenant ou plus tard.
+                    Le chef de projet et le budget peuvent être renseignés maintenant ou plus tard.
                 </p>
             </div>
 
@@ -39,21 +39,23 @@
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
                         Localisation <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="localisation" value="{{ old('localisation') }}" placeholder="Ex : Almadies, Dakar"
+                    <input type="text" name="localisation" value="{{ old('localisation') }}"
+                        placeholder="Ex : Almadies, Dakar"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm
                               focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                               focus:border-[#1C9F93] transition-colors
-                              @error('adresse') border-red-400 bg-red-50
+                              @error('localisation') border-red-400 bg-red-50
                               @else border-slate-300 @enderror">
-                    @error('adresse')
+                    @error('localisation')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Budget --}}
+                {{-- Budget (optionnel) --}}
                 <div>
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                        Budget prévu (FCFA) <span class="text-red-500">*</span>
+                        Budget prévu (FCFA)
+                        <span class="text-slate-400 font-normal">(optionnel)</span>
                     </label>
                     <input type="number" name="budget_prevu" value="{{ old('budget_prevu') }}" placeholder="Ex : 50000000"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm
@@ -111,7 +113,9 @@
                                bg-white transition-colors">
                         <option value="">Affecter plus tard</option>
                         @foreach ($chefsProjets as $chef)
-                            <option value="{{ $chef->idUser }}"
+                            {{-- La valeur soumise DOIT être $chef->id (clé primaire) :
+                                 chef_projet_id référence users.id. --}}
+                            <option value="{{ $chef->id }}"
                                 {{ old('chef_projet_id') == $chef->id ? 'selected' : '' }}>
                                 {{ $chef->nomComplet }}
                             </option>

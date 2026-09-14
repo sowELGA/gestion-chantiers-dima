@@ -17,18 +17,18 @@ class TauxSalaireSeeder extends Seeder
         $postes = Poste::pluck('id', 'libelle');
 
         $taux = [
-            'Pointeur'     => ['journalier' => 12000, 'heure_sup' => 2000],
-            'Chef Maçon'     => ['journalier' => 10000, 'heure_sup' => 2000],
-            'Maçon'          => ['journalier' =>  8000, 'heure_sup' => 1500],
-            'Chef Coffreur'  => ['journalier' => 10000, 'heure_sup' => 2000],
-            'Coffreur'       => ['journalier' =>  8000, 'heure_sup' => 1500],
-            'Grutier'        => ['journalier' => 10000, 'heure_sup' => 2500],
-            'Ferrailleur'    => ['journalier' =>  9000, 'heure_sup' => 1500],
-            'Manœuvre'       => ['journalier' =>  4000, 'heure_sup' =>  800],
-            'Électricien'    => ['journalier' => 10000, 'heure_sup' => 1800],
-            'Plombier'       => ['journalier' => 10000, 'heure_sup' => 1800],
-            'Carreleur'      => ['journalier' =>  9000, 'heure_sup' => 1500],
-            'Peintre'        => ['journalier' =>  8000, 'heure_sup' => 1500],
+            'Pointeur'     => ['journalier' => 6000, 'heure_sup' => 2000],
+            'Chef Maçon'     => ['journalier' => 8000, 'heure_sup' => 2000],
+            'Maçon'          => ['journalier' =>  5000, 'heure_sup' => 1500],
+            'Chef Coffreur'  => ['journalier' => 8000, 'heure_sup' => 2000],
+            'Coffreur'       => ['journalier' =>  5000, 'heure_sup' => 1500],
+            'Grutier'        => ['journalier' => 7000, 'heure_sup' => 2000],
+            'Ferrailleur'    => ['journalier' =>  5000, 'heure_sup' => 1500],
+            'Manœuvre'       => ['journalier' =>  4000, 'heure_sup' =>  1000],
+            'Électricien'    => ['journalier' => 7000, 'heure_sup' => 1500],
+            'Plombier'       => ['journalier' => 6000, 'heure_sup' => 1500],
+            'Carreleur'      => ['journalier' =>  5000, 'heure_sup' => 1500],
+            'Peintre'        => ['journalier' =>  5000, 'heure_sup' => 1500],
         ];
 
         foreach ([$chantier1, $chantier2] as $chantier) {

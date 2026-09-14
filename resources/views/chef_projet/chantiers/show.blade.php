@@ -15,7 +15,10 @@
                     'suspendu' => ['label' => 'Suspendu', 'class' => 'bg-red-100 text-red-500'],
                     'livre' => ['label' => 'Livré', 'class' => 'bg-[#1C9F93]/10 text-[#1C9F93]'],
                 ];
-                $config = $statutConfig[$chantier->statut];
+                $config = $statutConfig[$chantier->statut] ?? [
+                    'label' => $chantier->statut,
+                    'class' => 'bg-slate-100 text-slate-500',
+                ];
             @endphp
             <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $config['class'] }}">
                 {{ $config['label'] }}
@@ -66,7 +69,7 @@
                 {{ $chantier->taches->count() }}
             </p>
             <p class="text-xs text-slate-400 mt-1">
-                {{ $chantier->taches->where('statutTache', 'validee')->count() }} validée(s)
+                {{ $chantier->taches->where('statutTache', 'terminee')->count() }} validée(s)
             </p>
         </div>
         <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
@@ -86,7 +89,8 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 class="font-semibold text-[#0F172A]">Avancement par phase</h3>
-            <a href="{{ route('chef_projet.phases.index', $chantier) }}" class="text-xs text-[#1C9F93] font-semibold hover:underline">
+            <a href="{{ route('chef_projet.phases.index', $chantier) }}"
+                class="text-xs text-[#1C9F93] font-semibold hover:underline">
                 Gérer les phases →
             </a>
         </div>
@@ -157,7 +161,10 @@
                                             'class' => 'bg-[#1C9F93]/10 text-[#1C9F93]',
                                         ],
                                     ];
-                                    $pc = $phaseConfig[$phase->statutPhase];
+                                    $pc = $phaseConfig[$phase->statutPhase] ?? [
+                                        'label' => $phase->statutPhase,
+                                        'class' => 'bg-slate-100 text-slate-500',
+                                    ];
                                 @endphp
                                 <span
                                     class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full
@@ -180,12 +187,17 @@
                                         bg-slate-50 rounded-lg border border-slate-100">
                                     <div class="flex items-center gap-3 min-w-0">
                                         @php
+                                            // statutTache : en_attente | en_cours | terminee
+                                            // (confirmé par la migration create_taches_table).
                                             $tacheConfig = [
                                                 'en_attente' => ['icon' => '○', 'class' => 'text-slate-400'],
                                                 'en_cours' => ['icon' => '◑', 'class' => 'text-blue-500'],
                                                 'terminee' => ['icon' => '●', 'class' => 'text-[#1C9F93]'],
                                             ];
-                                            $tc = $tacheConfig[$tache->statutTache];
+                                            $tc = $tacheConfig[$tache->statutTache] ?? [
+                                                'icon' => '○',
+                                                'class' => 'text-slate-400',
+                                            ];
                                         @endphp
                                         <span class="text-lg {{ $tc['class'] }} flex-shrink-0">
                                             {{ $tc['icon'] }}
@@ -198,9 +210,12 @@
                                                 <span class="text-xs text-slate-400">
                                                     {{ $tache->type === 'gros_oeuvre' ? 'Gros œuvre' : 'Second œuvre' }}
                                                 </span>
-                                                @if ($tache->sous_traitant)
+                                                {{-- sous_traitant n'existe que sur Phase, pas sur
+                                                     Tache (confirmé par la migration create_taches_table) :
+                                                     $tache->sous_traitant était toujours null. --}}
+                                                @if ($phase->sous_traitant)
                                                     <span class="text-xs text-slate-400">
-                                                        · SS-traitant: {{ $tache->sous_traitant }}
+                                                        · SS-traitant: {{ $phase->sous_traitant }}
                                                     </span>
                                                 @endif
                                             </div>
@@ -285,7 +300,7 @@
                 @php
                     $enAttente = $chantier->taches->where('statutTache', 'en_attente')->count();
                     $enCours = $chantier->taches->where('statutTache', 'en_cours')->count();
-                    $validees = $chantier->taches->where('statutTache', 'validee')->count();
+                    $validees = $chantier->taches->where('statutTache', 'terminee')->count();
                     $total = $chantier->taches->count();
                 @endphp
 

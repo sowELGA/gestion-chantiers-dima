@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             TauxSalaireSeeder::class,
             TacheSeeder::class,
             ApprovisionnementSeeder::class,
+            PointageSeeder::class,
+            RecapHebdomadaireSeeder::class
         ]);
     }
 }

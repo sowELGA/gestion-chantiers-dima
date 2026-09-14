@@ -18,7 +18,9 @@ class ChantierService
         return Chantier::create([
             'nomChantier'     => $data['nomChantier'],
             'localisation'    => $data['localisation'],
-            'budget_prevu'    => $data['budget_prevu'],
+            // Budget optionnel à la création : un chantier peut être créé
+            // sans budget défini et complété plus tard via modifier().
+            'budget_prevu'    => $data['budget_prevu'] ?? null,
             'date_debut'      => $data['date_debut'],
             'date_fin_prevue' => $data['date_fin_prevue'],
             'statut'          => 'en_attente',
@@ -32,7 +34,7 @@ class ChantierService
         $chantier->update([
             'nomChantier'     => $data['nomChantier'],
             'localisation'    => $data['localisation'],
-            'budget_prevu'    => $data['budget_prevu'],
+            'budget_prevu'    => $data['budget_prevu'] ?? null,
             'date_debut'      => $data['date_debut'],
             'date_fin_prevue' => $data['date_fin_prevue'],
         ]);
@@ -59,13 +61,12 @@ class ChantierService
                 UserChantier::create([
                     'chantier_id'       => $chantier->id,
                     'user_id'           => $chefProjetId,
-                    'debut_affectation' => now(),
+                    'debut_affectation' => now()->toDateString(),
                     'fin_affectation'   => null,
                 ]);
             }
 
             $chantier->update(['chef_projet_id' => $chefProjetId]);
-            return $chantier->fresh();
         });
     }
 
@@ -78,13 +79,12 @@ class ChantierService
                 UserChantier::create([
                     'chantier_id'       => $chantier->id,
                     'user_id'           => $pointeurId,
-                    'debut_affectation' => now(),
+                    'debut_affectation' => now()->toDateString(),
                     'fin_affectation'   => null,
                 ]);
             }
 
             $chantier->update(['pointeur_id' => $pointeurId]);
-            return $chantier->fresh();
         });
     }
 
@@ -144,26 +144,36 @@ class ChantierService
         string $statutActuel,
         string $nouveauStatut
     ): void {
-        $transitions = [
-            'en_attente' => ['en_cours'],
-            'en_cours'   => ['suspendu', 'livre'],
-            'suspendu'   => ['en_cours'],
-            'livre'      => [],
-        ];
+        $transitions = Chantier::TRANSITIONS[$statutActuel] ?? [];
 
-        if (!in_array($nouveauStatut, $transitions[$statutActuel] ?? [])) {
+        if (!array_key_exists($nouveauStatut, $transitions)) {
             throw new \Exception(
                 "Transition invalide : '{$statutActuel}' → '{$nouveauStatut}'."
             );
         }
     }
 
-    // Vérifie que le chantier peut être supprimé
+    /**
+     * Vérifie que le chantier peut être supprimé. Deux conditions :
+     * - il doit être encore "en_attente" (règle métier existante) ;
+     * - il ne doit avoir AUCUNE dépense enregistrée. Rien n'empêche
+     *   d'ajouter une dépense à un chantier en_attente (DepenseChantierController
+     *   ne fait aucune vérification de statut), et depenses_chantiers.chantier_id
+     *   est en onDelete('restrict') : sans cette vérification, delete()
+     *   lèverait une QueryException (violation de contrainte FK) non
+     *   gérée au lieu d'un message d'erreur clair.
+     */
     private function verifierSupprimable(Chantier $chantier): void
     {
         if ($chantier->statut !== 'en_attente') {
             throw new \Exception(
                 'Impossible de supprimer un chantier qui n\'est plus en attente.'
+            );
+        }
+
+        if ($chantier->depenses()->exists()) {
+            throw new \Exception(
+                'Impossible de supprimer un chantier ayant des dépenses enregistrées.'
             );
         }
     }
@@ -191,12 +201,16 @@ class ChantierService
     /**
      * Clôture l'affectation en cours du rôle donné pour ce chantier
      * (fin_affectation = aujourd'hui) avant d'en créer une nouvelle.
+     * toDateString() plutôt que now() brut : debut_affectation/
+     * fin_affectation sont des colonnes "date" (pas "datetime") — insérer
+     * une date pure évite toute ambiguïté selon le driver de base de
+     * données (certains ne tronquent pas automatiquement l'heure).
      */
     private function cloturerAffectationEnCours(Chantier $chantier, string $role): void
     {
         $chantier->affectations()
             ->whereHas('user', fn($q) => $q->where('role', $role))
             ->whereNull('fin_affectation')
-            ->update(['fin_affectation' => now()]);
+            ->update(['fin_affectation' => now()->toDateString()]);
     }
 }

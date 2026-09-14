@@ -41,10 +41,19 @@ class PersonnelController extends Controller
 
         $personnel = $query->paginate(15)->withQueryString();
 
+        // Une seule requête au lieu de trois (total / actifs / inactifs)
+        // via une agrégation conditionnelle, portable quel que soit le
+        // driver de base de données.
+        $agregats = Ouvrier::selectRaw(
+            "COUNT(*) as total,
+             SUM(CASE WHEN statutOuvrier = 'actif' THEN 1 ELSE 0 END) as actifs,
+             SUM(CASE WHEN statutOuvrier = 'inactif' THEN 1 ELSE 0 END) as inactifs"
+        )->first();
+
         $stats = [
-            'total'    => Ouvrier::count(),
-            'actifs'   => Ouvrier::where('statutOuvrier', 'actif')->count(),
-            'inactifs' => Ouvrier::where('statutOuvrier', 'inactif')->count(),
+            'total'    => (int) $agregats->total,
+            'actifs'   => (int) $agregats->actifs,
+            'inactifs' => (int) $agregats->inactifs,
         ];
 
         $chantiers = Chantier::orderBy('nomChantier')->get();
@@ -94,30 +103,48 @@ class PersonnelController extends Controller
         );
     }
 
-    public function update(PersonnelRequest $request, Ouvrier $ouvrier)
+    /**
+     * NB : le paramètre s'appelle "$personnel" (et non "$ouvrier") car la
+     * route générée par Route::resource('personnel', ...) attend un
+     * segment {personnel}. Le binding implicite de Laravel fait
+     * correspondre le nom du paramètre de route au nom de l'argument ici
+     * — un nom différent (ex: $ouvrier) casse silencieusement le binding
+     * et update() devient un no-op (aucune erreur, mais rien n'est
+     * sauvegardé). Voir toggleStatut() plus bas pour le cas où la route a
+     * volontairement un nom de paramètre différent ({ouvrier}).
+     */
+    public function update(PersonnelRequest $request, Ouvrier $personnel)
     {
-        $this->personnelService->modifier($ouvrier, $request->validated());
+        $this->personnelService->modifier($personnel, $request->validated());
 
         return redirect()
             ->route('direction.personnel.index')
             ->with('success', 'Ouvrier mis à jour avec succès.');
     }
 
+    /**
+     * Route dédiée : Route::patch('personnel/{ouvrier}/toggle', ...) — le
+     * paramètre s'appelle bien "ouvrier" ici, donc $ouvrier est correct.
+     * On réutilise directement l'instance retournée par le service (déjà
+     * rafraîchie en interne) au lieu de rappeler fresh() sur la variable
+     * locale : plus robuste (aucune dépendance à un binding parfait) et
+     * évite une requête SQL supplémentaire inutile.
+     */
     public function toggleStatut(Ouvrier $ouvrier)
     {
-        $this->personnelService->toggleStatut($ouvrier);
+        $ouvrier = $this->personnelService->toggleStatut($ouvrier);
 
-        $message = $ouvrier->fresh()->statutOuvrier === 'actif'
+        $message = $ouvrier->statutOuvrier === 'actif'
             ? 'Ouvrier activé.'
             : 'Ouvrier désactivé.';
 
         return back()->with('success', $message);
     }
 
-    public function destroy(Ouvrier $ouvrier)
+    public function destroy(Ouvrier $personnel)
     {
         // Suppression uniquement si inactif
-        if ($ouvrier->statutOuvrier === 'actif') {
+        if ($personnel->statutOuvrier === 'actif') {
             return back()->with(
                 'error',
                 'Impossible de supprimer un ouvrier actif. '
@@ -125,8 +152,8 @@ class PersonnelController extends Controller
             );
         }
 
-        $nom = $ouvrier->nomOuvrier . ' ' . $ouvrier->prenomOuvrier;
-        $ouvrier->delete();
+        $nom = $personnel->nomOuvrier . ' ' . $personnel->prenomOuvrier;
+        $personnel->delete();
 
         return redirect()
             ->route('direction.personnel.index')

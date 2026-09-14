@@ -13,8 +13,7 @@
                 </h3>
             </div>
 
-            <form method="POST" action="{{ route('direction.chantiers.update', $chantier->id) }}"
-                class="p-6 space-y-5">
+            <form method="POST" action="{{ route('direction.chantiers.update', $chantier->id) }}" class="p-6 space-y-5">
                 @csrf @method('PUT')
 
                 {{-- Nom --}}
@@ -33,26 +32,27 @@
                     @enderror
                 </div>
 
-                {{-- Adresse --}}
+                {{-- Localisation --}}
                 <div>
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                        localisation <span class="text-red-500">*</span>
+                        Localisation <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="localisation" value="{{ old('localisation', $chantier->localisation) }}"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm
                               focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30
                               focus:border-[#1C9F93] transition-colors
-                              @error('adresse') border-red-400 bg-red-50
+                              @error('localisation') border-red-400 bg-red-50
                               @else border-slate-300 @enderror">
-                    @error('adresse')
+                    @error('localisation')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Budget --}}
+                {{-- Budget (optionnel) --}}
                 <div>
                     <label class="block text-sm font-medium text-[#0F172A] mb-1.5">
-                        Budget prévu (FCFA) <span class="text-red-500">*</span>
+                        Budget prévu (FCFA)
+                        <span class="text-slate-400 font-normal">(optionnel)</span>
                     </label>
                     <input type="number" name="budget_prevu" value="{{ old('budget_prevu', $chantier->budget_prevu) }}"
                         class="w-full px-4 py-2.5 border rounded-lg text-sm

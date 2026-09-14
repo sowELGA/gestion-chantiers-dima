@@ -22,9 +22,7 @@ Route::middleware(['auth', 'premiere_connexion', 'role:chef_projet'])
 
         // Gestion du Planning (Phases, Tâches & Gantt)
         Route::prefix('chantiers/{chantier}')->group(function () {
-            // Gantt
-            Route::get('/gantt', [TacheController::class, 'gantt'])->name('taches.gantt');
-
+            
             // Phases
             Route::prefix('phases')->name('phases.')->group(function () {
                 Route::get('/', [TacheController::class, 'indexPhases'])->name('index');

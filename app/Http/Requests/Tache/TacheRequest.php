@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests\Tache;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Phase;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TacheRequest extends FormRequest
 {
@@ -15,25 +16,30 @@ class TacheRequest extends FormRequest
     public function rules(): array
     {
         $phase = $this->route('phase');
+        $tache = $this->route('tache'); // null en création
 
         return [
-            'nomTache'            => 'required|string|max:255',
-            'date_debut_prevue'   => [
+            'nomTache'          => 'required|string|max:255',
+            'date_debut_prevue' => array_filter([
                 'required',
                 'date',
                 $phase?->date_debut
                     ? 'after_or_equal:' . $phase->date_debut->format('Y-m-d')
-                    : '',
-            ],
-            'date_fin_prevue'     => [
+                    : null,
+            ]),
+            'date_fin_prevue' => array_filter([
                 'required',
                 'date',
                 'after_or_equal:date_debut_prevue',
                 $phase?->date_fin_prevue
                     ? 'before_or_equal:' . $phase->date_fin_prevue->format('Y-m-d')
-                    : '',
+                    : null,
+            ]),
+            'tache_precedente_id' => [
+                'nullable',
+                Rule::exists('taches', 'id')->where('phase_id', $phase?->id),
+                $tache ? Rule::notIn([$tache->id]) : null,
             ],
-            'tache_precedente_id' => 'nullable|exists:taches,id',
         ];
     }
 
@@ -57,6 +63,8 @@ class TacheRequest extends FormRequest
                 . ($phase?->date_fin_prevue
                     ? ' (' . $phase->date_fin_prevue->format('d/m/Y') . ')'
                     : '') . '.',
+            'tache_precedente_id.exists'  => 'La tâche précédente sélectionnée est invalide.',
+            'tache_precedente_id.not_in'  => 'Une tâche ne peut pas être sa propre tâche précédente.',
         ];
     }
 }

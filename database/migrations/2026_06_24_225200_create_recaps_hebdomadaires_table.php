@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->integer('semaine');
             $table->integer('annee');
-            $table->integer('jours_presents')->default(0);
-            $table->integer('total_heures_sup')->default(0);
             $table->enum('statutRecap', [
                 'en_attente',
                 'soumise',

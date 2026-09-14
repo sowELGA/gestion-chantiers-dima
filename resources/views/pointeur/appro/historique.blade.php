@@ -67,7 +67,7 @@
                           {{ $dateDebut === $r['debut'] && $dateFin === $r['fin']
                               ? 'bg-[#1C9F93] text-white border-[#1C9F93]'
                               : 'border-slate-300 text-slate-500 hover:border-[#1C9F93]
-                                                                                    hover:text-[#1C9F93]' }}">
+                                                                                                              hover:text-[#1C9F93]' }}">
                         {{ $r['label'] }}
                     </a>
                 @endforeach
@@ -115,7 +115,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
             <svg class="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
-                             1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p class="text-slate-400 text-sm font-medium">
                 Aucun bon d'entrée sur cette période.
@@ -132,25 +132,28 @@
                 class="grid grid-cols-12 gap-2 px-6 py-3 bg-slate-50 border-b
                     border-slate-100 text-xs font-medium text-slate-500 uppercase
                     tracking-wide">
-                <div class="col-span-4">Désignation</div>
+                <div class="col-span-3">Désignation</div>
                 <div class="col-span-2 text-center">Date réception</div>
                 <div class="col-span-2 text-center">Reçu</div>
                 <div class="col-span-2 text-center">Restant</div>
+                <div class="col-span-1 text-center">Prévue</div>
                 <div class="col-span-2 text-right">Actions</div>
             </div>
 
             <div class="divide-y divide-slate-50">
                 @foreach ($bonsEntree as $bon)
-                    @php
-                        $totalRecu = $bon->demande->rapportsEntrees->sum('quantite_recue');
-                        $quantiteRestante = max(0, $bon->demande->quantite_demandee - $totalRecu);
-                    @endphp
+                    {{-- $bon->demande->rapportsEntrees est déjà chargée
+                         (with(['demande.rapportsEntrees', ...])) : l'accesseur
+                         quantite_restante la réutilise sans requête
+                         supplémentaire, au lieu de recalculer ici une 3e fois
+                         la même formule. --}}
+                    @php $quantiteRestante = $bon->demande->quantite_restante; @endphp
                     <div
                         class="grid grid-cols-12 gap-2 items-center px-6 py-4
                             hover:bg-slate-50 transition-colors">
 
                         {{-- Désignation --}}
-                        <div class="col-span-4">
+                        <div class="col-span-3">
                             <p class="text-sm font-semibold text-[#0F172A] truncate">
                                 {{ $bon->demande->designation }}
                             </p>
@@ -206,6 +209,17 @@
                             @endif
                         </div>
 
+                        {{-- Livraison prévue : lecture seule --}}
+                        <div class="col-span-1 text-center">
+                            @if ($bon->demande->date_livraison_prevue)
+                                <span class="text-xs text-slate-500">
+                                    {{ $bon->demande->date_livraison_prevue->format('d/m/y') }}
+                                </span>
+                            @else
+                                <span class="text-xs text-slate-300 italic">—</span>
+                            @endif
+                        </div>
+
                         {{-- Actions --}}
                         <div class="col-span-2 flex justify-end">
                             <a href="{{ route('pointeur.appro.bon-entree-pdf', $bon->id) }}"
@@ -214,8 +228,8 @@
                                   hover:bg-[#1C9F93]/10 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2
-                                                 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1
-                                                 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                     2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1
+                                                     0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                                 PDF
                             </a>

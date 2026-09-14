@@ -23,8 +23,8 @@
                   font-medium rounded-lg hover:bg-[#178a7f] transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0
-                                 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0
-                                 01.293.707V19a2 2 0 01-2 2z" />
+                                     012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0
+                                     01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Télécharger le bon d'entrée PDF
             </a>
@@ -43,8 +43,11 @@
         <div class="space-y-4">
             @foreach ($livraisons as $demande)
                 @php
-                    $totalRecu = $demande->rapportsEntrees->sum('quantite_recue');
-                    $quantiteRestante = max(0, $demande->quantite_demandee - $totalRecu);
+                    // Réutilise l'accesseur du modèle (lui-même délégué à
+                    // ApprovisionnementHelper) plutôt que de recalculer ici —
+                    // troisième implémentation du même calcul auparavant.
+                    $totalRecu = $demande->quantite_demandee - $demande->quantite_restante;
+                    $quantiteRestante = $demande->quantite_restante;
                     $pct =
                         $demande->quantite_demandee > 0 ? round(($totalRecu / $demande->quantite_demandee) * 100) : 0;
                 @endphp
@@ -71,6 +74,20 @@
                                             </span>
                                         @endif
                                     </div>
+
+                                    {{-- Livraison prévue : lecture seule, définie
+                                         uniquement par la direction. --}}
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Livraison prévue :
+                                        @if ($demande->date_livraison_prevue)
+                                            <strong
+                                                class="{{ $demande->date_livraison_prevue->lt(today()) ? 'text-red-500' : 'text-[#0F172A]' }}">
+                                                {{ $demande->date_livraison_prevue->format('d/m/Y') }}
+                                            </strong>
+                                        @else
+                                            <span class="italic text-slate-400">non définie</span>
+                                        @endif
+                                    </p>
 
                                     {{-- Progression --}}
                                     <div class="mt-2">
@@ -180,9 +197,9 @@
                                             class="text-[#1C9F93] hover:underline flex items-center gap-1">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0
-                                                             01-2-2V5a2 2 0 012-2h5.586a1 1 0
-                                                             01.707.293l5.414 5.414a1 1 0
-                                                             01.293.707V19a2 2 0 01-2 2z" />
+                                                                 01-2-2V5a2 2 0 012-2h5.586a1 1 0
+                                                                 01.707.293l5.414 5.414a1 1 0
+                                                                 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Bon d'entrée
                                         </a>

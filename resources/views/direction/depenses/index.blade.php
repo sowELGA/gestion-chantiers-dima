@@ -39,10 +39,13 @@
                             'bg-slate-50 text-slate-700 border-slate-200',
                         ];
 
+                        // budget_prevu est optionnel : sans budget défini, un
+                        // pourcentage n'a pas de sens (ni 0%, qui laisserait
+                        // croire que le budget est tenu).
                         $pct =
                             $chantier->budget_prevu > 0
                                 ? round(($chantier->depenses_sum_montant / $chantier->budget_prevu) * 100)
-                                : 0;
+                                : null;
                     @endphp
 
                     <a href="{{ route('direction.depenses.show', $chantier->id) }}"
@@ -92,15 +95,21 @@
                             <div class="pt-2 border-t border-slate-100">
                                 <div class="flex justify-between text-xs text-slate-500 mb-1.5">
                                     <span>Budget consommé</span>
-                                    <span class="font-semibold {{ $pct > 90 ? 'text-red-500' : 'text-[#0F172A]' }}">
-                                        {{ $pct }}%
-                                    </span>
+                                    @if ($pct !== null)
+                                        <span class="font-semibold {{ $pct > 90 ? 'text-red-500' : 'text-[#0F172A]' }}">
+                                            {{ $pct }}%
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 italic">Budget non défini</span>
+                                    @endif
                                 </div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div class="h-1.5 rounded-full transition-all {{ $pct > 90 ? 'bg-red-500' : ($pct > 70 ? 'bg-amber-500' : 'bg-[#1C9F93]') }}"
-                                        style="width: {{ min(100, $pct) }}%">
+                                @if ($pct !== null)
+                                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                        <div class="h-1.5 rounded-full transition-all {{ $pct > 90 ? 'bg-red-500' : ($pct > 70 ? 'bg-amber-500' : 'bg-[#1C9F93]') }}"
+                                            style="width: {{ min(100, $pct) }}%">
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
                             </div>
 
                             {{-- Total Dépensé --}}

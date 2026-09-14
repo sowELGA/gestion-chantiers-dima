@@ -8,11 +8,15 @@ class RecapHebdomadaire extends Model
 {
     protected $table = 'recaps_hebdomadaires';
 
+    /**
+     * Le récap ne porte QUE le workflow (statut, rejet, validation).
+     * Les données chiffrées (jours présents, heures sup, salaire) ne sont
+     * jamais stockées ici : elles sont toujours recalculées à la volée
+     * depuis les pointages via PointageHelper::calculerSalaireOuvrier().
+     */
     protected $fillable = [
         'semaine',
         'annee',
-        'jours_presents',
-        'total_heures_sup',
         'statutRecap',
         'motif_rejet',
         'valide_le',
@@ -23,8 +27,7 @@ class RecapHebdomadaire extends Model
     ];
 
     protected $casts = [
-        'valide_le'        => 'datetime',
-        'total_heures_sup' => 'decimal:1',
+        'valide_le' => 'datetime',
     ];
 
     public function ouvrier()

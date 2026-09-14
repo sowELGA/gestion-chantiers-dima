@@ -328,7 +328,7 @@
         </div>
         <div class="info-cell">
             <div class="info-label">Effectif</div>
-            <div class="info-value">{{ $recaps->flatten()->count() }} ouvrier(s)</div>
+            <div class="info-value">{{ $groupes->flatten()->count() }} ouvrier(s)</div>
         </div>
         <div class="info-cell" style="padding-right:0;">
             <div class="info-label">Édité le</div>
@@ -337,9 +337,16 @@
     </div>
 
     @php
-        $samedi = \Carbon\Carbon::now()->setISODate($annee, $semaine)->startOfWeek()->subDays(2);
+        // $samedi vient du contrôleur (SemaineHelper::debutDepuisNumero) :
+        // c'est la même date de référence utilisée pour filtrer les
+// pointages. On ne la recalcule PAS ici pour éviter tout risque de
+// décalage avec le reste de l'application.
         $joursDates = collect(range(0, 6))->map(fn($i) => $samedi->copy()->addDays($i));
 
+        // NB : 'maladie' n'existe pas dans l'enum statutPointage
+        // (present|absent uniquement) — conservé pour compatibilité future
+        // si ce statut est ajouté un jour, mais ne peut pas se produire
+        // actuellement.
         $statutMap = [
             'present' => 'P',
             'absent' => 'A',
@@ -348,7 +355,7 @@
     @endphp
 
     {{-- GROUPEMENT PAR MÉTIER REGROUPÉ (Ex: Maçon) --}}
-    @foreach ($recaps as $groupeLibelle => $lignes)
+    @foreach ($groupes as $groupeLibelle => $lignes)
         <div class="section-title">
             {{ $groupeLibelle }} ({{ $lignes->count() }})
         </div>
@@ -375,21 +382,19 @@
             <tbody>
                 @foreach ($lignes as $recap)
                     @php
-                        $pointagesOuvrier = \App\Models\Pointage::where('ouvrier_id', $recap->ouvrier_id)
-                            ->where('chantier_id', $recap->chantier_id)
-                            ->whereBetween('date', [
-                                $samedi->toDateString(),
-                                $samedi->copy()->addDays(6)->toDateString(),
-                            ])
-                            ->get()
-                            ->keyBy(fn($p) => \Carbon\Carbon::parse($p->date)->toDateString());
+                        // Détail jour par jour déjà chargé côté contrôleur
+                        // (PdfService::genererFichePaie) — aucune requête
+                        // Pointage ici, dans la boucle.
+                        $pointagesOuvrier = $recap->pointagesParJour;
                     @endphp
                     <tr>
                         <td class="td-left">{{ $recap->ouvrier->nomComplet }}</td>
 
-                        {{-- Affiche le rôle exact : Chef Maçon / Maçon --}}
+                        {{-- Poste ENREGISTRÉ LORS DU POINTAGE (jamais le
+                             poste actuel de l'ouvrier, qui a pu changer
+                             depuis). Attaché dynamiquement dans PdfService. --}}
                         <td class="td-left" style="color: #475569; font-weight: normal;">
-                            {{ $recap->ouvrier?->poste?->libelle ?? '—' }}
+                            {{ $recap->poste?->libelle ?? '—' }}
                         </td>
 
                         {{-- 7 Jours de pointage --}}
@@ -443,7 +448,7 @@
     <div class="total-general-container">
         <div class="total-general">
             <div class="total-label">
-                TOTAL GÉNÉRAL À PAYER — S{{ $semaine }}/{{ $annee }} ({{ $recaps->flatten()->count() }}
+                TOTAL GÉNÉRAL À PAYER — S{{ $semaine }}/{{ $annee }} ({{ $groupes->flatten()->count() }}
                 ouvriers)
             </div>
             <div class="total-amount">
@@ -470,7 +475,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-lbl">Le Pointeur</div>
                 <div class="sig-name">
-                    {{ optional($recaps->flatten()->first()?->soumisParUser)->nomComplet ?? '—' }}
+                    {{ optional($groupes->flatten()->first()?->soumisParUser)->nomComplet ?? '—' }}
                 </div>
             </div>
         </div>
@@ -479,7 +484,7 @@
                 <div class="sig-line"></div>
                 <div class="sig-lbl">Le Chef de projet</div>
                 <div class="sig-name">
-                    {{ optional($recaps->flatten()->first()?->valideParUser)->nomComplet ?? '—' }}
+                    {{ optional($groupes->flatten()->first()?->valideParUser)->nomComplet ?? '—' }}
                 </div>
             </div>
         </div>

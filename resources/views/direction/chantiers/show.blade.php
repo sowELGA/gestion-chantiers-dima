@@ -52,14 +52,11 @@
 
                         <div x-show="open" @click.outside="open = false" x-transition
                             class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-20 overflow-hidden">
-                            @php
-                                $transitionsAutorisees = [
-                                    'en_attente' => ['en_cours' => 'Démarrer le chantier'],
-                                    'en_cours' => ['suspendu' => 'Suspendre', 'livre' => 'Marquer comme livré'],
-                                    'suspendu' => ['en_cours' => 'Reprendre le chantier'],
-                                ];
-                                $options = $transitionsAutorisees[$chantier->statut] ?? [];
-                            @endphp
+                            {{-- Transitions centralisées dans Chantier::TRANSITIONS,
+                                 réutilisées telles quelles par ChantierService : le
+                                 menu ne peut jamais proposer une action que le
+                                 serveur rejetterait. --}}
+                            @php $options = $chantier->transitionsDisponibles(); @endphp
 
                             @forelse($options as $statut => $label)
                                 <form method="POST"
@@ -96,9 +93,17 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
                 <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Budget Prévu</span>
                 <div class="mt-3">
-                    <span
-                        class="text-2xl font-bold text-slate-900">{{ number_format($chantier->budget_prevu, 0, ',', ' ') }}</span>
-                    <span class="text-xs font-medium text-slate-400 ml-1">FCFA</span>
+                    @if ($chantier->budget_prevu !== null)
+                        <span
+                            class="text-2xl font-bold text-slate-900">{{ number_format($chantier->budget_prevu, 0, ',', ' ') }}</span>
+                        <span class="text-xs font-medium text-slate-400 ml-1">FCFA</span>
+                    @else
+                        <span class="text-lg font-semibold text-slate-400 italic">Non défini</span>
+                        <a href="{{ route('direction.chantiers.edit', $chantier->id) }}"
+                            class="block text-xs text-[#1C9F93] hover:underline mt-1">
+                            Renseigner un budget
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -106,26 +111,35 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Budget Consommé</span>
-                    <span
-                        class="text-xs font-bold {{ $chantier->pourcentage_budget > 90 ? 'text-rose-600' : 'text-slate-600' }}">
-                        {{ $chantier->pourcentage_budget }}%
-                    </span>
+                    @if ($chantier->pourcentage_budget !== null)
+                        <span
+                            class="text-xs font-bold {{ $chantier->pourcentage_budget > 90 ? 'text-rose-600' : 'text-slate-600' }}">
+                            {{ $chantier->pourcentage_budget }}%
+                        </span>
+                    @endif
                 </div>
                 <div class="mt-3">
                     <div
-                        class="text-2xl font-bold {{ $chantier->pourcentage_budget > 90 ? 'text-rose-600' : 'text-slate-900' }}">
+                        class="text-2xl font-bold {{ $chantier->pourcentage_budget !== null && $chantier->pourcentage_budget > 90 ? 'text-rose-600' : 'text-slate-900' }}">
                         {{ number_format($chantier->budget_consomme, 0, ',', ' ') }} <span
                             class="text-xs font-medium text-slate-400">FCFA</span>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
-                        <div class="h-2 rounded-full transition-all duration-300 {{ $chantier->pourcentage_budget > 90 ? 'bg-rose-500' : ($chantier->pourcentage_budget > 70 ? 'bg-amber-500' : 'bg-[#1C9F93]') }}"
-                            style="width: {{ min(100, $chantier->pourcentage_budget) }}%"></div>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-2">
-                        Reste : <span
-                            class="font-semibold text-slate-700">{{ number_format($chantier->budget_restant, 0, ',', ' ') }}
-                            FCFA</span>
-                    </p>
+
+                    @if ($chantier->pourcentage_budget !== null)
+                        <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                            <div class="h-2 rounded-full transition-all duration-300 {{ $chantier->pourcentage_budget > 90 ? 'bg-rose-500' : ($chantier->pourcentage_budget > 70 ? 'bg-amber-500' : 'bg-[#1C9F93]') }}"
+                                style="width: {{ min(100, $chantier->pourcentage_budget) }}%"></div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2">
+                            Reste : <span
+                                class="font-semibold text-slate-700">{{ number_format($chantier->budget_restant, 0, ',', ' ') }}
+                                FCFA</span>
+                        </p>
+                    @else
+                        <p class="text-xs text-slate-400 italic mt-2">
+                            Définissez un budget pour suivre la consommation.
+                        </p>
+                    @endif
                 </div>
             </div>
 
@@ -229,6 +243,8 @@
                                             class="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 shadow-2xs">
                                             <div class="flex items-center gap-2.5 min-w-0">
                                                 @php
+                                                    // statutTache : en_attente | en_cours | terminee
+                                                    // (confirmé par la migration create_taches_table).
                                                     $colors = [
                                                         'en_attente' => 'bg-slate-300',
                                                         'en_cours' => 'bg-blue-500',
